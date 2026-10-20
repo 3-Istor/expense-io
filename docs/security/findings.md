@@ -82,3 +82,13 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Preuve** : T13 (`manager_id` passé à `null` après un corps `{ pas du json`).
 - **Correctif** : corps validé strictement, 400 sinon (nouveau code : ADR 0002, statut proposé, à valider).
 - **Statut** : corrigé, T13 vert sans marquage, test de contrat 400 ajouté.
+
+## SEC-01 — Injection SQL par le paramètre `sort`
+
+- **CWE** : CWE-89 · **API Top 10** : API8:2023 Security Misconfiguration (injection)
+- **CVSS v4.0** : 7.1 élevée — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T14, tri booléen sur une sous-requête arbitraire accepté (200) : chaque réponse révèle un bit d'une
+  donnée quelconque de la base (injection aveugle). Semgrep `sql-fragment-concatene`.
+- **Correctif** : liste fermée de tris, chacun lié à une requête constante ; autre valeur → 400 avant la base
+  (nouveau code : ADR 0003, statut proposé, à valider). Tests de contrat ajoutés : tri valide appliqué, tris refusés.
+- **Statut** : corrigé, T14 vert sans marquage ; Semgrep 3 → 2.

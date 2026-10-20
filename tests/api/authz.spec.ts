@@ -198,7 +198,6 @@ test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le ma
 })
 
 test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris', async () => {
-  knownFlaw('SEC-01', 'sort est concaténé dans la requête SQL (CWE-89)')
   // Tri booléen : la réponse dépend d'une sous-requête arbitraire, donc d'une donnée qu'on ne devrait pas lire.
   const injected = "(CASE WHEN (SELECT count(*) FROM users) > 0 THEN amount ELSE 0 END)"
   const res = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent(injected)}`)

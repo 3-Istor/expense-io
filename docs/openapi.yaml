@@ -38,14 +38,17 @@ paths:
         - name: sort
           in: query
           required: false
-          description: Tri. Par défaut `created_at DESC`. Faille connue SEC-01 (fragment SQL concaténé).
-          schema: { type: string }
+          description: >-
+            Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount,
+            expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003).
+          schema: { type: string, examples: ['amount DESC'] }
       responses:
         '200':
           description: Notes de l'appelant
           content:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/ExpenseNote' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/InternalError' }
     post:

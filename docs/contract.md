@@ -8,7 +8,7 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 
 | Méthode et chemin | Rôle | Entrée | Succès | Erreurs |
 | --- | --- | --- | --- | --- |
-| `GET /api/expense-notes` | connecté | query `sort` (facultatif) | 200, notes de l'appelant | 401 |
+| `GET /api/expense-notes` | connecté | query `sort` (facultatif, liste fermée) | 200, notes de l'appelant | 400 (ADR 0003), 401 |
 | `POST /api/expense-notes` | connecté | multipart `amount`, `expenseDate`, `description`, `receipt` (png, jpg, webp, pdf, ≤ 10 Mo) | 201, la note | 400, 401 |
 | `GET /api/expense-notes/{id}/receipt-url` | propriétaire | — | 200 `{url}` | 401, 404 |
 | `POST /api/expense-notes/receipt-suggestion` | connecté | multipart `receipt` | 200 `{amount?, expenseDate?}` | 400, 401 |

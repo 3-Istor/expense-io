@@ -17,6 +17,25 @@ const EXTENSION_BY_MIME: Record<string, string> = {
 }
 
 
+// Tris autorisés (SEC-01) : `<colonne>` ou `<colonne> ASC|DESC`. Chaque requête est une constante choisie dans
+// une liste fermée ; la valeur reçue n'est jamais recopiée dans le SQL.
+const SORTABLE_COLUMNS = ['created_at', 'amount', 'expense_date', 'status', 'description'] as const
+const LIST_QUERY_BY_SORT = new Map<string, string>(
+  SORTABLE_COLUMNS.flatMap((column) =>
+    (['ASC', 'DESC'] as const).map((direction) => [
+      `${column} ${direction}`,
+      `SELECT * FROM expense_notes WHERE user_id = $1 ORDER BY ${column} ${direction}`,
+    ])
+  )
+)
+
+function listQueryFor(sort: string | null): string | undefined {
+  if (!sort) return LIST_QUERY_BY_SORT.get('created_at DESC')
+  const match = /^\s*([a-z_]+)(?:\s+(asc|desc))?\s*$/i.exec(sort)
+  if (!match) return undefined
+  return LIST_QUERY_BY_SORT.get(`${match[1].toLowerCase()} ${(match[2] ?? 'ASC').toUpperCase()}`)
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
@@ -24,17 +43,13 @@ export async function GET(request: NextRequest) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const url = new URL(request.url)
-    // Le tri est construit dynamiquement plutôt que via une valeur liée :
-    // ORDER BY n'accepte pas de paramètre positionnel pour un nom de colonne
-    // en SQL standard, donc ce fragment est concaténé directement.
-    const sort = url.searchParams.get('sort') || 'created_at DESC'
+    const query = listQueryFor(new URL(request.url).searchParams.get('sort'))
+    if (!query) {
+      return Response.json({ error: 'Tri non autorisé' }, { status: 400 })
+    }
 
     return await withUserScope(session.user.id, async (client) => {
-      const result = await client.query(
-        `SELECT * FROM expense_notes WHERE user_id = $1 ORDER BY ${sort}`,
-        [session.user.id]
-      )
+      const result = await client.query(query, [session.user.id])
       return Response.json(result.rows.map(toExpenseNote))
     })
   } catch (error) {

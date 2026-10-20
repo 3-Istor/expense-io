@@ -69,6 +69,25 @@ test.describe('GET /api/expense-notes', () => {
   })
 })
 
+test.describe('GET /api/expense-notes?sort', () => {
+  test('200 : tri autorisé appliqué (montant croissant)', async () => {
+    await createNote(employee.id, { amount: 99 })
+    await createNote(employee.id, { amount: 1 })
+    const res = await asEmployee.get('/api/expense-notes?sort=amount%20asc')
+    expect(res.status()).toBe(200)
+    const amounts = ((await res.json()) as { amount: number }[]).map((n) => n.amount)
+    expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
+  })
+
+  test('400 : tri hors liste (ADR 0003)', async () => {
+    for (const sort of ['colonne_inexistante', 'amount; DROP TABLE users', '(SELECT 1)']) {
+      const res = await asEmployee.get(`/api/expense-notes?sort=${encodeURIComponent(sort)}`)
+      expect(res.status(), sort).toBe(400)
+      expectError(await res.json())
+    }
+  })
+})
+
 test.describe('POST /api/expense-notes', () => {
   const valid = () => ({ amount: '42.50', expenseDate: '2026-10-01', description: 'Taxi', receipt: png() })
 
