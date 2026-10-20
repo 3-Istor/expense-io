@@ -68,31 +68,48 @@ jobs:
           pip install "semgrep==${SEMGREP_VERSION}"
           gitleaks version && semgrep --version
 
-      - run: npm ci
+      - name: Dépendances
+        id: deps
+        run: npm ci
       - name: Base et stockage de test
         run: |
           npx node-pg-migrate up -m migrations
           node scripts/ensure-bucket.mjs
 
       - name: Moulinette (niveau pr)
+        id: verify
         run: npm run verify -- --level pr
-      - name: Résumé de la moulinette
-        if: always()
-        run: cat verify-summary.md >> "$GITHUB_STEP_SUMMARY"
+      # Le verdict devient des annotations GitHub : lisibles dans la PR ET par l'API (un agent n'a pas toujours
+      # accès aux logs bruts).
+      - name: Verdict de la moulinette
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: |
+          cat verify-summary.md >> "$GITHUB_STEP_SUMMARY"
+          node -e '
+            const r = require("./verify-report.json");
+            for (const c of r.results) {
+              const kind = c.status === "fail" ? "error" : c.status === "warn" ? "warning" : c.status === "skip" ? "notice" : null;
+              if (kind) console.log(`::${kind} title=${c.id} ${c.title}::${c.summary.replace(/\n/g, " ")}`);
+            }'
 
+      # Les tests tournent même si la moulinette échoue : on veut tous les signaux en un seul run.
       - name: Tests unitaires
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: npm test
       - name: Tests d'API (contrat, autorisations)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: npm run test:api
 
       # Informatif tant que les dépendances vulnérables connues ne sont pas montées (Renovate, label risque-3).
       - name: Dépendances vulnérables (OSV-Scanner)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         continue-on-error: true
         run: |
           curl -sSfL -o osv-scanner "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
           chmod +x osv-scanner && ./osv-scanner scan source --lockfile package-lock.json
       # Informatif : règles publiques du registre Semgrep, en plus des règles maison (bloquantes via S6).
       - name: Semgrep, règles du registre
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         continue-on-error: true
         run: semgrep scan --config p/typescript --config p/owasp-top-ten src --metrics=off
 

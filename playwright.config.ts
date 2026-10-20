@@ -8,7 +8,8 @@ const baseURL = process.env.API_BASE_URL ?? 'http://localhost:3000'
 export default defineConfig({
   testDir: 'tests/api',
   fullyParallel: false,
-  reporter: [['list']],
+  // En CI, le reporter github transforme chaque échec en annotation sur la PR.
+  reporter: process.env.CI ? [['list'], ['github']] : [['list']],
   use: { baseURL },
   webServer: process.env.API_BASE_URL
     ? undefined
