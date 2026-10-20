@@ -1,5 +1,6 @@
 // Adaptateur HTTP commun aux routes : appelant courant, traduction des erreurs, formats JSON du contrat.
 import { respondError } from '@/lib/errors'
+import type { ExpenseNoteJson } from '@/contract/schemas'
 import { AppError, type AppErrorKind } from './app-error'
 
 /**
@@ -38,7 +39,7 @@ export function noteJson(note: {
   receiptKey: string
   status: string
   createdAt: Date
-}) {
+}): ExpenseNoteJson {
   return {
     id: note.id,
     userId: note.userId,
@@ -46,7 +47,7 @@ export function noteJson(note: {
     expenseDate: note.expenseDate,
     description: note.description,
     receiptKey: note.receiptKey,
-    status: note.status,
+    status: note.status as ExpenseNoteJson['status'],
     createdAt: note.createdAt.toISOString(),
   }
 }

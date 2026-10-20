@@ -1,6 +1,6 @@
 # 0001 — Le contrat d'API est déclaré dans le code, l'OpenAPI en est généré
 
-- Statut : accepté (2026-10-20), mise en œuvre en phase 3
+- Statut : accepté (2026-10-20), mis en œuvre le 2026-10-20 (tâche 3.6)
 - Niveau de risque : 2
 
 ## Contexte
@@ -26,3 +26,15 @@ la version générée en phase 3 est identique.
 
 Contrôles S7 de la moulinette : spec à jour (régénération + `git diff`), spec valide (Redocly), conventions (Spectral),
 rétrocompatibilité (oasdiff), version cohérente avec le type de changement, réponses réelles conformes au schéma.
+
+## Mise en œuvre (tâche 3.6)
+
+- Source : `src/contract/schemas.ts` (Zod 4) et `src/contract/operations.ts` (les 14 opérations).
+- Génération : `npm run contract:generate` (`scripts/generate-openapi.ts`, @asteasolutions/zod-to-openapi) écrit
+  `docs/openapi.yaml`. Le contrôle S5 de la moulinette échoue si le fichier commité diffère du fichier généré.
+- Liaison au code : la sortie JSON des routes est typée par les schémas (`ExpenseNoteJson`, `UserJson`) ; un écart de
+  forme casse la compilation.
+- Équivalence vérifiée : comparaison résolue de la spec écrite à la main (phase 1) et de la spec générée, sur
+  87 éléments (opérations, codes, schémas de réponse, paramètres), sans différence ; le comparateur détecte une
+  mutation volontaire (8 différences).
+- Reste à faire : diff de rétrocompatibilité entre versions (oasdiff) en CI.

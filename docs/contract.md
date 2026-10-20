@@ -2,7 +2,8 @@
 
 Relevé sur le commit `265924b`, confirmé par les tests de caractérisation `tests/api/contract.spec.ts` (tâche 1.3) :
 codes HTTP et clés JSON exactes de chaque endpoint.
-Version machine : `docs/openapi.yaml` (OpenAPI 3.1), contre laquelle chaque réponse de ces tests est validée.
+Version machine : `docs/openapi.yaml` (OpenAPI 3.1), **générée** depuis `src/contract` (ADR 0001) ; chaque réponse de ces
+tests est validée contre elle.
 Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `500 {error, errorId}`, message
 générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error` est conservé).
 

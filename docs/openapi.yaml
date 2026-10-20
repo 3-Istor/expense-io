@@ -1,14 +1,12 @@
+# Fichier généré par scripts/generate-openapi.ts depuis src/contract : ne pas modifier à la main.
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 0.1.0
-  summary: Contrat ACTUEL (gelé) de l'API de notes de frais.
+  version: 0.2.0
   description: |
-    Décrit l'existant à l'identique (commit d'origine `265924b`), y compris ses défauts : codes 401/403
-    hétérogènes, champ `stack` dans les erreurs 500. Chaque réponse des tests de caractérisation
-    (`tests/api/contract.spec.ts`) est validée contre ce document.
-    Toute modification qui retire un champ, change un code HTTP ou une valeur d'enum exige un ADR
-    (voir `docs/contract.md`). En phase 3, ce fichier sera généré depuis le code (ADR 0001).
+    Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
+    Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.
+    Retirer un champ, changer un code HTTP ou une valeur d'enum exige un ADR (`docs/contract.md`).
   contact:
     name: Équipe 3-Istor
     url: https://github.com/3-Istor/expense-io
@@ -27,32 +25,170 @@ tags:
     description: Validation par le manager direct
   - name: hr
     description: Validation des managers racine et annuaire RH
-
+components:
+  securitySchemes:
+    session:
+      type: apiKey
+      in: cookie
+      name: authjs.session-token
+      description: Session Auth.js (JWT chiffré), obtenue par /api/auth/callback/credentials.
+  schemas:
+    ExpenseNote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          exclusiveMinimum: 0
+        expenseDate:
+          type: string
+          format: date
+        description:
+          type: string
+        receiptKey:
+          type: string
+          description: "Clé de stockage du reçu (prévisible : faille SEC-13)"
+        status:
+          $ref: "#/components/schemas/ExpenseNoteStatus"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - amount
+        - expenseDate
+        - description
+        - receiptKey
+        - status
+        - createdAt
+      additionalProperties: false
+    ExpenseNoteStatus:
+      type: string
+      enum:
+        - pending
+        - approved
+        - rejected
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      additionalProperties: false
+    InternalError:
+      type: object
+      properties:
+        error:
+          type: string
+        errorId:
+          type: string
+          format: uuid
+          description: Identifiant de l'erreur dans les journaux
+      required:
+        - error
+      additionalProperties: false
+      description: Message générique ; le détail reste dans les journaux du serveur (SEC-07).
+    ReceiptUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required:
+        - url
+      additionalProperties: false
+    ReceiptSuggestion:
+      type: object
+      properties:
+        amount:
+          type: number
+        expenseDate:
+          type: string
+          format: date
+      additionalProperties: false
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - employee
+            - manager
+            - hr_admin
+        managerId:
+          type:
+            - string
+            - "null"
+          format: uuid
+      required:
+        - id
+        - name
+        - email
+        - role
+        - managerId
+      additionalProperties: false
+  parameters: {}
 paths:
   /api/expense-notes:
     get:
-      tags: [notes]
+      tags:
+        - notes
       operationId: listMyExpenseNotes
       summary: Liste les notes de l'appelant
       parameters:
-        - name: sort
-          in: query
+        - schema:
+            type: string
+            description: "Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003)."
+            example: amount DESC
           required: false
-          description: >-
-            Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount,
-            expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003).
-          schema: { type: string, examples: ['amount DESC'] }
+          description: "Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003)."
+          name: sort
+          in: query
       responses:
-        '200':
+        "200":
           description: Notes de l'appelant
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/ExpenseNote' } }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '500': { $ref: '#/components/responses/InternalError' }
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseNote"
+        "400":
+          description: Champs invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
     post:
-      tags: [notes]
+      tags:
+        - notes
       operationId: createExpenseNote
       summary: Crée une note avec son reçu
       requestBody:
@@ -61,40 +197,92 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [amount, expenseDate, description, receipt]
               properties:
-                amount: { type: string, description: Nombre strictement positif }
-                expenseDate: { type: string, description: 'Date AAAA-MM-JJ' }
-                description: { type: string, minLength: 1 }
+                amount:
+                  type: string
+                  description: Nombre strictement positif
+                expenseDate:
+                  type: string
+                  description: Date AAAA-MM-JJ
+                description:
+                  type: string
+                  minLength: 1
                 receipt:
                   type: string
                   contentMediaType: application/octet-stream
                   description: png, jpeg, webp ou pdf, 10 Mo au plus
+              required:
+                - amount
+                - expenseDate
+                - description
+                - receipt
       responses:
-        '201':
+        "201":
           description: Note créée, en attente
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ExpenseNote' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "400":
+          description: Champs invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/expense-notes/{id}/receipt-url:
     get:
-      tags: [notes]
+      tags:
+        - notes
       operationId: getMyReceiptUrl
       summary: URL signée du reçu d'une de ses notes
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/ReceiptUrl' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: URL signée, valable 5 minutes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptUrl"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/expense-notes/receipt-suggestion:
     post:
-      tags: [notes]
+      tags:
+        - notes
       operationId: suggestFromReceipt
       summary: Suggère montant et date à partir du reçu (OCR)
       requestBody:
@@ -103,147 +291,383 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [receipt]
               properties:
-                receipt: { type: string, contentMediaType: application/octet-stream }
+                receipt:
+                  type: string
+                  contentMediaType: application/octet-stream
+              required:
+                - receipt
       responses:
-        '200':
+        "200":
           description: Suggestion, éventuellement vide
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ReceiptSuggestion' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+              schema:
+                $ref: "#/components/schemas/ReceiptSuggestion"
+        "400":
+          description: Champs invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/manager/expense-notes:
     get:
-      tags: [manager]
+      tags:
+        - manager
       operationId: listTeamPendingNotes
       summary: Notes en attente des subordonnés directs
       responses:
-        '200':
+        "200":
           description: Notes en attente, plus anciennes d'abord
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/ExpenseNote' } }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseNote"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/manager/expense-notes/{id}/approve:
     post:
-      tags: [manager]
+      tags:
+        - manager
       operationId: managerApproveNote
       summary: Approuve la note d'un subordonné
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/Note' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Note déjà décidée, ou manager invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/manager/expense-notes/{id}/reject:
     post:
-      tags: [manager]
+      tags:
+        - manager
       operationId: managerRejectNote
       summary: Rejette la note d'un subordonné
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/Note' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Note déjà décidée, ou manager invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/manager/expense-notes/{id}/receipt-url:
     get:
-      tags: [manager]
+      tags:
+        - manager
       operationId: managerGetReceiptUrl
       summary: URL signée du reçu d'une note d'un subordonné
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/ReceiptUrl' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: URL signée, valable 5 minutes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptUrl"
+        "401":
+          description: Pas de session, ou rôle insuffisant pour les routes manager
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/expense-notes:
     get:
-      tags: [hr]
+      tags:
+        - hr
       operationId: listRootManagerPendingNotes
       summary: Notes en attente des managers racine de l'entreprise
       responses:
-        '200':
+        "200":
           description: Notes en attente, plus anciennes d'abord
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/ExpenseNote' } }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseNote"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/expense-notes/{id}/approve:
     post:
-      tags: [hr]
+      tags:
+        - hr
       operationId: hrApproveNote
       summary: Approuve la note d'un manager racine
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/Note' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Note déjà décidée, ou manager invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/expense-notes/{id}/reject:
     post:
-      tags: [hr]
+      tags:
+        - hr
       operationId: hrRejectNote
       summary: Rejette la note d'un manager racine
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/Note' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: Note mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Note déjà décidée, ou manager invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/expense-notes/{id}/receipt-url:
     get:
-      tags: [hr]
+      tags:
+        - hr
       operationId: hrGetReceiptUrl
       summary: URL signée du reçu d'une note d'un manager racine
-      parameters: [{ $ref: '#/components/parameters/NoteId' }]
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
       responses:
-        '200': { $ref: '#/components/responses/ReceiptUrl' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+        "200":
+          description: URL signée, valable 5 minutes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptUrl"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/users:
     get:
-      tags: [hr]
+      tags:
+        - hr
       operationId: listCompanyUsers
       summary: Employés et managers de l'entreprise, triés par nom
       responses:
-        '200':
+        "200":
           description: Annuaire
           content:
             application/json:
-              schema: { type: array, items: { $ref: '#/components/schemas/User' } }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/users/{id}/manager:
     put:
-      tags: [hr]
+      tags:
+        - hr
       operationId: assignManager
       summary: Rattache un utilisateur à un manager, ou le détache (null)
       parameters:
-        - name: id
-          in: path
+        - schema:
+            type: string
+            format: uuid
           required: true
-          schema: { type: string, format: uuid }
+          name: id
+          in: path
       requestBody:
         required: true
         content:
@@ -251,126 +675,48 @@ paths:
             schema:
               type: object
               properties:
-                managerId: { type: [string, 'null'], format: uuid }
+                managerId:
+                  type:
+                    - string
+                    - "null"
+                  format: uuid
+              required:
+                - managerId
       responses:
-        '200':
+        "200":
           description: Utilisateur mis à jour
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/User' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
-        '500': { $ref: '#/components/responses/InternalError' }
-
-components:
-  securitySchemes:
-    session:
-      type: apiKey
-      in: cookie
-      name: authjs.session-token
-      description: Session Auth.js (JWT chiffré), obtenue par /api/auth/callback/credentials.
-
-  parameters:
-    NoteId:
-      name: id
-      in: path
-      required: true
-      schema: { type: string, format: uuid }
-
-  schemas:
-    ExpenseNote:
-      type: object
-      additionalProperties: false
-      required: [id, userId, amount, expenseDate, description, receiptKey, status, createdAt]
-      properties:
-        id: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
-        amount: { type: number, exclusiveMinimum: 0 }
-        expenseDate: { type: string, format: date }
-        description: { type: string }
-        receiptKey: { type: string, description: 'Clé de stockage du reçu (prévisible : faille SEC-13)' }
-        status: { $ref: '#/components/schemas/ExpenseNoteStatus' }
-        createdAt: { type: string, format: date-time }
-    ExpenseNoteStatus:
-      type: string
-      enum: [pending, approved, rejected]
-    User:
-      type: object
-      additionalProperties: false
-      required: [id, name, email, role, managerId]
-      properties:
-        id: { type: string, format: uuid }
-        name: { type: string }
-        email: { type: string, format: email }
-        role: { type: string, enum: [employee, manager, hr_admin] }
-        managerId: { type: [string, 'null'], format: uuid }
-    ReceiptUrl:
-      type: object
-      additionalProperties: false
-      required: [url]
-      properties:
-        url: { type: string, format: uri }
-    ReceiptSuggestion:
-      type: object
-      additionalProperties: false
-      properties:
-        amount: { type: number }
-        expenseDate: { type: string, format: date }
-    Error:
-      type: object
-      additionalProperties: false
-      required: [error]
-      properties:
-        error: { type: string }
-    InternalError:
-      type: object
-      additionalProperties: false
-      description: Message générique ; le détail reste dans les journaux du serveur (SEC-07).
-      required: [error]
-      properties:
-        error: { type: string }
-        errorId: { type: string, format: uuid, description: Identifiant de l'erreur dans les journaux }
-
-  responses:
-    Note:
-      description: Note mise à jour
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ExpenseNote' }
-    ReceiptUrl:
-      description: URL signée, valable 5 minutes
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ReceiptUrl' }
-    BadRequest:
-      description: Champs invalides
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-    Unauthorized:
-      description: Pas de session, ou rôle insuffisant pour les routes manager
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-    Forbidden:
-      description: Pas de session ou rôle autre que hr_admin
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-    NotFound:
-      description: Introuvable ou hors du périmètre de l'appelant
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-    Conflict:
-      description: Note déjà décidée, ou manager invalide
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/Error' }
-    InternalError:
-      description: Erreur inattendue
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/InternalError' }
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Champs invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Note déjà décidée, ou manager invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+webhooks: {}

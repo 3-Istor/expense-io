@@ -8,6 +8,3 @@ export const expenseNotes = expenseNoteUseCases({
   storage: s3ReceiptStorage,
   reader: tesseractReceiptReader,
 })
-
-export type { Actor, ReceiptFile } from './application/use-cases'
-export type { ExpenseNote } from './domain/expense-note'

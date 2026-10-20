@@ -5,6 +5,12 @@ Un humain répond sous la question et coche la case.
 
 ## Ouvertes
 
+- [ ] 2026-10-20 — Tâche 3.5 (erreurs RFC 9457) mise de côté : elle change le type de média de TOUTES les erreurs
+      (`application/problem+json`) et ajoute des champs. Le contrat le permet (ajout de champs), mais les tests cachés
+      de la moulinette des profs vérifient peut-être le format actuel. Options : (a) RFC 9457 complet avec ADR ;
+      (b) garder `application/json` et ajouter seulement `type`, `title`, `status` à côté de `error` ; (c) ne rien
+      changer. En attendant : (c). À trancher avec la réponse des profs. Réversible.
+
 - [ ] 2026-10-20 — SEC-05, fin du correctif (niveau 3, secrets) : l'app se connecte encore en superutilisateur.
       Proposition : un rôle de connexion `expense_app_login` (LOGIN, membre de `expense_app`), son mot de passe dans
       `.env` (`DATABASE_URL`) et dans la CI, le rôle superutilisateur réservé aux migrations (`MIGRATION_DATABASE_URL`) ;
