@@ -1,8 +1,8 @@
 // Appelant courant, lu dans la session Auth.js. Le rôle y est relu en base à chaque requête (SEC-10, src/lib/auth.ts).
 import { auth } from '@/lib/auth'
 import { denied } from '@/shared/app-error'
+import type { Role } from './domain/user'
 
-export type Role = 'employee' | 'manager' | 'hr_admin'
 export interface CurrentUser {
   userId: string
   role: Role

@@ -96,6 +96,9 @@ jobs:
       - name: Tests unitaires
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: npm test
+      - name: Tests d'intégration (base réelle)
+        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
+        run: npm run test:db
       - name: Tests d'API (contrat, autorisations)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: npm run test:api
