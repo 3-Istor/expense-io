@@ -1,0 +1,2 @@
+date,level,verdict,architectureViolations,unusedFiles,unusedExports,duplicationPercent
+2026-10-20T10:30:03.958Z,pr,VERT,0,7,0,17.4

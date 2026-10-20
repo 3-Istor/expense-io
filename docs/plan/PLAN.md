@@ -16,7 +16,7 @@ Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier A
 
 - [x] 1.1 Environnement de test : Vitest (unitaires), Playwright en mode requêtes HTTP (API), base de test via
       docker compose. Critère : `npm test` et `npm run test:api` passent avec un test de fumée chacun.
-- [ ] 1.2 Squelette de la moulinette `verify/` : CLI `npm run verify -- --level fast|pr|nightly`, un module par
+- [x] 1.2 Squelette de la moulinette `verify/` : CLI `npm run verify -- --level fast|pr|nightly`, un module par
       contrôle, rapport `verify-report.json` + `verify-summary.md` (≤ 20 lignes). Contrôles de départ : S1 (tsc,
       ESLint), S2 (dependency-cruiser, règles en avertissement tant que la phase 3 n'est pas faite), S3 (gitleaks),
       S4 (knip, jscpd). Critère : `npm run verify -- --level fast` produit le résumé.
