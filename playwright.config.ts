@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test'
+import { TEST_ENV } from './tests/support/env'
 
 // Tests d'API de bout en bout : requêtes HTTP directes contre l'app lancée, sans navigateur.
 // L'URL peut viser une app déjà démarrée (API_BASE_URL) ; sinon Playwright lance `next dev`.
@@ -15,6 +16,8 @@ export default defineConfig({
         command: 'npm run dev',
         url: `${baseURL}/login`,
         reuseExistingServer: true,
+        // Base et S3 de test passés explicitement : les tests ne dépendent pas d'un fichier .env.
+        env: TEST_ENV,
         timeout: 120_000,
       },
 })

@@ -1,6 +1,7 @@
 # Contrat actuel de l'API (gelé)
 
-Relevé sur le commit `265924b`, à confirmer par les tests de caractérisation (tâche 1.3).
+Relevé sur le commit `265924b`, confirmé par les tests de caractérisation `tests/api/contract.spec.ts` (tâche 1.3) :
+codes HTTP et clés JSON exactes de chaque endpoint.
 Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `500 {error, stack}`
 (la stacktrace sera retirée en phase 2, le champ `error` est conservé).
 

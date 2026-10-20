@@ -20,7 +20,7 @@ Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier A
       contrôle, rapport `verify-report.json` + `verify-summary.md` (≤ 20 lignes). Contrôles de départ : S1 (tsc,
       ESLint), S2 (dependency-cruiser, règles en avertissement tant que la phase 3 n'est pas faite), S3 (gitleaks),
       S4 (knip, jscpd). Critère : `npm run verify -- --level fast` produit le résumé.
-- [ ] 1.3 Tests de caractérisation du contrat : les 14 endpoints de `docs/contract.md`, statuts et formats JSON
+- [x] 1.3 Tests de caractérisation du contrat : les 14 endpoints de `docs/contract.md`, statuts et formats JSON
       actuels, y compris les codes 401/403 actuels. Critère : tous verts sur le code actuel.
 - [ ] 1.4 Matrice d'autorisations : fixtures à deux entreprises (A et B : RH, manager racine, employé rattaché,
       employé sans manager, second RH), scénarios T01–T18 de la task A. Les scénarios qui révèlent une faille
