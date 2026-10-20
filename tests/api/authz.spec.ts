@@ -161,6 +161,22 @@ test('T10 le RH ne voit rien d\'une autre entreprise', async () => {
   expect(res.status()).toBe(404)
 })
 
+test('T19 chaque décision garde sa trace : qui, quand', async () => {
+  const byManager = await createNote(A.employee.id)
+  const byHr = await createNote(A.manager2.id)
+  const before = new Date()
+  expect((await as.managerA.post(`/api/manager/expense-notes/${byManager}/approve`)).status()).toBe(200)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${byHr}/reject`)).status()).toBe(200)
+  const { rows } = await db().query(
+    'SELECT id, decided_by, decided_at FROM expense_notes WHERE id = ANY($1::uuid[])',
+    [[byManager, byHr]],
+  )
+  const trace = Object.fromEntries(rows.map((r) => [r.id, r]))
+  expect(trace[byManager].decided_by).toBe(A.manager.id)
+  expect(trace[byHr].decided_by).toBe(A.hr.id)
+  for (const id of [byManager, byHr]) expect(trace[id].decided_at.getTime()).toBeGreaterThanOrEqual(before.getTime() - 5000)
+})
+
 // ---------------------------------------------------------------- Failles connues (échecs attendus)
 
 test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équipe', async () => {

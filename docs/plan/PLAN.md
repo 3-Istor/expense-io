@@ -53,7 +53,7 @@ par les 67 tests d'API et la moulinette `pr` au vert.
       d'usage, traduire le résultat). Critère : tests verts, `src/modules/expense-notes/domain` sans import technique.
 - [x] 3.2 Module `identity` : utilisateur, rôle, annuaire, rattachement de manager, appelant courant.
       Critère : idem, les 3 routes RH utilisateurs et l'authentification passent par le module.
-- [ ] 3.3 Trace des décisions : migration `decided_by`, `decided_at`, écrites par le cas d'usage de décision.
+- [x] 3.3 Trace des décisions : migration `decided_by`, `decided_at`, écrites par le cas d'usage de décision.
       Critère : test qui lit la trace en base après une décision.
 - [ ] 3.4 Code mort supprimé (ancienne façade `src/domain`, `src/ports`, `src/adapters`, `src/utils`) ; knip à 0 fichier
       inutilisé, seuils resserrés. Règles dependency-cruiser des modules, S2 bloquant.

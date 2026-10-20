@@ -46,11 +46,12 @@ const FIND_IN_SCOPE: Record<ApproverKind, string> = {
   manager: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id WHERE ${SCOPE.manager} AND en.id = $2`,
   hr: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id WHERE ${SCOPE.hr} AND en.id = $2`,
 }
-// Décision atomique et rebornée au périmètre (SEC-08) : écrite seulement si la note est encore en attente.
+// Décision atomique et rebornée au périmètre (SEC-08) : écrite seulement si la note est encore en attente,
+// avec sa trace (qui, quand).
 const DECIDE_IN_SCOPE: Record<ApproverKind, string> = {
-  manager: `UPDATE expense_notes en SET status = $3 FROM users u
+  manager: `UPDATE expense_notes en SET status = $3, decided_by = $1, decided_at = now() FROM users u
             WHERE u.id = en.user_id AND ${SCOPE.manager} AND en.id = $2 AND en.status = 'pending' RETURNING en.*`,
-  hr: `UPDATE expense_notes en SET status = $3 FROM users u
+  hr: `UPDATE expense_notes en SET status = $3, decided_by = $1, decided_at = now() FROM users u
        WHERE u.id = en.user_id AND ${SCOPE.hr} AND en.id = $2 AND en.status = 'pending' RETURNING en.*`,
 }
 
