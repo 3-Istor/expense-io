@@ -61,8 +61,8 @@ rules:
     languages: [typescript]
     severity: ERROR
     message: >-
-      Handler de route sans appel à auth() : chaque route vérifie elle-même la session et les droits
-      (AGENTS.md, OWASP API5:2023).
+      Handler de route sans contrôle de session : chaque route appelle requireUser() (module identity) dans
+      handle(), ou auth() ; elle vérifie elle-même la session et les droits (AGENTS.md, OWASP API5:2023).
     metadata: { cwe: 'CWE-862', owasp-api: 'API5:2023' }
     paths:
       include: ['src/app/api/**/route.ts']
@@ -73,3 +73,8 @@ rules:
       - metavariable-regex: { metavariable: $METHOD, regex: '^(GET|POST|PUT|PATCH|DELETE)$' }
       - pattern-not: |
           async function $METHOD(...) { ... await auth(); ... }
+      - pattern-not: |
+          async function $METHOD(...) {
+            ...
+            return handle($STATUS, async () => { ... await requireUser(); ... })
+          }

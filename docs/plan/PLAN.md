@@ -48,7 +48,7 @@ Politique de faux positifs appliquée (`docs/security/false-positives.md`).
 Monolithe modulaire, hexagonale légère (`docs/vision.md`). Le contrat ne bouge pas, sauf ADR. Chaque tâche finit
 par les 67 tests d'API et la moulinette `pr` au vert.
 
-- [ ] 3.1 Module `expense-notes` : domaine pur (note, machine à états, règles des valideurs), ports, cas d'usage,
+- [x] 3.1 Module `expense-notes` : domaine pur (note, machine à états, règles des valideurs), ports, cas d'usage,
       adaptateurs (PostgreSQL, S3, OCR). Les 9 routes de notes deviennent minces (lire la requête, appeler le cas
       d'usage, traduire le résultat). Critère : tests verts, `src/modules/expense-notes/domain` sans import technique.
 - [ ] 3.2 Module `identity` : utilisateur, rôle, annuaire, rattachement de manager, appelant courant.
