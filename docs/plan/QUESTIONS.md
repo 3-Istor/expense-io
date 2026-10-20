@@ -12,3 +12,14 @@ Un humain répond sous la question et coche la case.
 - [ ] 2026-10-20 — À poser aux profs : codes 401/403 attendus tels quels ? `receiptKey` retirable ? nouvelle valeur
       de `status` acceptable ? sens de « root » ? comment la moulinette s'authentifie ? attentes Sonar et kube ?
       En attendant : contrat gelé à l'identique. Réversible.
+- [ ] 2026-10-20 — Tâche 1.4 : la numérotation T01–T18 de la task A n'était pas dans le dépôt. Seules les
+      références du doc de vision (T07, T11 à T18) ont été reprises telles quelles ; T01–T06 et T08–T10 ont été
+      reconstruites à partir des règles du cours (`docs/audit/avant/authz.md`). À rapprocher de la restitution de la
+      task A. En attendant : numérotation de `authz.md`. Réversible (renommer des tests).
+- [ ] 2026-10-20 — Tâche 1.4 : l'employé sans manager (T08). Ses notes ne sont proposées à personne aujourd'hui.
+      Options : (a) le RH les valide, comme pour un manager racine ; (b) on interdit l'état « sans manager » pour un
+      employé ; (c) on garde tel quel. En attendant : (c), figé par T08 comme comportement actuel, sans le
+      déclarer correct. Réversible. Lié à la question aux profs sur le sens de « root ».
+- [ ] 2026-10-20 — Tâche 1.4 : les 11 échecs attendus ont été posés sans relecture humaine du plan (niveau 3,
+      Brian a délégué en autonomie). Les tests n'ajoutent aucun code à l'app : à relire au point de contrôle de
+      fin de phase 1. Réversible.

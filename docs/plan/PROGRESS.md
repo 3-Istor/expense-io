@@ -67,3 +67,23 @@ Une session qui démarre lit ce fichier en premier.
   qui est superutilisateur. Un superutilisateur ignore la RLS, même avec `FORCE ROW LEVEL SECURITY` : les
   politiques de la migration ne protègent rien en l'état. L'isolation repose entièrement sur les `WHERE` des routes.
 - Prochaine tâche : **1.4** (matrice d'autorisations à deux entreprises, failles marquées `test.fail`).
+
+## 2026-10-20 — Tâche 1.4 terminée (niveau de risque 3, en autonomie déléguée par Brian)
+
+- `tests/api/authz.spec.ts` : 21 scénarios, deux entreprises (2 RH, 2 managers racine, employés rattachés,
+  employé sans manager). 10 garde-fous verts (T01–T10), 11 failles en échec attendu avec leur référence SEC-NN
+  (T11–T18b). `AUTHZ_SHOW_FLAWS=1` lève le marquage pour montrer l'échec réel.
+- Rapport : `docs/audit/avant/authz.md` (scénario, réf., CWE, observé, attendu, commande pour reproduire).
+- Preuves :
+  - `npm run test:api` → `61 passed` deux fois de suite (40 de 1.3 + 21).
+  - `AUTHZ_SHOW_FLAWS=1 … -g SEC-` → chaque faille échoue pour la bonne raison (ex. T11 `Expected 404 · Received 200`,
+    T13 `manager_id` passé à `null`, T18b session RH forgée avec le secret du dépôt → 200).
+  - T15 (course approve/reject) : non reproduit avec 20 paires, reproduit 3 fois sur 3 avec 100 paires.
+  - `npm run verify -- --level fast` → VERT.
+- Nouveau constat : les routes qui font `return withUserScope(...)` sans `await` renvoient un 500 vide au lieu
+  de `{error}` (détail dans `authz.md`).
+- Questions ajoutées dans `QUESTIONS.md` : numérotation T de la task A, employé sans manager, relecture des 11 échecs.
+- Rappel pour la session suivante : relancer Postgres et le S3 local si la machine a redémarré
+  (`su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /tmp/pgdata -o '-p 5433 -k /tmp' start"`,
+  `moto_server -H 127.0.0.1 -p 4567 &`, puis `node scripts/ensure-bucket.mjs` avec les variables de `tests/support/env.ts`).
+- Prochaine tâche : **1.5** (OpenAPI de l'existant).

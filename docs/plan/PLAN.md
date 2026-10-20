@@ -22,7 +22,7 @@ Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier A
       S4 (knip, jscpd). Critère : `npm run verify -- --level fast` produit le résumé.
 - [x] 1.3 Tests de caractérisation du contrat : les 14 endpoints de `docs/contract.md`, statuts et formats JSON
       actuels, y compris les codes 401/403 actuels. Critère : tous verts sur le code actuel.
-- [ ] 1.4 Matrice d'autorisations : fixtures à deux entreprises (A et B : RH, manager racine, employé rattaché,
+- [x] 1.4 Matrice d'autorisations : fixtures à deux entreprises (A et B : RH, manager racine, employé rattaché,
       employé sans manager, second RH), scénarios T01–T18 de la task A. Les scénarios qui révèlent une faille
       sont marqués `test.fail` avec la référence de la faille (ex. `SEC-03`). Critère : suite exécutée, liste des
       échecs attendus recopiée dans `docs/audit/avant/authz.md`.
