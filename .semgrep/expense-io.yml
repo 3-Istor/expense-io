@@ -78,3 +78,21 @@ rules:
             ...
             return handle($STATUS, async () => { ... await requireUser(); ... })
           }
+
+  - id: route-exportee-sans-fabrique-controlee
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Handler de route exporté comme constante sans passer par une fabrique qui contrôle la session
+      (pendingListRoute, decisionRoute, approverReceiptUrlRoute de src/modules/expense-notes/http.ts). Écrire une
+      fonction qui appelle requireUser() dans handle(), ou utiliser une fabrique contrôlée (OWASP API5:2023).
+    metadata: { cwe: 'CWE-862', owasp-api: 'API5:2023' }
+    paths:
+      include: ['src/app/api/**/route.ts']
+      exclude: ['src/app/api/auth/**']
+    patterns:
+      - pattern: export const $METHOD = $VALUE
+      - metavariable-regex: { metavariable: $METHOD, regex: '^(GET|POST|PUT|PATCH|DELETE)$' }
+      - pattern-not: export const $METHOD = pendingListRoute(...)
+      - pattern-not: export const $METHOD = decisionRoute(...)
+      - pattern-not: export const $METHOD = approverReceiptUrlRoute(...)

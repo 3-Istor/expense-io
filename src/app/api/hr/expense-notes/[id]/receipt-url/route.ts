@@ -1,11 +1,3 @@
-import { expenseNotes } from '@/modules/expense-notes'
-import { requireUser } from '@/modules/identity/session'
-import { handle } from '@/shared/http'
+import { approverReceiptUrlRoute } from '@/modules/expense-notes/http'
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  return handle(403, async () => {
-    const me = await requireUser()
-    const { id } = await params
-    return Response.json({ url: await expenseNotes.approverReceiptUrl(me, 'hr', id) })
-  })
-}
+export const GET = approverReceiptUrlRoute('hr')

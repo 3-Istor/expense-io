@@ -55,7 +55,7 @@ par les 67 tests d'API et la moulinette `pr` au vert.
       Critère : idem, les 3 routes RH utilisateurs et l'authentification passent par le module.
 - [x] 3.3 Trace des décisions : migration `decided_by`, `decided_at`, écrites par le cas d'usage de décision.
       Critère : test qui lit la trace en base après une décision.
-- [ ] 3.4 Code mort supprimé (ancienne façade `src/domain`, `src/ports`, `src/adapters`, `src/utils`) ; knip à 0 fichier
+- [x] 3.4 Code mort supprimé (ancienne façade `src/domain`, `src/ports`, `src/adapters`, `src/utils`) ; knip à 0 fichier
       inutilisé, seuils resserrés. Règles dependency-cruiser des modules, S2 bloquant.
 - [ ] 3.5 Erreurs RFC 9457 en gardant `error` (ADR, changement de contrat : ajout de champs et d'un type de média).
 - [ ] 3.6 Contrat déclaré dans le code (ADR 0001) : schémas Zod, OpenAPI généré, la CI vérifie qu'il est à jour.
