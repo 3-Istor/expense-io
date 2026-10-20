@@ -14,7 +14,7 @@ critère passe et que la preuve (sortie de commande) est collée dans `PROGRESS.
 
 Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier AUCUN comportement de l'app.
 
-- [ ] 1.1 Environnement de test : Vitest (unitaires), Playwright en mode requêtes HTTP (API), base de test via
+- [x] 1.1 Environnement de test : Vitest (unitaires), Playwright en mode requêtes HTTP (API), base de test via
       docker compose. Critère : `npm test` et `npm run test:api` passent avec un test de fumée chacun.
 - [ ] 1.2 Squelette de la moulinette `verify/` : CLI `npm run verify -- --level fast|pr|nightly`, un module par
       contrôle, rapport `verify-report.json` + `verify-summary.md` (≤ 20 lignes). Contrôles de départ : S1 (tsc,
