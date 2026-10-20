@@ -34,3 +34,14 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   `docs/contract.md` ; `errorId` ajouté (ajout de champ permis). Le format RFC 9457 reste à décider (ADR).
 - **Statut** : corrigé. T14b et T14c verts sans marquage ; Semgrep 16 → 8 constats, seuil du cliquet resserré à 8 ;
   les 2 avertissements Spectral de SEC-07 ont disparu.
+
+## SEC-03 — Un manager lit le reçu de n'importe quelle note
+
+- **CWE** : CWE-639 (contournement d'autorisation par clé contrôlée par l'utilisateur, IDOR)
+  · **API Top 10** : API1:2023 Broken Object Level Authorization
+- **CVSS v4.0** : 7.1 élevée — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T11, URL signée obtenue (200) pour la note d'un autre manager de l'entreprise et pour une note d'une
+  autre entreprise. Cause écrite dans le code : « la note existe forcément dans la liste… pas besoin de revérifier ».
+- **Correctif** : la route vérifie le rattachement direct (`u.manager_id = appelant`), dans `withUserScope`, comme les
+  routes de décision. Hors périmètre : 404, code déjà prévu par le contrat.
+- **Statut** : corrigé, T11 vert sans marquage ; Semgrep 8 → 7.

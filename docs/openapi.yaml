@@ -158,7 +158,6 @@ paths:
       tags: [manager]
       operationId: managerGetReceiptUrl
       summary: URL signée du reçu d'une note d'un subordonné
-      description: Faille connue SEC-03 (aucune vérification du rattachement).
       parameters: [{ $ref: '#/components/parameters/NoteId' }]
       responses:
         '200': { $ref: '#/components/responses/ReceiptUrl' }

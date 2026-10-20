@@ -164,7 +164,6 @@ test('T10 le RH ne voit rien d\'une autre entreprise', async () => {
 // ---------------------------------------------------------------- Failles connues (échecs attendus)
 
 test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équipe', async () => {
-  knownFlaw('SEC-03', 'la route signe l\'URL de n\'importe quelle note, sans vérifier le rattachement ni l\'entreprise')
   for (const owner of [A.employee2, B.employee]) {
     const id = await createNote(owner.id)
     const res = await as.managerA.get(`/api/manager/expense-notes/${id}/receipt-url`)
