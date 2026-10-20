@@ -87,3 +87,22 @@ Une session qui démarre lit ce fichier en premier.
   (`su postgres -c "/usr/lib/postgresql/16/bin/pg_ctl -D /tmp/pgdata -o '-p 5433 -k /tmp' start"`,
   `moto_server -H 127.0.0.1 -p 4567 &`, puis `node scripts/ensure-bucket.mjs` avec les variables de `tests/support/env.ts`).
 - Prochaine tâche : **1.5** (OpenAPI de l'existant).
+
+## 2026-10-20 — Tâche 1.5 terminée (niveau de risque 1 : documentation du contrat existant, aucun code de l'app modifié)
+
+- `docs/openapi.yaml` (OpenAPI 3.1) : les 14 opérations, tous leurs codes, schémas fermés (`additionalProperties: false`).
+  Les défauts actuels sont décrits tels quels (401/403 hétérogènes, `stack` dans les 500) et renvoient à leur SEC-NN.
+- `redocly.yaml` (règles recommandées) et `.spectral.yaml` (5 règles maison, chacune avec sa raison) ;
+  script `npm run lint:api`. Nouveau contrôle **S5** dans la moulinette (niveaux fast, pr, nightly).
+- `tests/support/openapi.ts` : chaque réponse des tests de contrat est validée contre la spec (Ajv, JSON Schema
+  2020-12), et une couverture vérifie que chaque code documenté (hors 500) de chaque opération est exercé.
+- Preuves :
+  - `npx redocly lint` → `Your API description is valid`.
+  - `npm run test:api` → `61 passed`, validation et couverture actives.
+  - La validation mord : spec modifiée (`amount` en string, 409 retiré, 418 ajouté) → 8 réponses
+    « non conforme — data/amount must be string », « code 409 non documenté », « PUT …/manager 418 » non couvert ;
+    spec restaurée (`git diff` vide).
+  - `npm run verify -- --level pr --record` → VERT. S5 : ATTENTION, 2 règles maison qui pointent SEC-07
+    (`stack` exposé, objet d'erreur 500 ouvert) : c'est voulu, elles passeront au vert avec le correctif.
+  - Le cliquet a servi : S4 a bloqué 3 exports inutilisés dans les nouveaux fichiers de test, corrigés avant commit.
+- Prochaine tâche : **1.6** (CI GitHub Actions, niveau 3 : le workflow est préparé sur la branche, Brian valide).

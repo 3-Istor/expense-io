@@ -2,6 +2,7 @@
 
 Relevé sur le commit `265924b`, confirmé par les tests de caractérisation `tests/api/contract.spec.ts` (tâche 1.3) :
 codes HTTP et clés JSON exactes de chaque endpoint.
+Version machine : `docs/openapi.yaml` (OpenAPI 3.1), contre laquelle chaque réponse de ces tests est validée.
 Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `500 {error, stack}`
 (la stacktrace sera retirée en phase 2, le champ `error` est conservé).
 

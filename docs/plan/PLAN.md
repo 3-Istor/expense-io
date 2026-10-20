@@ -26,7 +26,7 @@ Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier A
       employé sans manager, second RH), scénarios T01–T18 de la task A. Les scénarios qui révèlent une faille
       sont marqués `test.fail` avec la référence de la faille (ex. `SEC-03`). Critère : suite exécutée, liste des
       échecs attendus recopiée dans `docs/audit/avant/authz.md`.
-- [ ] 1.5 OpenAPI de l'existant : `docs/openapi.yaml` (OpenAPI 3.1) décrivant l'existant à l'identique ;
+- [x] 1.5 OpenAPI de l'existant : `docs/openapi.yaml` (OpenAPI 3.1) décrivant l'existant à l'identique ;
       Redocly lint ; règles Spectral maison en avertissement ; validation de chaque réponse des tests 1.3 contre
       le schéma. Critère : spec valide, toutes les réponses conformes.
 - [ ] 1.6 CI GitHub Actions : Postgres et LocalStack en services, `npm run verify -- --level pr` sur chaque PR ;

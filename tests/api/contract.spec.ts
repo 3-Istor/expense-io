@@ -2,7 +2,7 @@
 // docs/contract.md (codes HTTP et formats JSON). Ils doivent rester verts pendant toute la refactorisation.
 // Les failles d'autorisation ne sont pas testées ici : elles sont dans la matrice d'autorisations (tâche 1.4).
 import { randomUUID } from 'node:crypto'
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test as base, type APIRequestContext } from '@playwright/test'
 import {
   closeDb,
   createCompany,
@@ -15,6 +15,10 @@ import {
   login,
   type TestUser,
 } from '../support/fixtures'
+import { uncovered, withContractCheck } from '../support/openapi'
+
+// Toute réponse, avec ou sans session, est validée contre docs/openapi.yaml (tâche 1.5).
+const test = base.extend({ request: async ({ request }, provide) => provide(withContractCheck(request)) })
 
 const PNG_1x1 = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
@@ -31,12 +35,14 @@ test.beforeAll(async ({ baseURL }) => {
   manager = await createUser(company, 'Manager', 'manager')
   employee = await createUser(company, 'Employe', 'employee', manager.id)
   otherEmployee = await createUser(company, 'Autre', 'employee')
-  asHr = await login(baseURL!, hr)
-  asManager = await login(baseURL!, manager)
-  asEmployee = await login(baseURL!, employee)
+  asHr = withContractCheck(await login(baseURL!, hr))
+  asManager = withContractCheck(await login(baseURL!, manager))
+  asEmployee = withContractCheck(await login(baseURL!, employee))
 })
 
 test.afterAll(async () => {
+  // Couverture du contrat : chaque code documenté (hors 500) de chaque opération a été exercé au moins une fois.
+  expect(uncovered()).toEqual([])
   await Promise.all([asHr?.dispose(), asManager?.dispose(), asEmployee?.dispose()])
   await closeDb()
 })

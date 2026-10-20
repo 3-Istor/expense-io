@@ -6,7 +6,7 @@ import { Pool } from 'pg'
 import { expect, request as playwrightRequest, type APIRequestContext } from '@playwright/test'
 import { TEST_ENV } from './env'
 
-export const PASSWORD = 'test-password'
+const PASSWORD = 'test-password'
 const PASSWORD_HASH = bcrypt.hashSync(PASSWORD, 4)
 
 export type Role = 'employee' | 'manager' | 'hr_admin'
