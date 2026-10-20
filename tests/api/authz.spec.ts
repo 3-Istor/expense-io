@@ -264,7 +264,6 @@ test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans att
 })
 
 test('T18b [SEC-02] un jeton signé avec le secret publié dans le dépôt est refusé', async ({ baseURL }) => {
-  knownFlaw('SEC-02', 'AUTH_SECRET est en dur dans src/lib/auth.ts, donc public : on forge une session RH')
   // Le secret est lu dans l'historique Git (commit d'origine), pas recopié ici : après le correctif, l'app doit
   // refuser tout jeton signé avec ce secret, qui reste public pour toujours.
   const source = execFileSync('git', ['show', '265924b:src/lib/auth.ts'], { encoding: 'utf8' })
