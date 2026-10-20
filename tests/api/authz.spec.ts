@@ -227,7 +227,6 @@ test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 50
 })
 
 test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux requêtes simultanées', async () => {
-  knownFlaw('SEC-08', 'lecture puis écriture sans verrou ni condition sur le statut (concurrence)')
   // 100 paires approve/reject simultanées : sans décision atomique, au moins une paire renvoie deux 200.
   const notes = await Promise.all(Array.from({ length: 100 }, () => createNote(A.employee.id)))
   const results = await Promise.all(

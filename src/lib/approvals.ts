@@ -57,8 +57,14 @@ export function decisionHandler(approver: Approver, decision: 'approved' | 'reje
       return await withUserScope(caller.userId, async (client) => {
         const note = await findScopedNote(client, approver, id, caller.userId)
         if (!note) return Response.json({ error: 'Not found' }, { status: 404 })
-        if (note.status !== 'pending') return Response.json({ error: 'Already decided' }, { status: 409 })
-        const updated = await client.query('UPDATE expense_notes SET status = $2 WHERE id = $1 RETURNING *', [id, decision])
+        // Décision atomique (SEC-08) : la condition sur le statut est dans l'UPDATE. Deux décisions simultanées
+        // ne peuvent pas réussir toutes les deux : la seconde attend le verrou de ligne, puis ne trouve plus de note
+        // en attente.
+        const updated = await client.query(
+          "UPDATE expense_notes SET status = $2 WHERE id = $1 AND status = 'pending' RETURNING *",
+          [id, decision],
+        )
+        if (updated.rowCount === 0) return Response.json({ error: 'Already decided' }, { status: 409 })
         return Response.json(toExpenseNote(updated.rows[0]))
       })
     } catch (error) {

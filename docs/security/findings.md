@@ -45,3 +45,12 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Correctif** : la route vérifie le rattachement direct (`u.manager_id = appelant`), dans `withUserScope`, comme les
   routes de décision. Hors périmètre : 404, code déjà prévu par le contrat.
 - **Statut** : corrigé, T11 vert sans marquage ; Semgrep 8 → 7.
+
+## SEC-08 — Une note peut être validée ET rejetée par deux requêtes simultanées
+
+- **CWE** : CWE-362 (situation de compétition) · **API Top 10** : API6:2023 Unrestricted Access to Sensitive Business Flows
+- **CVSS v4.0** : 2.3 low — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T15, 100 paires approve/reject simultanées : au moins une paire renvoie deux 200 (reproduit 3 fois sur 3).
+- **Correctif** : condition `status = 'pending'` dans l'`UPDATE` lui-même ; aucune ligne modifiée → 409, code déjà
+  prévu par le contrat. Écrit une seule fois dans `src/lib/approvals.ts` grâce au regroupement précédent.
+- **Statut** : corrigé, T15 vert sans marquage, 3 exécutions sur 3.
