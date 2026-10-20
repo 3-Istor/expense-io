@@ -92,3 +92,12 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Correctif** : liste fermée de tris, chacun lié à une requête constante ; autre valeur → 400 avant la base
   (nouveau code : ADR 0003, statut proposé, à valider). Tests de contrat ajoutés : tri valide appliqué, tris refusés.
 - **Statut** : corrigé, T14 vert sans marquage ; Semgrep 3 → 2.
+
+## SEC-10 — Un rôle retiré en base reste actif tant que le jeton vit
+
+- **CWE** : CWE-613 (expiration de session insuffisante) · **API Top 10** : API5:2023 Broken Function Level Authorization
+- **CVSS v4.0** : 2.3 faible — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T18, un manager rétrogradé en employé garde l'accès aux routes manager (200).
+- **Correctif** : le callback `jwt` d'Auth.js relit le rôle en base à chaque requête ; compte introuvable → plus de session.
+  Coût : une requête indexée (clé primaire) par appel authentifié, à surveiller en phase 4 (SLO de latence).
+- **Statut** : corrigé, T18 vert sans marquage.

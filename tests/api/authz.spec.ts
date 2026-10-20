@@ -255,7 +255,6 @@ test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', 
 test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({
   baseURL,
 }) => {
-  knownFlaw('SEC-10', 'le rôle vient du JWT (photo prise à la connexion), jamais relu en base')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const demoted = await createUser(c, `T18-${short()}`, 'manager')
   const ctx = await login(baseURL!, demoted)

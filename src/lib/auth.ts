@@ -45,6 +45,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id
         token.role = user.role
       }
+      // Le jeton est une photo prise à la connexion (SEC-10) : le rôle est relu en base à chaque requête, et un
+      // compte supprimé perd sa session immédiatement.
+      if (typeof token.id === 'string') {
+        const result = await getPool().query<{ role: 'employee' | 'manager' | 'hr_admin' }>(
+          'SELECT role FROM users WHERE id = $1',
+          [token.id]
+        )
+        if (!result.rows[0]) return null
+        token.role = result.rows[0].role
+      }
       return token
     },
     async session({ session, token }) {
