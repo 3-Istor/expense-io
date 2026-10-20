@@ -1,0 +1,107 @@
+# CI de chaque PR : la moulinette au niveau pr, les tests unitaires et d'API sur une vraie base.
+# Permissions minimales, actions épinglées par SHA (Renovate les met à jour), aucun secret requis.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Valeurs de test publiques, identiques à docker-compose.yml et à tests/support/env.ts.
+  DATABASE_URL: postgres://expense:expense@localhost:5433/expense_io
+  S3_ENDPOINT: http://localhost:4567
+  S3_REGION: us-east-1
+  S3_BUCKET: receipts
+  S3_ACCESS_KEY_ID: test
+  S3_SECRET_ACCESS_KEY: test
+  GITLEAKS_VERSION: 8.28.0
+  SEMGREP_VERSION: 1.181.0
+  OSV_SCANNER_VERSION: 2.2.3
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: expense
+          POSTGRES_PASSWORD: expense
+          POSTGRES_DB: expense_io
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U expense -d expense_io" --health-interval 5s --health-timeout 5s --health-retries 10
+      localstack:
+        image: localstack/localstack:3.8.1
+        env:
+          SERVICES: s3
+        ports: ['4567:4566']
+        options: >-
+          --health-cmd "curl -sf http://localhost:4566/_localstack/health" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0 # le test T18b lit le commit d'origine 265924b
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Outils de sécurité (gitleaks, Semgrep)
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          pip install "semgrep==${SEMGREP_VERSION}"
+          gitleaks version && semgrep --version
+
+      - run: npm ci
+      - name: Base et stockage de test
+        run: |
+          npx node-pg-migrate up -m migrations
+          node scripts/ensure-bucket.mjs
+
+      - name: Moulinette (niveau pr)
+        run: npm run verify -- --level pr
+      - name: Résumé de la moulinette
+        if: always()
+        run: cat verify-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Tests unitaires
+        run: npm test
+      - name: Tests d'API (contrat, autorisations)
+        run: npm run test:api
+
+      # Informatif tant que les dépendances vulnérables connues ne sont pas montées (Renovate, label risque-3).
+      - name: Dépendances vulnérables (OSV-Scanner)
+        continue-on-error: true
+        run: |
+          curl -sSfL -o osv-scanner "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          chmod +x osv-scanner && ./osv-scanner scan source --lockfile package-lock.json
+      # Informatif : règles publiques du registre Semgrep, en plus des règles maison (bloquantes via S6).
+      - name: Semgrep, règles du registre
+        continue-on-error: true
+        run: semgrep scan --config p/typescript --config p/owasp-top-ten src --metrics=off
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: verify-report
+          path: |
+            verify-report.json
+            verify-summary.md
+            test-results/
+          retention-days: 14

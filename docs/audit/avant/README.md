@@ -12,7 +12,7 @@ Reproduire : `scripts/audit.sh docs/audit/avant` (le même script produira `docs
 | --- | --- | --- |
 | Duplication | **17,4 %** : 385 lignes dupliquées sur 2 213, 31 clones, 38 fichiers | jscpd 5.4.1, `--min-tokens 40` |
 | Fichiers jamais importés | **7** : tout `src/domain/User.ts`, `src/ports/*`, `src/adapters/*`, `src/utils/*` | knip 6.42.1 |
-| Constats de sécurité statiques | **18** dans 13 fichiers (5 règles maison sur 6 déclenchées) | Semgrep 1.181.0, `.semgrep/` |
+| Constats de sécurité statiques | **17** dans 12 fichiers (5 règles maison sur 6 déclenchées) | Semgrep 1.181.0, `.semgrep/` |
 | Dépendances vulnérables (prod) | **3** : 1 critique, 2 élevées | npm audit (npm 10.9.4) |
 | Failles d'autorisation prouvées | **11** tests en échec attendu (10 garde-fous verts) | Playwright, `docs/audit/avant/authz.md` |
 

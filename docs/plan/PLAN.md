@@ -29,7 +29,7 @@ Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier A
 - [x] 1.5 OpenAPI de l'existant : `docs/openapi.yaml` (OpenAPI 3.1) décrivant l'existant à l'identique ;
       Redocly lint ; règles Spectral maison en avertissement ; validation de chaque réponse des tests 1.3 contre
       le schéma. Critère : spec valide, toutes les réponses conformes.
-- [ ] 1.6 CI GitHub Actions : Postgres et LocalStack en services, `npm run verify -- --level pr` sur chaque PR ;
+- [x] 1.6 CI GitHub Actions : Postgres et LocalStack en services, `npm run verify -- --level pr` sur chaque PR ;
       workflow `nightly` (squelette, planifié). Critère : CI verte sur la PR de la phase 1.
 - [x] 1.7 Audit « avant » : lancer jscpd, knip, Semgrep (règles TypeScript + règles maison), gitleaks,
       OSV-Scanner ; archiver sorties, commandes et versions dans `docs/audit/avant/`. Critère : `docs/audit/avant/README.md`

@@ -115,10 +115,27 @@ Une session qui démarre lit ce fichier en premier.
   commandes et versions ; un outil absent est noté « NON EXÉCUTÉ ». Rejouable pour l'audit « après ».
 - `.semgrep/expense-io.yml` : 6 règles maison (CWE et SEC-NN dans les métadonnées, correction dans le message).
 - Résultats sur `src/` d'origine (`docs/audit/avant/README.md`) : duplication 17,4 %, 7 fichiers jamais importés,
-  18 constats Semgrep, 3 dépendances vulnérables (dont `next` 16.3.5 critique, correctif en 16.3.8).
+  17 constats Semgrep (18 annoncés par erreur au premier commit, corrigé), 3 dépendances vulnérables (dont `next` 16.3.5 critique, correctif en 16.3.8).
 - Preuves :
   - `scripts/audit.sh docs/audit/avant` → `raw/commands.txt` (versions, commandes, codes de sortie).
   - La règle `route-sans-controle-de-session` mord : une route sonde sans `auth()` est signalée, les 13 vraies routes non.
   - `git log -1 --format=%h -- src` → `265924b` : l'audit porte bien sur le code d'origine.
 - Non exécuté ici (proxy) : gitleaks, OSV-Scanner, règles Semgrep du registre. Ils passeront en CI.
 - Prochaine tâche : **1.6** (CI), en attente de validation. Puis point de contrôle humain de fin de phase 1.
+
+## 2026-10-20 — Tâche 1.6 faite (niveau de risque 3, en autonomie déléguée par Brian à 18 h 25 : « je te laisse continuer en autonomie »)
+
+- `.github/workflows/ci.yml` : sur chaque PR vers `main` et chaque push sur `main`. Postgres 16 et LocalStack en
+  services, migration, `npm run verify -- --level pr` (résumé dans la page du run), `npm test`, `npm run test:api`.
+  OSV-Scanner et les règles Semgrep du registre en informatif. Permissions `contents: read`, actions épinglées par SHA
+  (SHA lus par `git ls-remote` sur les tags), aucun secret.
+- `.github/workflows/nightly.yml` : squelette planifié (2 h 17 UTC), niveau nightly, scan gitleaks de tout l'historique.
+- Moulinette : S3 ne scanne plus que les fichiers du dépôt (copie de `git ls-files`, sans `node_modules` ni `.env*`) ;
+  nouveau **S6** (Semgrep, règles maison) en cliquet, seuil 17 dans `verify/config.json`.
+- Preuves : `actionlint` → OK sur les deux workflows ; `npm run verify -- --level pr` → VERT localement
+  (S3 et gitleaks non exécutés ici).
+- **CI attendue ROUGE sur S3 tant que SEC-02 n'est pas corrigé** : le secret en dur est un vrai positif dans
+  l'authentification, l'agent n'a pas le droit de le masquer (`false-positives.md`). Le correctif SEC-02 (phase 2) le
+  fait passer au vert. Le premier run réel de la CI reste à observer (impossible depuis cette session).
+- Erreur corrigée : l'audit 1.7 annonçait 18 constats Semgrep ; l'archive en contient 17 (le 18e venait de la route
+  sonde temporaire). README et seuil corrigés.
