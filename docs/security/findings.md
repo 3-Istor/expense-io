@@ -148,3 +148,12 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   worker, au plus 2 OCR simultanés, les suivants attendent (`src/lib/limits.ts`, tests unitaires). Un OCR qui dépasse
   le délai renvoie une suggestion vide, comme une erreur d'OCR aujourd'hui.
 - **Statut** : corrigé ; test de contrat « reçu de plus de 10 Mo » (rouge sur l'ancien code) et 3 tests unitaires verts.
+
+## SEC-15 — Inscription par domaine email sans vérification
+
+- **CWE** : CWE-287 · **API Top 10** : API2:2023 Broken Authentication
+- **CVSS v4.0** : non calculé (dépend du déploiement : critique en production, sans objet en démo)
+- **Preuve** : lecture de `src/app/actions/auth.ts`. Le premier inscrit d'un domaine devient RH, et aucune adresse
+  n'est vérifiée. Pas de test automatisé : `signup` est une server action, hors du contrat HTTP testé.
+- **Décision** : conservé pour la démo, risque et correctif cible documentés dans l'ADR 0004 (statut proposé).
+- **Statut** : accepté temporairement, à valider par un humain.
