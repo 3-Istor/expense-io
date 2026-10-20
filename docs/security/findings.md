@@ -117,3 +117,14 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   (mot de passe, donc secret et `.env`, interdits à l'agent) et passer sous `withUserScope` les requêtes restantes
   (`getPool()` de la connexion Auth.js, de l'annuaire RH et de l'enregistrement du reçu).
 - **Statut** : partiellement corrigé. T17 et T17b verts ; T16 reste en échec attendu, avec un motif mis à jour.
+
+## SEC-12 — Note créée sans reçu si le stockage échoue
+
+- **CWE** : CWE-460 (nettoyage incorrect après une exception) · **API Top 10** : API8:2023
+- **CVSS v4.0** : 2.3 faible — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:N/VI:L/VA:L/SC:N/SI:N/SA:N`
+- **Preuve** : `tests/unit/create-note-storage-failure.test.ts` : stockage en panne, la note était quand même insérée
+  (`INSERT` exécuté, puis 500), donc une note en attente sans reçu, puis jamais complétée.
+- **Correctif** : numéro de reçu réservé (`nextval`), reçu stocké, puis note insérée avec sa clé, sous `withUserScope`.
+  L'`UPDATE` hors contexte utilisateur disparaît (Semgrep 2 → 1). Format de clé inchangé : la clé opaque (SEC-13)
+  attend la réponse des profs sur `receiptKey`.
+- **Statut** : corrigé ; test unitaire vert (rouge sur l'ancien code), 66 tests d'API verts.

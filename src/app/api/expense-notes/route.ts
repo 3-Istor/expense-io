@@ -1,7 +1,7 @@
 import path from 'node:path'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getPool, withUserScope } from '@/lib/db'
+import { withUserScope } from '@/lib/db'
 import { respondError } from '@/lib/errors'
 import { toExpenseNote } from '@/lib/expense-note-dto'
 import { receiptKeyFor, uploadReceipt } from '@/lib/storage'
@@ -89,27 +89,27 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Fichier trop volumineux' }, { status: 400 })
     }
 
+    // Le reçu est stocké AVANT la note (SEC-12) : si le stockage échoue, aucune note sans reçu n'est créée.
+    // La clé est connue d'avance grâce au numéro de séquence réservé (format de clé inchangé, voir SEC-13).
+    const receiptSeq = await withUserScope(session.user.id, async (client) => {
+      const reserved = await client.query("SELECT nextval('expense_notes_receipt_seq_seq') AS seq")
+      return Number(reserved.rows[0].seq)
+    })
+    const extension = EXTENSION_BY_MIME[receipt.type] ?? path.extname(receipt.name) ?? ''
+    const receiptKey = receiptKeyFor(receiptSeq, extension)
+    await uploadReceipt(receiptKey, Buffer.from(await receipt.arrayBuffer()), receipt.type)
+
     const note = await withUserScope(session.user.id, async (client) => {
       const inserted = await client.query(
-        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key, receipt_seq)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [session.user.id, amount, expenseDate, description, '']
+        [session.user.id, amount, expenseDate, description, receiptKey, receiptSeq]
       )
       return inserted.rows[0]
     })
 
-    const extension = EXTENSION_BY_MIME[receipt.type] ?? path.extname(receipt.name) ?? ''
-    const receiptKey = receiptKeyFor(note.receipt_seq, extension)
-    const buffer = Buffer.from(await receipt.arrayBuffer())
-    await uploadReceipt(receiptKey, buffer, receipt.type)
-
-    const updated = await getPool().query(
-      `UPDATE expense_notes SET receipt_key = $1 WHERE id = $2 RETURNING *`,
-      [receiptKey, note.id]
-    )
-
-    return Response.json(toExpenseNote(updated.rows[0]), { status: 201 })
+    return Response.json(toExpenseNote(note), { status: 201 })
   } catch (error) {
     return respondError(error)
   }
