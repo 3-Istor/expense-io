@@ -1,0 +1,19 @@
+# Audit du 2026-10-20T17:26Z, commit 381af2b, src identique à : 381af2b
+## Versions
+node v22.22.0
+jscpd jscpd 5.4.1
+knip 6.42.1
+semgrep 1.181.0
+gitleaks absent
+osv-scanner absent
+npm 10.9.4
+$ npx jscpd src --min-tokens 40 --reporters json,consoleFull --output /tmp/tmp.mu9x2IgPbj --silent
+  → code de sortie 0, sortie dans raw/jscpd-summary.txt
+$ npx knip --reporter json --no-exit-code
+  → code de sortie 0, sortie dans raw/knip.json
+$ semgrep scan --config .semgrep/ src --metrics=off --disable-version-check --json -q
+  → code de sortie 0, sortie dans raw/semgrep.json
+gitleaks : NON EXÉCUTÉ (outil absent de la machine)
+osv-scanner : NON EXÉCUTÉ (outil absent de la machine)
+$ npm audit --json --omit=dev
+  → code de sortie 1, sortie dans raw/npm-audit.json

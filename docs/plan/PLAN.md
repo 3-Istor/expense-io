@@ -59,7 +59,7 @@ par les 67 tests d'API et la moulinette `pr` au vert.
       inutilisé, seuils resserrés. Règles dependency-cruiser des modules, S2 bloquant.
 - [ ] 3.5 Erreurs RFC 9457 en gardant `error` (ADR, changement de contrat : ajout de champs et d'un type de média).
 - [x] 3.6 Contrat déclaré dans le code (ADR 0001) : schémas Zod, OpenAPI généré, la CI vérifie qu'il est à jour.
-- [ ] 3.7 Audit « après » : `scripts/audit.sh docs/audit/apres`, comparaison avec « avant ».
+- [x] 3.7 Audit « après » : `scripts/audit.sh docs/audit/apres`, comparaison avec « avant ».
 
 ## Phase 4 — Run, qualité et durabilité (agent seul)
 

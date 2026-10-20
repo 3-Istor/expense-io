@@ -1,0 +1,437 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "end": 258,
+        "endLoc": {
+          "column": 104,
+          "line": 258,
+          "position": 9281
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 249,
+        "startLoc": {
+          "column": 15,
+          "line": 249,
+          "position": 8873
+        }
+      },
+      "format": "tsx",
+      "fragment": "      </section>\n\n      {error && (\n        <p role=\"alert\" className=\"rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300\">\n          {error}\n        </p>\n      )}\n\n      <section className=\"rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900\">\n        <h2 className=\"border-b border-gray-200 px-6 py-4 text-base font-semibold dark:border-gray-800\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 90,
+        "endLoc": {
+          "column": 104,
+          "line": 90,
+          "position": 2761
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 81,
+        "startLoc": {
+          "column": 11,
+          "line": 81,
+          "position": 2353
+        }
+      },
+      "tokens": 40
+    },
+    {
+      "firstFile": {
+        "end": 284,
+        "endLoc": {
+          "column": 34,
+          "line": 284,
+          "position": 10561
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 277,
+        "startLoc": {
+          "column": 62,
+          "line": 277,
+          "position": 10218
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <th className=\"px-6 py-3 font-medium\">Statut</th>\n                  <th className=\"px-6 py-3\" />\n                </tr>\n              </thead>\n              <tbody className=\"divide-y divide-gray-100 dark:divide-gray-800\">\n                {notes.map((note) => (\n                  <tr key={note.id} className=\"hover:bg-gray-50 dark:hover:bg-gray-800/50\">\n                    <td className=\"px-6 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 116,
+        "endLoc": {
+          "column": 34,
+          "line": 116,
+          "position": 4047
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 109,
+        "startLoc": {
+          "column": 74,
+          "line": 109,
+          "position": 3704
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 291,
+        "endLoc": {
+          "column": 34,
+          "line": 291,
+          "position": 11004
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 283,
+        "startLoc": {
+          "column": 90,
+          "line": 283,
+          "position": 10525
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <tr key={note.id} className=\"hover:bg-gray-50 dark:hover:bg-gray-800/50\">\n                    <td className=\"px-6 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400\">\n                      {dateFormatter.format(new Date(note.expenseDate))}\n                    </td>\n                    <td className=\"px-6 py-3\">{note.description}</td>\n                    <td className=\"px-6 py-3 text-right font-medium whitespace-nowrap\">\n                      {currencyFormatter.format(note.amount)}\n                    </td>\n                    <td className=\"px-6 py-3\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 126,
+        "endLoc": {
+          "column": 34,
+          "line": 126,
+          "position": 4665
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 118,
+        "startLoc": {
+          "column": 24,
+          "line": 118,
+          "position": 4186
+        }
+      },
+      "tokens": 72
+    },
+    {
+      "firstFile": {
+        "end": 312,
+        "endLoc": {
+          "column": 1,
+          "line": 312,
+          "position": 11652
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 301,
+        "startLoc": {
+          "column": 22,
+          "line": 301,
+          "position": 11466
+        }
+      },
+      "format": "tsx",
+      "fragment": "                      </button>\n                    </td>\n                  </tr>\n                ))}\n              </tbody>\n            </table>\n          </div>\n        )}\n      </section>\n    </main>\n  )\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 160,
+        "endLoc": {
+          "column": 1,
+          "line": 160,
+          "position": 6052
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 149,
+        "startLoc": {
+          "column": 22,
+          "line": 149,
+          "position": 5866
+        }
+      },
+      "tokens": 46
+    },
+    {
+      "firstFile": {
+        "end": 41,
+        "endLoc": {
+          "column": 27,
+          "line": 41,
+          "position": 1556
+        },
+        "name": "app/login/page.tsx",
+        "start": 27,
+        "startLoc": {
+          "column": 6,
+          "line": 27,
+          "position": 1040
+        }
+      },
+      "format": "tsx",
+      "fragment": "      >\n        <div className=\"flex flex-col gap-1.5\">\n          <label htmlFor=\"email\" className=\"text-sm font-medium\">\n            Email\n          </label>\n          <input id=\"email\" name=\"email\" type=\"email\" required className={inputClass} />\n        </div>\n        <div className=\"flex flex-col gap-1.5\">\n          <label htmlFor=\"password\" className=\"text-sm font-medium\">\n            Mot de passe\n          </label>\n          <input\n            id=\"password\"\n            name=\"password\"\n            type=\"password\"",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 15,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 27,
+          "line": 47,
+          "position": 1813
+        },
+        "name": "app/signup/page.tsx",
+        "start": 33,
+        "startLoc": {
+          "column": 13,
+          "line": 33,
+          "position": 1297
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 20,
+          "line": 58,
+          "position": 2133
+        },
+        "name": "app/login/page.tsx",
+        "start": 44,
+        "startLoc": {
+          "column": 11,
+          "line": 44,
+          "position": 1624
+        }
+      },
+      "format": "tsx",
+      "fragment": "          />\n        </div>\n\n        {state?.error && (\n          <p role=\"alert\" className=\"rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300\">\n            {state.error}\n          </p>\n        )}\n\n        <button\n          type=\"submit\"\n          disabled={pending}\n          className=\"mt-1 w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60\"\n        >\n          {pending ? 'Connexion…' : 'Se connecter'}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 15,
+      "secondFile": {
+        "end": 66,
+        "endLoc": {
+          "column": 20,
+          "line": 66,
+          "position": 2490
+        },
+        "name": "app/signup/page.tsx",
+        "start": 52,
+        "startLoc": {
+          "column": 72,
+          "line": 52,
+          "position": 1981
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 103,
+        "endLoc": {
+          "column": 21,
+          "line": 103,
+          "position": 3115
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 95,
+        "startLoc": {
+          "column": 19,
+          "line": 95,
+          "position": 2858
+        }
+      },
+      "format": "tsx",
+      "fragment": "      setNotesError('Impossible de récupérer le reçu.')\n      return\n    }\n    const { url } = await response.json()\n    window.open(url, '_blank', 'noopener,noreferrer')\n  }\n\n  async function handleDecide(id: string, decision: 'approve' | 'reject') {\n    setDecidingId(id)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 21,
+          "line": 54,
+          "position": 1518
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 46,
+        "startLoc": {
+          "column": 14,
+          "line": 46,
+          "position": 1261
+        }
+      },
+      "tokens": 46
+    },
+    {
+      "firstFile": {
+        "end": 214,
+        "endLoc": {
+          "column": 56,
+          "line": 214,
+          "position": 7947
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 201,
+        "startLoc": {
+          "column": 22,
+          "line": 201,
+          "position": 7301
+        }
+      },
+      "format": "tsx",
+      "fragment": "        {notesLoading ? (\n          <p className=\"px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400\">\n            Chargement…\n          </p>\n        ) : notes.length === 0 ? (\n          <p className=\"px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400\">\n            Aucune note en attente.\n          </p>\n        ) : (\n          <div className=\"overflow-x-auto\">\n            <table className=\"w-full text-left text-sm\">\n              <thead>\n                <tr className=\"border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400\">\n                  <th className=\"px-6 py-3 font-medium\">Manager</th>",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 14,
+      "secondFile": {
+        "end": 106,
+        "endLoc": {
+          "column": 56,
+          "line": 106,
+          "position": 3477
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 93,
+        "startLoc": {
+          "column": 17,
+          "line": 93,
+          "position": 2831
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 222,
+        "endLoc": {
+          "column": 36,
+          "line": 222,
+          "position": 8387
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 214,
+        "startLoc": {
+          "column": 63,
+          "line": 214,
+          "position": 7954
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <th className=\"px-6 py-3 font-medium\">Manager</th>\n                  <th className=\"px-6 py-3 font-medium\">Date</th>\n                  <th className=\"px-6 py-3 font-medium\">Description</th>\n                  <th className=\"px-6 py-3 text-right font-medium\">Montant</th>\n                  <th className=\"px-6 py-3\" />\n                </tr>\n              </thead>\n              <tbody className=\"divide-y divide-gray-100 dark:divide-gray-800\">\n                {notes.map((note) => {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 36,
+          "line": 114,
+          "position": 3918
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 106,
+        "startLoc": {
+          "column": 64,
+          "line": 106,
+          "position": 3485
+        }
+      },
+      "tokens": 75
+    },
+    {
+      "firstFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 27,
+          "line": 25,
+          "position": 1127
+        },
+        "name": "modules/expense-notes/http.ts",
+        "start": 20,
+        "startLoc": {
+          "column": 68,
+          "line": 20,
+          "position": 927
+        }
+      },
+      "format": "typescript",
+      "fragment": "export function decisionRoute(kind: ApproverKind, decision: Decision) {\n  return (_request: Request, { params }: Params) =>\n    handle(DENIED_STATUS[kind], async () => {\n      const me = await requireUser()\n      const { id } = await params\n      return Response.json(noteJson(await expenseNotes.decide(me, kind, id, decision)))",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 34,
+        "endLoc": {
+          "column": 27,
+          "line": 34,
+          "position": 1456
+        },
+        "name": "modules/expense-notes/http.ts",
+        "start": 29,
+        "startLoc": {
+          "column": 58,
+          "line": 29,
+          "position": 1256
+        }
+      },
+      "tokens": 46
+    }
+  ],
+  "statistics": {
+    "detectionDate": "2026-10-20T17:28:28.634Z",
+    "formats": {
+      "css": {
+        "clones": 0,
+        "duplicatedLines": 0,
+        "duplicatedTokens": 0,
+        "lines": 18,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.0,
+        "percentageTokens": 0.0,
+        "sources": 1,
+        "tokens": 95
+      },
+      "tsx": {
+        "clones": 9,
+        "duplicatedLines": 101,
+        "duplicatedTokens": 540,
+        "lines": 1052,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 9.600760456273765,
+        "percentageTokens": 9.968617315857484,
+        "sources": 10,
+        "tokens": 5417
+      },
+      "typescript": {
+        "clones": 1,
+        "duplicatedLines": 6,
+        "duplicatedTokens": 46,
+        "lines": 1442,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.4160887656033287,
+        "percentageTokens": 0.5039439088518843,
+        "sources": 35,
+        "tokens": 9128
+      }
+    },
+    "total": {
+      "clones": 10,
+      "duplicatedLines": 107,
+      "duplicatedTokens": 586,
+      "lines": 2512,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 4.259554140127388,
+      "percentageTokens": 4.002732240437158,
+      "sources": 46,
+      "tokens": 14640
+    }
+  }
+}
