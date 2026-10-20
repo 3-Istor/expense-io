@@ -238,18 +238,36 @@ test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux
 })
 
 test('T16 [SEC-05] l\'app ne se connecte pas avec un rôle qui ignore la RLS', async () => {
-  knownFlaw('SEC-05', 'le rôle de l\'app est superutilisateur, la RLS (même FORCE) ne s\'applique pas')
+  knownFlaw('SEC-05', 'la connexion se fait encore avec un superutilisateur : seules les transactions de withUserScope endossent expense_app (correctif complet : rôle de connexion dédié, à valider, voir QUESTIONS.md)')
   const res = await db().query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user')
   expect(res.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
 })
 
 test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', async () => {
-  knownFlaw('SEC-05', 'les politiques RH ne comparent pas l\'entreprise du RH à celle de l\'auteur')
   const res = await db().query(
     "SELECT policyname, coalesce(qual, '') || coalesce(with_check, '') AS rule FROM pg_policies WHERE tablename = 'expense_notes'",
   )
   const withoutCompany = res.rows.filter((p) => !p.rule.includes('company_id')).map((p) => p.policyname)
   expect(withoutCompany).toEqual([])
+})
+
+test('T17b [SEC-05] sous le rôle applicatif, la base cache et protège les notes d\'une autre entreprise', async () => {
+  const id = await createNote(A.manager.id) // note d'un manager racine de A : du ressort du RH de A seulement
+  const client = await db().connect()
+  const as = (userId: string) => client.query("SELECT set_config('app.current_user_id', $1, true)", [userId])
+  try {
+    await client.query('BEGIN')
+    await client.query('SET LOCAL ROLE expense_app')
+    await as(B.hr.id)
+    expect((await client.query('SELECT id FROM expense_notes WHERE id = $1', [id])).rowCount, 'lecture par le RH de B').toBe(0)
+    const update = await client.query("UPDATE expense_notes SET status = 'approved' WHERE id = $1", [id])
+    expect(update.rowCount, 'écriture par le RH de B').toBe(0)
+    await as(A.hr.id) // contrôle positif : la politique n'interdit pas tout
+    expect((await client.query('SELECT id FROM expense_notes WHERE id = $1', [id])).rowCount, 'lecture par le RH de A').toBe(1)
+  } finally {
+    await client.query('ROLLBACK')
+    client.release()
+  }
 })
 
 test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({

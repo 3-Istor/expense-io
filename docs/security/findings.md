@@ -101,3 +101,19 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Correctif** : le callback `jwt` d'Auth.js relit le rôle en base à chaque requête ; compte introuvable → plus de session.
   Coût : une requête indexée (clé primaire) par appel authentifié, à surveiller en phase 4 (SLO de latence).
 - **Statut** : corrigé, T18 vert sans marquage.
+
+## SEC-05 — La RLS ne protège rien (rôle superutilisateur, politiques sans entreprise)
+
+- **CWE** : CWE-250 (privilèges inutiles), CWE-284 · **API Top 10** : API1:2023
+- **CVSS v4.0** : 6.0 moyenne — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:H/VI:L/VA:N/SC:N/SI:N/SA:N` (aucune exploitation directe : c'est la seconde ligne de
+  défense qui manque ; la gravité tient à ce que toute faille applicative devient une fuite inter-entreprises)
+- **Preuve** : T16 (rôle de connexion superutilisateur), T17 (8 politiques sans entreprise), T17b, nouveau : avec les
+  anciennes politiques, le RH de B lit la note d'un manager de A sous un rôle soumis à la RLS (1 ligne au lieu de 0).
+- **Correctif, partie faite** : migration `1700000000002_rls-par-entreprise.sql` (réversible, testée up/down/up) :
+  rôle `expense_app` NOLOGIN, ni superuser ni BYPASSRLS, droits minimaux ; politiques qui comparent l'entreprise de
+  l'auteur à celle de l'appelant ; `withUserScope` endosse `expense_app` (`SET LOCAL ROLE`). Les 66 tests d'API
+  passent sous la RLS réelle.
+- **Reste à faire (décision humaine, voir QUESTIONS.md)** : se connecter avec un rôle dédié non superutilisateur
+  (mot de passe, donc secret et `.env`, interdits à l'agent) et passer sous `withUserScope` les requêtes restantes
+  (`getPool()` de la connexion Auth.js, de l'annuaire RH et de l'enregistrement du reçu).
+- **Statut** : partiellement corrigé. T17 et T17b verts ; T16 reste en échec attendu, avec un motif mis à jour.

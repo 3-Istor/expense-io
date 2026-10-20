@@ -5,6 +5,15 @@ Un humain répond sous la question et coche la case.
 
 ## Ouvertes
 
+- [ ] 2026-10-20 — SEC-05, fin du correctif (niveau 3, secrets) : l'app se connecte encore en superutilisateur.
+      Proposition : un rôle de connexion `expense_app_login` (LOGIN, membre de `expense_app`), son mot de passe dans
+      `.env` (`DATABASE_URL`) et dans la CI, le rôle superutilisateur réservé aux migrations (`MIGRATION_DATABASE_URL`) ;
+      puis passer sous `withUserScope` la connexion Auth.js (fonction SECURITY DEFINER), l'annuaire RH et
+      l'enregistrement du reçu. L'agent ne peut ni lire ni écrire `.env*`. En attendant : rôle endossé par transaction
+      (fait), T16 en échec attendu. Réversible.
+- [ ] 2026-10-20 — ADR 0002 (400 sur le rattachement de manager) et ADR 0003 (400 sur un tri hors liste) : statut
+      « proposé », écrits en autonomie. Ils ajoutent un code d'erreur au contrat : validation humaine avant merge.
+
 - [ ] 2026-10-20 — Renovate : l'application GitHub Renovate doit être installée sur l'organisation 3-Istor
       par un admin pour que `renovate.json` soit pris en compte. En attendant : rien ne tourne. Réversible.
 - [ ] 2026-10-20 — Protection de `main` sur le fork : à activer par un admin (merge par PR, CI verte obligatoire).
