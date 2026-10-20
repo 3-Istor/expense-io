@@ -23,3 +23,13 @@ Un humain répond sous la question et coche la case.
 - [ ] 2026-10-20 — Tâche 1.4 : les 11 échecs attendus ont été posés sans relecture humaine du plan (niveau 3,
       Brian a délégué en autonomie). Les tests n'ajoutent aucun code à l'app : à relire au point de contrôle de
       fin de phase 1. Réversible.
+- [ ] 2026-10-20 — Tâche 1.6 (CI, niveau 3) : plan à valider avant d'écrire le workflow. Proposition :
+      `.github/workflows/ci.yml` sur chaque PR vers `main` (Postgres 16 et LocalStack en services, migration,
+      `npm run verify -- --level pr`, `npm test`, `npm run test:api`, gitleaks et OSV-Scanner par leurs actions
+      officielles, Semgrep avec les règles maison + `p/typescript`) ; `nightly.yml` planifié chaque nuit, squelette.
+      Permissions minimales (`contents: read`), actions épinglées par SHA, aucun secret requis.
+      Point d'attention : pousser un workflow demande que le jeton Git de l'agent ait le droit `workflow`.
+      En attendant : tâche mise de côté, 1.7 faite avant. Réversible.
+- [ ] 2026-10-20 — Moulinette : le contrôle S5 (contrat OpenAPI) a été ajouté à `verify/` pendant la tâche 1.5,
+      en autonomie. Toucher à `verify/` est de niveau 3 : à relire au point de contrôle de fin de phase 1.
+      Proposition à valider : un contrôle S6 (Semgrep, règles maison) au niveau `pr`. Réversible.

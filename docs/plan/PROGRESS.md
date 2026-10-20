@@ -106,3 +106,19 @@ Une session qui démarre lit ce fichier en premier.
     (`stack` exposé, objet d'erreur 500 ouvert) : c'est voulu, elles passeront au vert avec le correctif.
   - Le cliquet a servi : S4 a bloqué 3 exports inutilisés dans les nouveaux fichiers de test, corrigés avant commit.
 - Prochaine tâche : **1.6** (CI GitHub Actions, niveau 3 : le workflow est préparé sur la branche, Brian valide).
+
+## 2026-10-20 — Tâche 1.7 terminée (niveau de risque 1), 1.6 mise de côté
+
+- **1.6 (CI) reportée** : niveau 3, le plan doit être validé par un humain avant le code (voir `QUESTIONS.md`).
+  Ordre modifié, ce qui est permis : la 1.7 ne dépend pas de la 1.6.
+- `scripts/audit.sh <dossier>` : lance jscpd, knip, Semgrep, gitleaks, OSV-Scanner et npm audit, archive sorties,
+  commandes et versions ; un outil absent est noté « NON EXÉCUTÉ ». Rejouable pour l'audit « après ».
+- `.semgrep/expense-io.yml` : 6 règles maison (CWE et SEC-NN dans les métadonnées, correction dans le message).
+- Résultats sur `src/` d'origine (`docs/audit/avant/README.md`) : duplication 17,4 %, 7 fichiers jamais importés,
+  18 constats Semgrep, 3 dépendances vulnérables (dont `next` 16.3.5 critique, correctif en 16.3.8).
+- Preuves :
+  - `scripts/audit.sh docs/audit/avant` → `raw/commands.txt` (versions, commandes, codes de sortie).
+  - La règle `route-sans-controle-de-session` mord : une route sonde sans `auth()` est signalée, les 13 vraies routes non.
+  - `git log -1 --format=%h -- src` → `265924b` : l'audit porte bien sur le code d'origine.
+- Non exécuté ici (proxy) : gitleaks, OSV-Scanner, règles Semgrep du registre. Ils passeront en CI.
+- Prochaine tâche : **1.6** (CI), en attente de validation. Puis point de contrôle humain de fin de phase 1.
