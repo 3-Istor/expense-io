@@ -20,13 +20,14 @@ const APPROVER_ROLE: Record<Approver, { role: string; deniedStatus: number }> = 
 }
 
 // Requêtes complètes et constantes (aucun fragment interpolé) : $1 = note, $2 = appelant.
+// `en.user_id <> $2` : personne ne décide de sa propre note, même si une règle de périmètre changeait (SEC-06).
 const SCOPED_NOTE_QUERY: Record<Approver, string> = {
   manager: `SELECT en.* FROM expense_notes en
             JOIN users u ON u.id = en.user_id
-            WHERE en.id = $1 AND u.manager_id = $2`,
+            WHERE en.id = $1 AND u.manager_id = $2 AND en.user_id <> $2`,
   hr: `SELECT en.* FROM expense_notes en
        JOIN users u ON u.id = en.user_id
-       WHERE en.id = $1 AND u.role = 'manager' AND u.manager_id IS NULL
+       WHERE en.id = $1 AND u.role = 'manager' AND u.manager_id IS NULL AND en.user_id <> $2
          AND u.company_id = (SELECT company_id FROM users WHERE id = $2)`,
 }
 

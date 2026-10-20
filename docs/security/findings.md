@@ -128,3 +128,12 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   L'`UPDATE` hors contexte utilisateur disparaît (Semgrep 2 → 1). Format de clé inchangé : la clé opaque (SEC-13)
   attend la réponse des profs sur `receiptKey`.
 - **Statut** : corrigé ; test unitaire vert (rouge sur l'ancien code), 66 tests d'API verts.
+
+## SEC-06 — Auto-validation interdite explicitement (défense en profondeur)
+
+- **CWE** : CWE-863 (autorisation incorrecte) · **API Top 10** : API5:2023
+- **CVSS v4.0** : non noté (pas de faille exploitable aujourd'hui : T07 passait déjà, la règle découlait du périmètre).
+- **Preuve** : T07 (garde-fou). La règle « acteur ≠ auteur » n'était écrite nulle part : elle tenait par accident
+  (un manager n'est pas son propre subordonné, un RH n'est pas manager racine).
+- **Correctif** : `en.user_id <> appelant` dans les trois requêtes de périmètre de `src/lib/approvals.ts`.
+- **Statut** : fait. Avec le passage de l'annuaire RH sous `withUserScope`, Semgrep tombe à 0 constat (seuil 0).
