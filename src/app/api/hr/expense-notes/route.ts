@@ -22,7 +22,7 @@ export async function GET() {
       return Response.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    return withUserScope(session.user.id, async (client) => {
+    return await withUserScope(session.user.id, async (client) => {
       const result = await client.query(
         `SELECT en.* FROM expense_notes en
          JOIN users u ON u.id = en.user_id

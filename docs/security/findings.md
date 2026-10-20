@@ -20,3 +20,17 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Limite constatée** : en `next dev`, l'erreur de démarrage est journalisée mais le serveur continue ; Auth.js
   refuse alors toute session. Comportement de `next start` à vérifier en phase 4 (Dockerfile).
 - **Statut** : corrigé, T18b vert sans marquage.
+
+## SEC-07 — Stacktrace et détail SQL renvoyés au client ; erreurs qui échappent au catch
+
+- **CWE** : CWE-209 (message d'erreur qui révèle de l'information), CWE-755 (exception mal gérée)
+  · **API Top 10** : API8:2023 Security Misconfiguration
+- **CVSS v4.0** : 5.3 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T14b (500 avec `stack` et « invalid input syntax for type uuid ») ; T14c, nouveau (500 au corps vide
+  quand la route fait `return withUserScope(...)` sans `await`). Semgrep : `stacktrace-dans-la-reponse`,
+  `promesse-renvoyee-sans-await-dans-try` ×7.
+- **Correctif** : `respondError` journalise l'erreur avec un identifiant et renvoie `{error: "Erreur interne", errorId}` ;
+  `return await withUserScope(...)` dans les 7 routes. Contrat : `stack` retiré des 500, comme annoncé dans
+  `docs/contract.md` ; `errorId` ajouté (ajout de champ permis). Le format RFC 9457 reste à décider (ADR).
+- **Statut** : corrigé. T14b et T14c verts sans marquage ; Semgrep 16 → 8 constats, seuil du cliquet resserré à 8 ;
+  les 2 avertissements Spectral de SEC-07 ont disparu.

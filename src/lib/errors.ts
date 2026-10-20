@@ -1,6 +1,11 @@
+import { randomUUID } from 'node:crypto'
+
+/**
+ * Réponse à une erreur inattendue (SEC-07) : le détail (message SQL, stacktrace) reste dans les journaux du serveur,
+ * le client reçoit un message générique et un identifiant pour retrouver l'erreur dans les journaux.
+ */
 export function respondError(error: unknown): Response {
-  console.error(error)
-  const message = error instanceof Error ? error.message : String(error)
-  const stack = error instanceof Error ? error.stack : undefined
-  return Response.json({ error: message, stack }, { status: 500 })
+  const errorId = randomUUID()
+  console.error(`[erreur ${errorId}]`, error)
+  return Response.json({ error: 'Erreur interne', errorId }, { status: 500 })
 }

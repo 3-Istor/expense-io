@@ -10,7 +10,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     }
     const { id } = await params
 
-    return withUserScope(session.user.id, async (client) => {
+    return await withUserScope(session.user.id, async (client) => {
       const existing = await client.query(
         `SELECT en.* FROM expense_notes en
          JOIN users u ON u.id = en.user_id

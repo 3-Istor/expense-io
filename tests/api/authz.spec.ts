@@ -210,13 +210,21 @@ test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris',
 })
 
 test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
-  knownFlaw('SEC-07', 'respondError renvoie { error: message SQL, stack }')
   // Un identifiant qui n'est pas un UUID fait lever une erreur PostgreSQL, rattrapée par respondError.
   const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
   expect(res.status()).toBe(500)
   const body = await res.json()
   expect(body).not.toHaveProperty('stack')
   expect(JSON.stringify(body)).not.toContain('invalid input syntax')
+})
+
+test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 500 JSON générique', async () => {
+  // Avant : `return withUserScope(...)` sans await laissait l'erreur échapper au catch (500 au corps vide).
+  const res = await as.managerA.post('/api/manager/expense-notes/pas-un-uuid/approve')
+  expect(res.status()).toBe(500)
+  const body = await res.json()
+  expect(Object.keys(body).sort()).toEqual(['error', 'errorId'])
+  expect(body.error).toBe('Erreur interne')
 })
 
 test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux requêtes simultanées', async () => {

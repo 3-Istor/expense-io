@@ -323,11 +323,12 @@ components:
         error: { type: string }
     InternalError:
       type: object
-      description: Expose la stacktrace (faille SEC-07). Certaines routes renvoient un corps vide.
+      additionalProperties: false
+      description: Message générique ; le détail reste dans les journaux du serveur (SEC-07).
       required: [error]
       properties:
         error: { type: string }
-        stack: { type: string }
+        errorId: { type: string, format: uuid, description: Identifiant de l'erreur dans les journaux }
 
   responses:
     Note:
