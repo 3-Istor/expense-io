@@ -1,7 +1,13 @@
 import path from 'node:path'
 import { createWorker } from 'tesseract.js'
+import { createLimiter, withTimeout } from '@/lib/limits'
 
 const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+// OCR borné (SEC-11) : c'est l'opération la plus coûteuse de l'app, déclenchable par tout utilisateur connecté.
+export const OCR_MAX_BYTES = 10 * 1024 * 1024
+const OCR_TIMEOUT_MS = 15_000
+const OCR_MAX_CONCURRENT = 2
+const limitOcr = createLimiter(OCR_MAX_CONCURRENT)
 const TESSDATA_PATH = path.join(process.cwd(), 'tessdata')
 
 const AMOUNT_KEYWORD_PATTERN = /total|montant|ttc|à payer|net à/i
@@ -115,18 +121,20 @@ export async function suggestFields(receipt: {
   }
 
   try {
-    const worker = await createWorker('fra', undefined, {
-      langPath: TESSDATA_PATH,
-      cacheMethod: 'none',
+    return await limitOcr(async () => {
+      const worker = await createWorker('fra', undefined, {
+        langPath: TESSDATA_PATH,
+        cacheMethod: 'none',
+      })
+      try {
+        const {
+          data: { text },
+        } = await withTimeout(worker.recognize(receipt.data), OCR_TIMEOUT_MS, () => void worker.terminate())
+        return { amount: parseAmount(text), expenseDate: parseExpenseDate(text) }
+      } finally {
+        await worker.terminate().catch(() => {})
+      }
     })
-    try {
-      const {
-        data: { text },
-      } = await worker.recognize(receipt.data)
-      return { amount: parseAmount(text), expenseDate: parseExpenseDate(text) }
-    } finally {
-      await worker.terminate()
-    }
   } catch (error) {
     console.error('[ocr] Extraction échouée, suggestion vide renvoyée', error)
     return {}

@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { respondError } from '@/lib/errors'
-import { suggestFields } from '@/lib/ocr'
+import { OCR_MAX_BYTES, suggestFields } from '@/lib/ocr'
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +13,9 @@ export async function POST(request: Request) {
     const receipt = formData.get('receipt')
     if (!(receipt instanceof File)) {
       return Response.json({ error: 'Champs invalides' }, { status: 400 })
+    }
+    if (receipt.size > OCR_MAX_BYTES) {
+      return Response.json({ error: 'Fichier trop volumineux' }, { status: 400 })
     }
 
     const buffer = Buffer.from(await receipt.arrayBuffer())

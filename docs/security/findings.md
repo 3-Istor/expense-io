@@ -137,3 +137,14 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   (un manager n'est pas son propre subordonné, un RH n'est pas manager racine).
 - **Correctif** : `en.user_id <> appelant` dans les trois requêtes de périmètre de `src/lib/approvals.ts`.
 - **Statut** : fait. Avec le passage de l'annuaire RH sous `withUserScope`, Semgrep tombe à 0 constat (seuil 0).
+
+## SEC-11 — OCR non borné (déni de service)
+
+- **CWE** : CWE-400 (consommation de ressources non contrôlée) · **API Top 10** : API4:2023 Unrestricted Resource Consumption
+- **CVSS v4.0** : 7.1 élevée — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N`
+- **Preuve** : un fichier de plus de 10 Mo était accepté et passé à Tesseract (200 sur l'ancien code) ; aucun délai,
+  aucune limite de concurrence : quelques requêtes simultanées occupent tout le processeur.
+- **Correctif** : taille maximale de 10 Mo (400, code déjà au contrat de la route), délai de 15 s qui arrête le
+  worker, au plus 2 OCR simultanés, les suivants attendent (`src/lib/limits.ts`, tests unitaires). Un OCR qui dépasse
+  le délai renvoie une suggestion vide, comme une erreur d'OCR aujourd'hui.
+- **Statut** : corrigé ; test de contrat « reçu de plus de 10 Mo » (rouge sur l'ancien code) et 3 tests unitaires verts.

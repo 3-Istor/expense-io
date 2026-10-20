@@ -170,6 +170,13 @@ test.describe('POST /api/expense-notes/receipt-suggestion', () => {
     expectError(await res.json())
   })
 
+  test('400 : reçu de plus de 10 Mo, refusé avant l\'OCR (SEC-11)', async () => {
+    const receipt = { name: 'gros.png', mimeType: 'image/png', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) }
+    const res = await asEmployee.post('/api/expense-notes/receipt-suggestion', { multipart: { receipt } })
+    expect(res.status()).toBe(400)
+    expectError(await res.json())
+  })
+
   test('200 : suggestion avec au plus amount et expenseDate', async () => {
     const pdf = { name: 'recu.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4') }
     for (const receipt of [pdf, png()]) {
