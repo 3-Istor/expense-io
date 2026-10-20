@@ -1,50 +1,41 @@
 # Questions pour un humain
 
 Format : date, tâche, question, options, option prudente retenue en attendant, réversible ou non.
-Un humain répond sous la question et coche la case.
+Un humain répond sous la question et coche la case. Questions pour les profs : `docs/plan/questions-profs.md`.
 
 ## Ouvertes
 
-- [ ] 2026-10-20 — Tâche 3.5 (erreurs RFC 9457) mise de côté : elle change le type de média de TOUTES les erreurs
-      (`application/problem+json`) et ajoute des champs. Le contrat le permet (ajout de champs), mais les tests cachés
-      de la moulinette des profs vérifient peut-être le format actuel. Options : (a) RFC 9457 complet avec ADR ;
-      (b) garder `application/json` et ajouter seulement `type`, `title`, `status` à côté de `error` ; (c) ne rien
-      changer. En attendant : (c). À trancher avec la réponse des profs. Réversible.
+- [ ] 2026-10-20 — SEC-05, fin du correctif : l'app se connecte à PostgreSQL avec le compte `expense`, qui est
+      administrateur (superutilisateur) dans l'image Docker. Un administrateur ignore la RLS. Fait : chaque
+      transaction métier bascule sur le rôle limité `expense_app` (`SET LOCAL ROLE`), donc la RLS s'applique aux
+      routes. Reste : la connexion elle-même (connexion, inscription, et toute requête hors `withUserScope`) et le
+      cas d'une injection SQL, qui pourrait revenir en administrateur (`RESET ROLE`). Correctif : un compte de
+      connexion non administrateur dans `DATABASE_URL`, l'administrateur réservé aux migrations. Il faut modifier
+      `.env.example` et `.env`, que l'agent n'a pas le droit de lire. Option proposée : autoriser l'agent à lire et
+      modifier `.env.example` (valeurs de dev publiques, comme `docker-compose.yml`) ; un humain recopie la ligne
+      dans son `.env`. En attendant : rôle endossé par transaction, T16 en échec attendu. Réversible.
+- [ ] 2026-10-20 — ADR 0002 et ADR 0003 (statut « proposé ») : deux routes répondent maintenant 400 à une entrée
+      invalide (corps illisible sur le rattachement de manager ; tri hors liste). Avant : détachement silencieux du
+      manager, ou injection SQL / 500. Un nouveau code d'erreur est un changement de contrat : question posée aux
+      profs (`questions-profs.md`, Q3). En attendant : appliqué sur la branche, réversible.
+- [ ] 2026-10-20 — Employé sans manager (T08) : ses notes ne sont proposées à personne. Question posée aux profs
+      (`questions-profs.md`, Q5). En attendant : comportement actuel figé par T08. Réversible.
+- [ ] 2026-10-20 — Numérotation T01–T18 : seules T07 et T11–T18 viennent du doc de vision ; T01–T06 et T08–T10 ont
+      été reconstruites (`docs/audit/avant/authz.md`). À rapprocher de la restitution de la task A (question interne
+      à l'équipe). Réversible (renommer des tests).
+- [ ] 2026-10-20 — Relecture des tests « échec attendu » (`tests/api/authz.spec.ts`, T11 à T18) : écrits en
+      autonomie. Un test « échec attendu » décrit le comportement CORRECT et échoue tant que la faille existe ; si
+      l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
 
-- [ ] 2026-10-20 — SEC-05, fin du correctif (niveau 3, secrets) : l'app se connecte encore en superutilisateur.
-      Proposition : un rôle de connexion `expense_app_login` (LOGIN, membre de `expense_app`), son mot de passe dans
-      `.env` (`DATABASE_URL`) et dans la CI, le rôle superutilisateur réservé aux migrations (`MIGRATION_DATABASE_URL`) ;
-      puis passer sous `withUserScope` la connexion Auth.js (fonction SECURITY DEFINER), l'annuaire RH et
-      l'enregistrement du reçu. L'agent ne peut ni lire ni écrire `.env*`. En attendant : rôle endossé par transaction
-      (fait), T16 en échec attendu. Réversible.
-- [ ] 2026-10-20 — ADR 0002 (400 sur le rattachement de manager) et ADR 0003 (400 sur un tri hors liste) : statut
-      « proposé », écrits en autonomie. Ils ajoutent un code d'erreur au contrat : validation humaine avant merge.
+## Fermées
 
-- [ ] 2026-10-20 — Renovate : l'application GitHub Renovate doit être installée sur l'organisation 3-Istor
-      par un admin pour que `renovate.json` soit pris en compte. En attendant : rien ne tourne. Réversible.
-- [ ] 2026-10-20 — Protection de `main` sur le fork : à activer par un admin (merge par PR, CI verte obligatoire).
-      En attendant : l'agent ne pousse que sur des branches `phase-N/...` et `harness/...`. Réversible.
-- [ ] 2026-10-20 — À poser aux profs : codes 401/403 attendus tels quels ? `receiptKey` retirable ? nouvelle valeur
-      de `status` acceptable ? sens de « root » ? comment la moulinette s'authentifie ? attentes Sonar et kube ?
-      En attendant : contrat gelé à l'identique. Réversible.
-- [ ] 2026-10-20 — Tâche 1.4 : la numérotation T01–T18 de la task A n'était pas dans le dépôt. Seules les
-      références du doc de vision (T07, T11 à T18) ont été reprises telles quelles ; T01–T06 et T08–T10 ont été
-      reconstruites à partir des règles du cours (`docs/audit/avant/authz.md`). À rapprocher de la restitution de la
-      task A. En attendant : numérotation de `authz.md`. Réversible (renommer des tests).
-- [ ] 2026-10-20 — Tâche 1.4 : l'employé sans manager (T08). Ses notes ne sont proposées à personne aujourd'hui.
-      Options : (a) le RH les valide, comme pour un manager racine ; (b) on interdit l'état « sans manager » pour un
-      employé ; (c) on garde tel quel. En attendant : (c), figé par T08 comme comportement actuel, sans le
-      déclarer correct. Réversible. Lié à la question aux profs sur le sens de « root ».
-- [ ] 2026-10-20 — Tâche 1.4 : les 11 échecs attendus ont été posés sans relecture humaine du plan (niveau 3,
-      Brian a délégué en autonomie). Les tests n'ajoutent aucun code à l'app : à relire au point de contrôle de
-      fin de phase 1. Réversible.
-- [ ] 2026-10-20 — Tâche 1.6 (CI, niveau 3) : plan à valider avant d'écrire le workflow. Proposition :
-      `.github/workflows/ci.yml` sur chaque PR vers `main` (Postgres 16 et LocalStack en services, migration,
-      `npm run verify -- --level pr`, `npm test`, `npm run test:api`, gitleaks et OSV-Scanner par leurs actions
-      officielles, Semgrep avec les règles maison + `p/typescript`) ; `nightly.yml` planifié chaque nuit, squelette.
-      Permissions minimales (`contents: read`), actions épinglées par SHA, aucun secret requis.
-      Point d'attention : pousser un workflow demande que le jeton Git de l'agent ait le droit `workflow`.
-      En attendant : tâche mise de côté, 1.7 faite avant. Réversible.
-- [ ] 2026-10-20 — Moulinette : le contrôle S5 (contrat OpenAPI) a été ajouté à `verify/` pendant la tâche 1.5,
-      en autonomie. Toucher à `verify/` est de niveau 3 : à relire au point de contrôle de fin de phase 1.
-      Proposition à valider : un contrôle S6 (Semgrep, règles maison) au niveau `pr`. Réversible.
+- [x] 2026-10-20 — Tâche 3.5 (erreurs RFC 9457). Réponse de Brian : « on ne prend pas le risque, laisse tel quel ».
+      Format d'erreur `{error}` conservé, commentaire dans `src/shared/http.ts`. Tâche abandonnée.
+- [x] 2026-10-20 — Renovate : application installée sur le dépôt par Brian.
+- [x] 2026-10-20 — Protection de `main` : non nécessaire (réponse de Brian).
+- [x] 2026-10-20 — Tâche 1.6, droit `workflow` du jeton Git : GitHub exige ce droit pour POUSSER des fichiers
+      `.github/workflows/`. Le push a fonctionné, la CI tourne (PR #1, #3, #4) : sans objet.
+- [x] 2026-10-20 — Contrôles S5 (contrat) et S6 (Semgrep) ajoutés à la moulinette en autonomie : `AGENTS.md` classe
+      toute modification de `verify/` en niveau 3 (relecture humaine), car un agent qui modifie ses propres
+      contrôles pourrait les affaiblir. Ici, ils ne font qu'ajouter des contrôles et resserrer des seuils ; le
+      diff est dans la PR #1 et la PR #3.

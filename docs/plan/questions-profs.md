@@ -1,0 +1,51 @@
+# Questions aux profs (équipe 3-Istor)
+
+Chaque question : le contexte en deux lignes, la question, et ce qu'on fait en attendant.
+
+## Contrat et moulinette
+
+**Q1. Comment la moulinette lance-t-elle l'app et se connecte-t-elle ?**
+Nous avons retiré le secret de session écrit en dur dans le code (faille : n'importe qui pouvait forger une session).
+L'app exige maintenant une variable `AUTH_SECRET` d'au moins 32 caractères (`make env` en génère une).
+→ La moulinette utilise-t-elle `make dev`, un `.env` fourni, ou ses propres variables ? Avec quels comptes ?
+*En attendant : `make dev` génère le secret automatiquement.*
+
+**Q2. Les codes 401 et 403 actuels sont-ils attendus tels quels ?**
+Aujourd'hui, un rôle insuffisant reçoit 401 sur les routes manager, mais 403 sur les routes RH (l'usage standard est
+401 sans session, 403 sans le bon rôle).
+→ Doit-on garder ces codes à l'identique ?
+*En attendant : gardés à l'identique.*
+
+**Q3. Peut-on ajouter un code 400 sur une entrée invalide ?**
+Deux cas : un corps illisible sur `PUT /api/hr/users/{id}/manager` détachait le manager en silence (200) ; un `sort`
+hors liste sur `GET /api/expense-notes` permettait une injection SQL. Les deux répondent maintenant 400.
+→ Un nouveau code d'erreur est-il accepté par la moulinette ?
+*En attendant : 400 appliqué (ADR 0002 et 0003), réversible.*
+
+**Q4. Le format des erreurs `{ "error": "..." }` doit-il rester strictement identique ?**
+→ Peut-on ajouter des champs (format standard RFC 9457 : `type`, `title`, `status`) ?
+*En attendant : format inchangé, on ne prend pas le risque.*
+
+## Règles métier
+
+**Q5. Qui valide les notes d'un employé sans manager ? Que couvre « root » ?**
+Le RH valide les notes des « root ». Dans le code, root = un manager sans manager. Un employé sans manager n'est
+proposé à personne : ses notes restent en attente pour toujours. Et un RH seul dans son entreprise ?
+→ « Root » inclut-il tout utilisateur sans manager (employé, RH) ?
+*En attendant : comportement actuel.*
+
+**Q6. Peut-on ajouter une valeur de `status` si une feature l'exige ?**
+Exemple : une validation finance après la validation manager (`pending` → `approved` → `paid`).
+*En attendant : statuts inchangés.*
+
+**Q7. Peut-on retirer `receiptKey` des réponses, ou changer sa valeur ?**
+La clé du reçu est prévisible (`receipts/42.png`) : on devine celle des autres notes. Le correctif standard est une
+clé aléatoire, ce qui change la valeur du champ.
+*En attendant : format inchangé.*
+
+## Évaluation
+
+**Q8. Qu'attendent exactement les tests Sonar et « kube » ?**
+→ Un quality gate SonarQube à passer ? Des manifestes Kubernetes ? Un déploiement réel ?
+
+**Q9. Live coding : sur notre machine ? Et quelle est la date de la soutenance ?**

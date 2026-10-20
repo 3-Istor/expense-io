@@ -57,7 +57,7 @@ par les 67 tests d'API et la moulinette `pr` au vert.
       Critère : test qui lit la trace en base après une décision.
 - [x] 3.4 Code mort supprimé (ancienne façade `src/domain`, `src/ports`, `src/adapters`, `src/utils`) ; knip à 0 fichier
       inutilisé, seuils resserrés. Règles dependency-cruiser des modules, S2 bloquant.
-- [ ] 3.5 Erreurs RFC 9457 en gardant `error` (ADR, changement de contrat : ajout de champs et d'un type de média).
+- [-] 3.5 ~~Erreurs RFC 9457~~ : abandonnée, format `{error}` conservé (décision de Brian, risque sur la moulinette).
 - [x] 3.6 Contrat déclaré dans le code (ADR 0001) : schémas Zod, OpenAPI généré, la CI vérifie qu'il est à jour.
 - [x] 3.7 Audit « après » : `scripts/audit.sh docs/audit/apres`, comparaison avec « avant ».
 

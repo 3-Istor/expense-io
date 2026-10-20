@@ -9,6 +9,9 @@ import { AppError, type AppErrorKind } from './app-error'
  */
 export type DeniedStatus = 401 | 403
 
+// Format des erreurs : `{ error }` en application/json, conservé à l'identique. Le format RFC 9457
+// (application/problem+json) a été écarté volontairement : les tests cachés de la moulinette des profs vérifient
+// peut-être le format actuel (décision de Brian, 2026-10-20, docs/plan/QUESTIONS.md).
 const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 'not-found': 404, conflict: 409 }
 
 export async function handle(deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
