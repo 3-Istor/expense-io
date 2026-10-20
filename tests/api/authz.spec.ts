@@ -172,14 +172,12 @@ test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équip
 })
 
 test('T12 [SEC-04] le RH ne rattache pas un employé à un manager d\'une autre entreprise', async () => {
-  knownFlaw('SEC-04', 'seul le rôle du manager choisi est vérifié, pas son entreprise')
   const employee = await createUser({ id: await companyOf(A.hr), domain: domainOf(A.hr) }, `T12-${short()}`, 'employee')
   const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, { data: { managerId: B.manager.id } })
   expect(res.status()).toBe(409)
 })
 
 test('T12b [SEC-14] le RH ne crée pas de cycle de managers', async () => {
-  knownFlaw('SEC-14', 'aucun contrôle de cycle (A manage B, B manage A)')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const m1 = await createUser(c, `T12b1-${short()}`, 'manager')
   const m2 = await createUser(c, `T12b2-${short()}`, 'manager', m1.id)
@@ -188,7 +186,6 @@ test('T12b [SEC-14] le RH ne crée pas de cycle de managers', async () => {
 })
 
 test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le manager', async () => {
-  knownFlaw('SEC-09', 'un corps illisible est lu comme { managerId: null } et détache le manager')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const employee = await createUser(c, `T13-${short()}`, 'employee', A.manager.id)
   const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, {

@@ -49,8 +49,36 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 ## SEC-08 — Une note peut être validée ET rejetée par deux requêtes simultanées
 
 - **CWE** : CWE-362 (situation de compétition) · **API Top 10** : API6:2023 Unrestricted Access to Sensitive Business Flows
-- **CVSS v4.0** : 2.3 low — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
+- **CVSS v4.0** : 2.3 faible — `CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T15, 100 paires approve/reject simultanées : au moins une paire renvoie deux 200 (reproduit 3 fois sur 3).
 - **Correctif** : condition `status = 'pending'` dans l'`UPDATE` lui-même ; aucune ligne modifiée → 409, code déjà
   prévu par le contrat. Écrit une seule fois dans `src/lib/approvals.ts` grâce au regroupement précédent.
 - **Statut** : corrigé, T15 vert sans marquage, 3 exécutions sur 3.
+
+## SEC-04 — Le RH rattache un employé à un manager d'une autre entreprise
+
+- **CWE** : CWE-639 · **API Top 10** : API1:2023 Broken Object Level Authorization
+- **CVSS v4.0** : 5.1 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:L/VI:L/VA:N/SC:L/SI:L/SA:N`
+- **Preuve** : T12 (200, rattachement inter-entreprises accepté). Cause écrite dans le code : « l'appartenance à la même
+  entreprise est déjà garantie par l'annuaire ».
+- **Correctif** : la route exige un manager de la même entreprise (sinon 409, déjà au contrat). La garantie en base
+  (contrainte ou RLS sur `users`) reste à faire avec SEC-05.
+- **Statut** : corrigé côté application, T12 vert sans marquage.
+
+## SEC-14 — Cycles de managers acceptés
+
+- **CWE** : CWE-840 (erreur de logique métier) · **API Top 10** : API6:2023
+- **CVSS v4.0** : 5.1 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:N/VI:L/VA:L/SC:N/SI:N/SA:N`
+- **Preuve** : T12b (A manage B puis B manage A : 200). Un cycle rend les notes de ces managers invalidables
+  (aucun n'est racine pour le RH).
+- **Correctif** : requête récursive sur la chaîne hiérarchique du manager choisi, dans la même transaction que l'écriture
+  (`FOR UPDATE` sur la cible) ; cycle → 409.
+- **Statut** : corrigé, T12b vert sans marquage.
+
+## SEC-09 — Un corps illisible détache le manager
+
+- **CWE** : CWE-20 (validation d'entrée incorrecte) · **API Top 10** : API8:2023
+- **CVSS v4.0** : 5.1 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
+- **Preuve** : T13 (`manager_id` passé à `null` après un corps `{ pas du json`).
+- **Correctif** : corps validé strictement, 400 sinon (nouveau code : ADR 0002, statut proposé, à valider).
+- **Statut** : corrigé, T13 vert sans marquage, test de contrat 400 ajouté.

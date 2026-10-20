@@ -357,6 +357,15 @@ test.describe('PUT /api/hr/users/{id}/manager', () => {
     expect(await detached.json()).toMatchObject({ id: otherEmployee.id, managerId: null })
   })
 
+  test('400 : corps illisible ou managerId invalide (ADR 0002)', async () => {
+    const url = `/api/hr/users/${otherEmployee.id}/manager`
+    for (const data of ['{ pas du json', { autre: 1 }, { managerId: 'pas-un-uuid' }, { managerId: 42 }]) {
+      const res = await asHr.put(url, { headers: { 'content-type': 'application/json' }, data })
+      expect(res.status(), JSON.stringify(data)).toBe(400)
+      expectError(await res.json())
+    }
+  })
+
   test('404 : utilisateur inconnu', async () => {
     const res = await asHr.put(`/api/hr/users/${randomUUID()}/manager`, { data: { managerId: null } })
     expect(res.status()).toBe(404)

@@ -21,7 +21,7 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 | `POST /api/hr/expense-notes/{id}/reject` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `GET /api/hr/expense-notes/{id}/receipt-url` | `hr_admin` | — | 200 `{url}` | 403, 404 |
 | `GET /api/hr/users` | `hr_admin` | — | 200, employés et managers de l'entreprise | 403 |
-| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}` ou `null` | 200, l'utilisateur | 403, 404, 409 |
+| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}`, uuid ou `null` | 200, l'utilisateur | 400 (ADR 0002), 403, 404, 409 |
 
 Formats :
 

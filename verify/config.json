@@ -8,6 +8,6 @@
     "maxUnusedExports": 0
   },
   "sast": {
-    "maxFindings": 7
+    "maxFindings": 3
   }
 }
