@@ -1,5 +1,6 @@
 // Adaptateur HTTP commun aux routes : appelant courant, traduction des erreurs, formats JSON du contrat.
 import { respondError } from '@/lib/errors'
+import { log } from '@/lib/logger'
 import type { ExpenseNoteJson } from '@/contract/schemas'
 import { AppError, type AppErrorKind } from './app-error'
 
@@ -14,16 +15,29 @@ export type DeniedStatus = 401 | 403
 // peut-être le format actuel (décision de Brian, 2026-10-20, docs/plan/QUESTIONS.md).
 const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 'not-found': 404, conflict: 409 }
 
-export async function handle(deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
+/**
+ * Exécute une route : traduit les erreurs en codes du contrat et journalise une ligne par appel (opération, code,
+ * durée). Ces lignes sont la source des SLI de docs/slo.md (aucun endpoint de métriques : contrat gelé).
+ */
+export async function handle(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
+  const started = performance.now()
+  let response: Response
   try {
-    return await run()
+    response = await run()
   } catch (error) {
     if (error instanceof AppError) {
       const status = error.kind === 'denied' ? deniedStatus : STATUS[error.kind]
-      return Response.json({ error: error.message }, { status })
+      response = Response.json({ error: error.message }, { status })
+    } else {
+      response = respondError(error)
     }
-    return respondError(error)
   }
+  log(response.status >= 500 ? 'error' : 'info', 'requête API', {
+    operation,
+    status: response.status,
+    durationMs: Math.round(performance.now() - started),
+  })
+  return response
 }
 
 /** Reçu lu dans un formulaire multipart, ou null si le champ n'est pas un fichier. */

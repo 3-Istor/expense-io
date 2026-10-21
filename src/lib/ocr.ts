@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { createWorker } from 'tesseract.js'
 import { createLimiter, withTimeout } from '@/lib/limits'
+import { log } from '@/lib/logger'
 
 const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 // OCR borné (SEC-11) : c'est l'opération la plus coûteuse de l'app, déclenchable par tout utilisateur connecté.
@@ -136,7 +137,7 @@ export async function suggestFields(receipt: {
       }
     })
   } catch (error) {
-    console.error('[ocr] Extraction échouée, suggestion vide renvoyée', error)
+    log('warn', 'OCR échoué ou trop long : suggestion vide renvoyée', { error })
     return {}
   }
 }

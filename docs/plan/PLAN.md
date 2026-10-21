@@ -70,7 +70,7 @@ Contrainte (décision de Brian, 2026-10-21) : contrat d'API strictement inchang�
       multi-étapes non-root ; job CI `image` : construit l'image, migre depuis l'image, la démarre avec le compte
       limité et sans `AUTH_SECRET`, puis lance la suite de contrat contre le conteneur.
 - [x] 4.2 Manifestes Kubernetes (`deploy/k8s`) validés en mode strict ; contrôle S7 (hadolint + kubernetes-validate).
-- [ ] 4.3 Journaux structurés (JSON, identifiant d'erreur) et SLO écrit (`docs/slo.md`).
+- [x] 4.3 Journaux structurés (JSON, identifiant d'erreur) et SLO écrit (`docs/slo.md`).
 - [ ] 4.4 SonarQube Cloud (compte à créer par un humain), niveau `nightly` de la moulinette (Schemathesis, Stryker).
 
 ## Phase 5 — Workflow piloté par le risque (agent puis humain)
