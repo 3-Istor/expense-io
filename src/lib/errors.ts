@@ -7,5 +7,7 @@ import { randomUUID } from 'node:crypto'
 export function respondError(error: unknown): Response {
   const errorId = randomUUID()
   console.error(`[erreur ${errorId}]`, error)
-  return Response.json({ error: 'Erreur interne', errorId }, { status: 500 })
+  // `stack` reste présent pour garder la forme du contrat (champs inchangés), mais toujours vide : la stacktrace ne
+  // quitte plus le serveur. `errorId` est un champ ajouté (permis par le contrat).
+  return Response.json({ error: 'Erreur interne', errorId, stack: '' }, { status: 500 })
 }

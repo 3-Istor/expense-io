@@ -17,15 +17,18 @@ Aujourd'hui, un rôle insuffisant reçoit 401 sur les routes manager, mais 403 s
 → Doit-on garder ces codes à l'identique ?
 *En attendant : gardés à l'identique.*
 
-**Q3. Peut-on ajouter un code 400 sur une entrée invalide ?**
-Deux cas : un corps illisible sur `PUT /api/hr/users/{id}/manager` détachait le manager en silence (200) ; un `sort`
-hors liste sur `GET /api/expense-notes` permettait une injection SQL. Les deux répondent maintenant 400.
-→ Un nouveau code d'erreur est-il accepté par la moulinette ?
-*En attendant : 400 appliqué (ADR 0002 et 0003), réversible.*
+**Q3. Un code d'erreur plus précis serait-il accepté ?**
+Deux failles corrigées sans changer le contrat : un corps illisible sur `PUT /api/hr/users/{id}/manager` reçoit le
+409 existant (au lieu de détacher le manager en silence) ; un `sort` hors liste est ignoré (au lieu d'une injection
+SQL). Un 400 serait plus juste dans les deux cas.
+→ Peut-on ajouter un code d'erreur, ou le contrat est-il strictement figé ?
+*En attendant : contrat strictement inchangé.*
 
-**Q4. Le format des erreurs `{ "error": "..." }` doit-il rester strictement identique ?**
-→ Peut-on ajouter des champs (format standard RFC 9457 : `type`, `title`, `status`) ?
-*En attendant : format inchangé, on ne prend pas le risque.*
+**Q4. Le corps des erreurs doit-il rester strictement identique ?**
+Les erreurs 500 renvoyaient la stacktrace dans un champ `stack` (fuite d'information). Nous gardons le champ, mais
+toujours vide, et ajoutons `errorId` pour retrouver l'erreur dans les journaux.
+→ Est-ce acceptable ? Peut-on ajouter des champs standard (RFC 9457 : `type`, `title`, `status`) ?
+*En attendant : format conservé, `stack` vide.*
 
 ## Règles métier
 

@@ -29,7 +29,7 @@ const errors = {
   401: json(ErrorBody, 'Pas de session, ou rôle insuffisant pour les routes manager'),
   403: json(ErrorBody, 'Pas de session ou rôle autre que hr_admin'),
   404: json(ErrorBody, "Introuvable ou hors du périmètre de l'appelant"),
-  409: json(ErrorBody, 'Note déjà décidée, ou manager invalide'),
+  409: json(ErrorBody, 'Note déjà décidée, ou manager invalide (y compris un corps illisible)'),
   500: json(InternalError, 'Erreur inattendue'),
 }
 const pick = <K extends keyof typeof errors>(...codes: K[]) => Object.fromEntries(codes.map((c) => [c, errors[c]]))
@@ -49,12 +49,12 @@ registry.registerPath({
       sort: z.string().optional().openapi({
         description:
           'Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, ' +
-          'expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003).',
+          'expense_date, status, description. Par défaut `created_at DESC`, appliqué aussi à toute autre valeur.',
         example: 'amount DESC',
       }),
     }),
   },
-  responses: { 200: json(notes, "Notes de l'appelant"), ...pick(400, 401, 500) },
+  responses: { 200: json(notes, "Notes de l'appelant"), ...pick(401, 500) },
 })
 
 registry.registerPath({
@@ -162,5 +162,5 @@ registry.registerPath({
     params: z.object({ id: z.uuid() }),
     body: { required: true, content: { 'application/json': { schema: ManagerAssignment } } },
   },
-  responses: { 200: json(User, 'Utilisateur mis à jour'), ...pick(400, 403, 404, 409, 500) },
+  responses: { 200: json(User, 'Utilisateur mis à jour'), ...pick(403, 404, 409, 500) },
 })

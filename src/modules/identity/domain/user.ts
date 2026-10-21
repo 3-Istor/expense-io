@@ -12,7 +12,7 @@ export interface User {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/** Corps attendu pour un rattachement : `{ managerId: <uuid> | null }`, rien d'autre (SEC-09, ADR 0002). */
+/** Corps attendu pour un rattachement : `{ managerId: <uuid> | null }`, rien d'autre (SEC-09). */
 export function parseManagerAssignment(body: unknown): { managerId: string | null } | null {
   if (typeof body !== 'object' || body === null || Array.isArray(body) || !('managerId' in body)) return null
   const { managerId } = body as { managerId: unknown }

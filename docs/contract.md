@@ -9,7 +9,7 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 
 | Méthode et chemin | Rôle | Entrée | Succès | Erreurs |
 | --- | --- | --- | --- | --- |
-| `GET /api/expense-notes` | connecté | query `sort` (facultatif, liste fermée) | 200, notes de l'appelant | 400 (ADR 0003), 401 |
+| `GET /api/expense-notes` | connecté | query `sort` (facultatif ; hors liste : tri par défaut) | 200, notes de l'appelant | 401 |
 | `POST /api/expense-notes` | connecté | multipart `amount`, `expenseDate`, `description`, `receipt` (png, jpg, webp, pdf, ≤ 10 Mo) | 201, la note | 400, 401 |
 | `GET /api/expense-notes/{id}/receipt-url` | propriétaire | — | 200 `{url}` | 401, 404 |
 | `POST /api/expense-notes/receipt-suggestion` | connecté | multipart `receipt` | 200 `{amount?, expenseDate?}` | 400, 401 |
@@ -22,7 +22,7 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 | `POST /api/hr/expense-notes/{id}/reject` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `GET /api/hr/expense-notes/{id}/receipt-url` | `hr_admin` | — | 200 `{url}` | 403, 404 |
 | `GET /api/hr/users` | `hr_admin` | — | 200, employés et managers de l'entreprise | 403 |
-| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}`, uuid ou `null` | 200, l'utilisateur | 400 (ADR 0002), 403, 404, 409 |
+| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}`, uuid ou `null` | 200, l'utilisateur | 403, 404, 409 (manager invalide ou corps illisible) |
 
 Formats :
 

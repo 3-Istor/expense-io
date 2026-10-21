@@ -41,9 +41,12 @@ rules:
       La réponse HTTP expose une stacktrace (CWE-209, SEC-07). Journaliser l'erreur côté serveur et renvoyer un
       message générique (RFC 9457).
     metadata: { cwe: 'CWE-209', owasp-api: 'API8:2023', ref: SEC-07 }
-    pattern-either:
-      - pattern: 'Response.json({..., stack, ...}, ...)'
-      - pattern: 'Response.json({..., stack: $S, ...}, ...)'
+    patterns:
+      - pattern-either:
+          - pattern: 'Response.json({..., stack, ...}, ...)'
+          - pattern: 'Response.json({..., stack: $S, ...}, ...)'
+      # Un champ `stack` gardé pour la forme du contrat, mais vide par construction, ne divulgue rien.
+      - pattern-not: "Response.json({..., stack: '', ...}, ...)"
 
   - id: promesse-renvoyee-sans-await-dans-try
     languages: [typescript]

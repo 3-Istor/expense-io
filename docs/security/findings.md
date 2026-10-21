@@ -31,7 +31,8 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Preuve** : T14b (500 avec `stack` et « invalid input syntax for type uuid ») ; T14c, nouveau (500 au corps vide
   quand la route fait `return withUserScope(...)` sans `await`). Semgrep : `stacktrace-dans-la-reponse`,
   `promesse-renvoyee-sans-await-dans-try` ×7.
-- **Correctif** : `respondError` journalise l'erreur avec un identifiant et renvoie `{error: "Erreur interne", errorId}` ;
+- **Correctif** : `respondError` journalise l'erreur avec un identifiant et renvoie
+  `{error: "Erreur interne", errorId, stack: ""}` (`stack` gardé vide pour la forme du contrat) ;
   `return await withUserScope(...)` dans les 7 routes. Contrat : `stack` retiré des 500, comme annoncé dans
   `docs/contract.md` ; `errorId` ajouté (ajout de champ permis). Le format RFC 9457 reste à décider (ADR).
 - **Statut** : corrigé. T14b et T14c verts sans marquage ; Semgrep 16 → 8 constats, seuil du cliquet resserré à 8 ;
@@ -82,8 +83,9 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CWE** : CWE-20 (validation d'entrée incorrecte) · **API Top 10** : API8:2023
 - **CVSS v4.0** : 5.1 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T13 (`manager_id` passé à `null` après un corps `{ pas du json`).
-- **Correctif** : corps validé strictement, 400 sinon (nouveau code : ADR 0002, statut proposé, à valider).
-- **Statut** : corrigé, T13 vert sans marquage, test de contrat 400 ajouté.
+- **Correctif** : corps validé strictement ; sinon 409 « Invalid manager », code déjà au contrat (l'ADR 0002, qui
+  proposait un 400, est rejeté : contrat gelé).
+- **Statut** : corrigé, T13 vert sans marquage, test de contrat ajouté.
 
 ## SEC-01 — Injection SQL par le paramètre `sort`
 
@@ -91,8 +93,9 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CVSS v4.0** : 7.1 élevée — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T14, tri booléen sur une sous-requête arbitraire accepté (200) : chaque réponse révèle un bit d'une
   donnée quelconque de la base (injection aveugle). Semgrep `sql-fragment-concatene`.
-- **Correctif** : liste fermée de tris, chacun lié à une requête constante ; autre valeur → 400 avant la base
-  (nouveau code : ADR 0003, statut proposé, à valider). Tests de contrat ajoutés : tri valide appliqué, tris refusés.
+- **Correctif** : liste fermée de tris, chacun lié à une requête constante ; toute autre valeur est ignorée (tri par
+  défaut, 200). L'ADR 0003, qui proposait un 400, est rejeté (contrat gelé). Tests : tri valide appliqué, tri hors liste
+  ignoré, `(SELECT 1/0)` injecté jamais exécuté.
 - **Statut** : corrigé, T14 vert sans marquage ; Semgrep 3 → 2.
 
 ## SEC-10 — Un rôle retiré en base reste actif tant que le jeton vit

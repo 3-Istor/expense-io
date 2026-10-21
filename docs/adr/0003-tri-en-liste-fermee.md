@@ -1,6 +1,6 @@
 # 0003 — Paramètre `sort` en liste fermée (400 sinon)
 
-Date : 2026-10-20 · Statut : **proposé** (écrit par l'agent en autonomie, à valider par un humain avant merge)
+Date : 2026-10-20 · Statut : **rejeté** le 2026-10-21 par Brian : le contrat d'API ne change pas (voir « Décision finale »)
 
 ## Contexte
 
@@ -20,3 +20,9 @@ et la valeur reçue n'entre jamais dans le SQL. Toute autre valeur reçoit `400 
 - Un tri sur plusieurs colonnes ou une expression SQL donnait 200 ou 500 ; il donne maintenant 400.
 - Alternative écartée : ignorer silencieusement un tri invalide (200 avec le tri par défaut). Elle évite un ADR mais
   masque l'erreur au client et ne correspond pas au « refus avant la base » du document de vision.
+
+## Décision finale (2026-10-21)
+
+Rejeté : aucun code d'erreur n'est ajouté au contrat. La faille reste corrigée avec un comportement déjà prévu :
+un tri hors liste est **ignoré** (tri par défaut, 200) ; la valeur reçue n'entre jamais dans le SQL (tests T14 et
+contrat, dont une division par zéro injectée qui n'est jamais exécutée).

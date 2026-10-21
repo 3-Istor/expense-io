@@ -14,10 +14,6 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       `.env.example` et `.env`, que l'agent n'a pas le droit de lire. Option proposée : autoriser l'agent à lire et
       modifier `.env.example` (valeurs de dev publiques, comme `docker-compose.yml`) ; un humain recopie la ligne
       dans son `.env`. En attendant : rôle endossé par transaction, T16 en échec attendu. Réversible.
-- [ ] 2026-10-20 — ADR 0002 et ADR 0003 (statut « proposé ») : deux routes répondent maintenant 400 à une entrée
-      invalide (corps illisible sur le rattachement de manager ; tri hors liste). Avant : détachement silencieux du
-      manager, ou injection SQL / 500. Un nouveau code d'erreur est un changement de contrat : question posée aux
-      profs (`questions-profs.md`, Q3). En attendant : appliqué sur la branche, réversible.
 - [ ] 2026-10-20 — Employé sans manager (T08) : ses notes ne sont proposées à personne. Question posée aux profs
       (`questions-profs.md`, Q5). En attendant : comportement actuel figé par T08. Réversible.
 - [ ] 2026-10-20 — Numérotation T01–T18 : seules T07 et T11–T18 viennent du doc de vision ; T01–T06 et T08–T10 ont
@@ -28,6 +24,10 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
 
 ## Fermées
+
+- [x] 2026-10-21 — ADR 0002 et 0003 : rejetés par Brian, le contrat d'API ne change pas. Failles corrigées avec les
+      codes existants (409 pour un corps illisible, tri hors liste ignoré). Question gardée pour les profs (Q3).
+- [x] 2026-10-21 — `AUTH_SECRET` : l'app démarre sans configuration (secret aléatoire par processus), décision de Brian.
 
 - [x] 2026-10-20 — Tâche 3.5 (erreurs RFC 9457). Réponse de Brian : « on ne prend pas le risque, laisse tel quel ».
       Format d'erreur `{error}` conservé, commentaire dans `src/shared/http.ts`. Tâche abandonnée.

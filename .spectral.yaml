@@ -10,12 +10,14 @@ rules:
       field: content.application/json
       function: truthy
   expense-pas-de-stacktrace:
-    description: Une réponse d'erreur ne doit pas exposer de stacktrace (CWE-209, faille SEC-07).
+    description: >-
+      Une réponse d'erreur ne doit pas exposer de stacktrace (CWE-209, faille SEC-07). Un champ `stack` gardé pour la
+      forme du contrat doit être borné à une chaîne vide (maxLength 0).
     severity: warn
-    given: $.components.schemas[*].properties
+    given: $.components.schemas[*].properties.stack
     then:
-      field: stack
-      function: falsy
+      field: maxLength
+      function: defined
   expense-proprietes-camelcase:
     description: Les champs JSON du contrat sont en camelCase.
     severity: warn

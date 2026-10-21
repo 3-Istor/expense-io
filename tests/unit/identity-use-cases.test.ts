@@ -23,9 +23,9 @@ describe('rattachement de manager', () => {
   it('réservé au RH', async () => {
     expect(await kindOf(setup().assignManager({ userId: 'm', role: 'manager' }, 'cible', { managerId: null }))).toBe('denied')
   })
-  it('400 si le corps est invalide (SEC-09), 409 si on se rattache à soi-même', async () => {
+  it('409 si le corps est invalide (SEC-09, contrat inchangé) ou si on se rattache à soi-même', async () => {
     for (const body of [undefined, {}, { managerId: 'x' }, { managerId: 3 }, [uuid]]) {
-      expect(await kindOf(setup().assignManager(hr, 'cible', body))).toBe('invalid')
+      expect(await kindOf(setup().assignManager(hr, 'cible', body))).toBe('conflict')
     }
     expect(await kindOf(setup().assignManager(hr, uuid, { managerId: uuid }))).toBe('conflict')
   })

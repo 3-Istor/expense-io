@@ -91,6 +91,10 @@ components:
           type: string
           format: uuid
           description: Identifiant de l'erreur dans les journaux
+        stack:
+          type: string
+          maxLength: 0
+          description: Conservé pour le contrat, toujours vide (SEC-07)
       required:
         - error
       additionalProperties: false
@@ -153,10 +157,10 @@ paths:
       parameters:
         - schema:
             type: string
-            description: "Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003)."
+            description: Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`, appliqué aussi à toute autre valeur.
             example: amount DESC
           required: false
-          description: "Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003)."
+          description: Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount, expense_date, status, description. Par défaut `created_at DESC`, appliqué aussi à toute autre valeur.
           name: sort
           in: query
       responses:
@@ -168,12 +172,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ExpenseNote"
-        "400":
-          description: Champs invalides
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         "401":
           description: Pas de session, ou rôle insuffisant pour les routes manager
           content:
@@ -382,7 +380,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Note déjà décidée, ou manager invalide
+          description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
@@ -426,7 +424,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Note déjà décidée, ou manager invalide
+          description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
@@ -535,7 +533,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Note déjà décidée, ou manager invalide
+          description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
@@ -579,7 +577,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Note déjà décidée, ou manager invalide
+          description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
@@ -689,12 +687,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        "400":
-          description: Champs invalides
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         "403":
           description: Pas de session ou rôle autre que hr_admin
           content:
@@ -708,7 +700,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: Note déjà décidée, ou manager invalide
+          description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:

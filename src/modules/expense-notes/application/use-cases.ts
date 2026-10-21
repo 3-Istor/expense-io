@@ -37,9 +37,9 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
 
   return {
     async listOwn(caller: Caller, sortParam: string | null): Promise<ExpenseNote[]> {
-      const sort = parseSort(sortParam)
-      if (!sort) throw invalid('Tri non autorisé')
-      return notes.listOwn(caller, sort)
+      // Contrat gelé (décision de Brian) : un tri hors liste n'est pas une erreur, il est ignoré (tri par défaut).
+      // La valeur reçue n'entre jamais dans le SQL (SEC-01).
+      return notes.listOwn(caller, parseSort(sortParam) ?? parseSort(null)!)
     },
 
     /** Le reçu est stocké AVANT la note : pas de note sans reçu si le stockage échoue (SEC-12). */

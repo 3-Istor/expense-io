@@ -210,14 +210,21 @@ test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le ma
   })
   const after = await db().query('SELECT manager_id FROM users WHERE id = $1', [employee.id])
   expect(after.rows[0].manager_id, 'le rattachement doit être intact').toBe(A.manager.id)
-  expect(res.status()).toBe(400)
+  // Contrat gelé (décision de Brian, 2026-10-21) : refus avec le 409 « manager invalide » déjà au contrat.
+  expect(res.status()).toBe(409)
 })
 
-test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris', async () => {
-  // Tri booléen : la réponse dépend d'une sous-requête arbitraire, donc d'une donnée qu'on ne devrait pas lire.
+test('T14 [SEC-01] le paramètre sort n\'est jamais exécuté comme du SQL', async () => {
+  // Contrat gelé (décision de Brian, 2026-10-21) : un tri hors liste est ignoré (200, tri par défaut), pas refusé.
+  // Preuve que rien n'est exécuté : une division par zéro ferait échouer la requête SQL (500).
+  const crash = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent('(SELECT 1/0)')}`)
+  expect(crash.status()).toBe(200)
+  // Tri booléen sur une sous-requête : la réponse doit être exactement celle du tri par défaut.
   const injected = "(CASE WHEN (SELECT count(*) FROM users) > 0 THEN amount ELSE 0 END)"
   const res = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent(injected)}`)
-  expect(res.status()).toBe(400)
+  const byDefault = await as.employeeA.get('/api/expense-notes')
+  expect(res.status()).toBe(200)
+  expect(await ids(res)).toEqual(await ids(byDefault))
 })
 
 test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
@@ -225,7 +232,8 @@ test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', 
   const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
   expect(res.status()).toBe(500)
   const body = await res.json()
-  expect(body).not.toHaveProperty('stack')
+  // Contrat gelé (décision de Brian, 2026-10-21) : le champ `stack` reste, mais ne contient jamais la stacktrace.
+  expect(body.stack ?? '').toBe('')
   expect(JSON.stringify(body)).not.toContain('invalid input syntax')
 })
 
@@ -234,7 +242,8 @@ test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 50
   const res = await as.managerA.post('/api/manager/expense-notes/pas-un-uuid/approve')
   expect(res.status()).toBe(500)
   const body = await res.json()
-  expect(Object.keys(body).sort()).toEqual(['error', 'errorId'])
+  expect(Object.keys(body).sort()).toEqual(['error', 'errorId', 'stack'])
+  expect(body.stack).toBe('')
   expect(body.error).toBe('Erreur interne')
 })
 

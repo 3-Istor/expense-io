@@ -44,6 +44,7 @@ export const InternalError = z
   .strictObject({
     error: z.string(),
     errorId: z.uuid().optional().openapi({ description: "Identifiant de l'erreur dans les journaux" }),
+    stack: z.string().max(0).optional().openapi({ description: 'Conservé pour le contrat, toujours vide (SEC-07)' }),
   })
   .openapi('InternalError', { description: 'Message générique ; le détail reste dans les journaux du serveur (SEC-07).' })
 

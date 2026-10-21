@@ -1,7 +1,7 @@
 {
   "$comment": "Seuils de la moulinette, calibrés le 2026-10-20 sur le code d'origine (jscpd 5.4.1, knip). Ils ne peuvent que se resserrer (cliquet) : un seuil plus permissif exige un ADR et une validation humaine (niveau de risque 3). sast.maxFindings calibré le 2026-10-20 (Semgrep 1.181.0, règles .semgrep/).",
   "duplication": {
-    "maxPercent": 4.3
+    "maxPercent": 4.2
   },
   "deadCode": {
     "maxUnusedFiles": 0,
