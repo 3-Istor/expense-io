@@ -1,21 +1,14 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Geist, Geist_Mono } from 'next/font/google'
+// Polices servies depuis node_modules (paquet geist), pas téléchargées chez Google au build : build reproductible
+// sans accès Internet (Docker, CI, moulinette).
+import { GeistMono } from 'geist/font/mono'
+import { GeistSans } from 'geist/font/sans'
 import Link from 'next/link'
 import './globals.css'
 import { auth } from '@/lib/auth'
 import { logout } from '@/app/actions/auth'
 import { NavItem } from '@/components/NavItem'
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
 
 export const metadata: Metadata = {
   title: 'Expense.io',
@@ -26,7 +19,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const session = await auth()
 
   return (
-    <html lang="fr" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-full bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
         <header className="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6">

@@ -1,0 +1,14 @@
+# Contexte de build minimal : ni secrets, ni artefacts locaux, ni outillage de développement.
+.env
+.env.*
+!.env.example
+.git
+.next
+node_modules
+test-results
+playwright-report
+verify-report.json
+verify-summary.md
+docs
+tests
+*.log

@@ -17,12 +17,14 @@
     "verify": "tsx verify/cli.ts",
     "lint:api": "redocly lint && spectral lint docs/openapi.yaml",
     "test:db": "vitest run tests/integration",
-    "contract:generate": "tsx scripts/generate-openapi.ts"
+    "contract:generate": "tsx scripts/generate-openapi.ts",
+    "k8s:validate": "node scripts/check-deploy.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",
     "@aws-sdk/s3-request-presigner": "^3.1131.0",
     "bcryptjs": "^3.0.3",
+    "geist": "^1.8.1",
     "next": "16.3.5",
     "next-auth": "^5.0.0-beta.32",
     "node-pg-migrate": "^9.0.0",
