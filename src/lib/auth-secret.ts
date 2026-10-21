@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto'
+import { log } from './logger'
 
 // Empreintes SHA-256 de secrets PUBLICS, donc sans valeur : l'ancien secret écrit dans le code (historique Git, SEC-02)
 // et le texte d'exemple de .env.example. Seules les empreintes sont ici, pas les valeurs.
@@ -27,7 +28,8 @@ export function ensureAuthSecret(env: Record<string, string | undefined> = proce
   }
   const generated = randomBytes(32).toString('hex')
   env.AUTH_SECRET = generated
-  console.warn(
+  log(
+    'warn',
     secret
       ? 'AUTH_SECRET est une valeur publique connue : remplacé par un secret aléatoire pour ce processus.'
       : 'AUTH_SECRET absent : secret aléatoire généré pour ce processus (sessions perdues au redémarrage). ' +

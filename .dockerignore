@@ -1,0 +1,15 @@
+# Contexte de build minimal : ni secrets, ni artefacts locaux, ni outillage de développement.
+.env
+.env.*
+!.env.example
+.git
+.next
+node_modules
+test-results
+playwright-report
+verify-report.json
+verify-summary.md
+docs
+# tests/ reste dans le contexte : `next build` vérifie les types de tout le projet (playwright.config.ts l'importe).
+# Ils ne sont pas copiés dans l'image finale.
+*.log

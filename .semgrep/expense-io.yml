@@ -79,7 +79,7 @@ rules:
       - pattern-not: |
           async function $METHOD(...) {
             ...
-            return handle($STATUS, async () => { ... await requireUser(); ... })
+            return handle($OPERATION, $STATUS, async () => { ... await requireUser(); ... })
           }
 
   - id: route-exportee-sans-fabrique-controlee

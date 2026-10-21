@@ -61,12 +61,19 @@ par les 67 tests d'API et la moulinette `pr` au vert.
 - [x] 3.6 Contrat déclaré dans le code (ADR 0001) : schémas Zod, OpenAPI généré, la CI vérifie qu'il est à jour.
 - [x] 3.7 Audit « après » : `scripts/audit.sh docs/audit/apres`, comparaison avec « avant ».
 
-## Phase 4 — Run, qualité et durabilité (agent seul)
+## Phase 4 — Run, qualité et durabilité (agent seul, branche `phase-4/run`)
 
-Dockerfile, `/api/health`, logs pino, `/metrics`, SLO écrit, manifestes Kubernetes testés sur kind, SonarQube Cloud,
-OCR borné, niveau `nightly` de la moulinette (ZAP, Schemathesis long, Stryker, k6).
-Durabilité : Renovate actif, moulinette `nightly` planifiée, revue automatique des suppressions qui expirent,
-tâche hebdomadaire de nettoyage de la dérive (petites PR).
+Contrainte (décision de Brian, 2026-10-21) : contrat d'API strictement inchangé, donc **aucun endpoint ajouté**
+(`/api/health` et `/metrics` en question aux profs). Les sondes utilisent `/login`.
+
+- [x] 4.1 Build de production reproductible (polices locales, instrumentation compatible Edge) et `Dockerfile`
+      multi-étapes non-root ; job CI `image` : construit l'image, migre depuis l'image, la démarre avec le compte
+      limité et sans `AUTH_SECRET`, puis lance la suite de contrat contre le conteneur.
+- [-] 4.2 ~~Manifestes Kubernetes~~ : retirés (décision de Brian, 2026-10-21 : pas demandé explicitement ; « kube » en
+      question aux profs, Q8). S7 ne contrôle plus que le Dockerfile (hadolint).
+- [x] 4.3 Journaux structurés (JSON, identifiant d'erreur) et SLO écrit (`docs/slo.md`).
+- [x] 4.4 SonarQube local sans compte (`make sonar-up`, `make sonar`, `sonar-project.properties`, couverture lcov).
+- [ ] 4.5 Niveau `nightly` de la moulinette (Schemathesis, Stryker).
 
 ## Phase 5 — Workflow piloté par le risque (agent puis humain)
 
