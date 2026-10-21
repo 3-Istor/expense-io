@@ -204,3 +204,12 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
   sans `AUTH_SECRET`, **43 tests de contrat passés contre le conteneur**. Deux problèmes trouvés par la CI et
   corrigés après reproduction locale : `tests/` exclu du contexte Docker, `dotenv` en dépendance de dev.
 - Reste 4.4 : SonarQube Cloud (compte à créer par un humain), niveau nightly (Schemathesis, Stryker).
+
+## 2026-10-21 — Décisions de Brian : Kubernetes retiré, SonarQube local
+
+- `deploy/k8s` supprimé (pas demandé explicitement ; « kube » reste en question aux profs, Q8). S7 ne contrôle plus que
+  le Dockerfile (hadolint).
+- SonarQube sans compte : service `sonarqube` (profil `sonar`) dans `docker-compose.yml`, `make sonar-up`,
+  `make sonar`, `sonar-project.properties`, `docs/sonar.md`. Couverture lcov par `npm run test:coverage`
+  (22,6 % des lignes par les tests Vitest ; les 69 tests d'API passent par HTTP et ne sont pas comptés).
+- Non exécuté dans la session cloud (Docker Hub et téléchargements SonarSource bloqués) : à lancer sur une machine.

@@ -35,6 +35,19 @@ services:
       timeout: 5s
       retries: 10
 
+  # Analyse de code locale, sans compte : `docker compose --profile sonar up -d sonarqube` (voir docs/sonar.md).
+  # Hors du profil par défaut : `make dev` ne la démarre pas.
+  sonarqube:
+    image: sonarqube:community
+    profiles: ['sonar']
+    ports:
+      - '9000:9000'
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+    volumes:
+      - sonarqube-data:/opt/sonarqube/data
+
 volumes:
   postgres-data:
   localstack-data:
+  sonarqube-data:

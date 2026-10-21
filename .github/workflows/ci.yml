@@ -63,11 +63,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Outils de contrôle (gitleaks, Semgrep, hadolint, kubernetes-validate)
+      - name: Outils de contrôle (gitleaks, Semgrep, hadolint)
         run: |
           curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
             | sudo tar -xz -C /usr/local/bin gitleaks
-          pip install "semgrep==${SEMGREP_VERSION}" "kubernetes-validate==1.37.0" "hadolint-py==2.15.1.2"
+          pip install "semgrep==${SEMGREP_VERSION}" "hadolint-py==2.15.1.2"
           gitleaks version && semgrep --version && hadolint --version
 
       - name: Dépendances

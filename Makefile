@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 COMPOSE := docker compose
 
-.PHONY: help install env up down restart logs migrate ensure-bucket seed dev build start lint typecheck clean
+.PHONY: help install env up down restart logs migrate ensure-bucket seed dev build start lint typecheck clean sonar-up sonar
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -62,3 +62,10 @@ typecheck: ## Vérifie les types
 
 clean: ## Arrête Docker et supprime les volumes — efface les données locales (Postgres/LocalStack)
 	$(COMPOSE) down -v
+
+sonar-up: ## Démarre SonarQube en local (sans compte), sur http://localhost:9000
+	$(COMPOSE) --profile sonar up -d sonarqube
+
+sonar: ## Analyse le projet avec le SonarQube local (SONAR_TOKEN requis, voir docs/sonar.md)
+	npm run test:coverage
+	npm run sonar -- -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$$SONAR_TOKEN

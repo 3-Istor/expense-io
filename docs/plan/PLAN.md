@@ -69,9 +69,11 @@ Contrainte (décision de Brian, 2026-10-21) : contrat d'API strictement inchang�
 - [x] 4.1 Build de production reproductible (polices locales, instrumentation compatible Edge) et `Dockerfile`
       multi-étapes non-root ; job CI `image` : construit l'image, migre depuis l'image, la démarre avec le compte
       limité et sans `AUTH_SECRET`, puis lance la suite de contrat contre le conteneur.
-- [x] 4.2 Manifestes Kubernetes (`deploy/k8s`) validés en mode strict ; contrôle S7 (hadolint + kubernetes-validate).
+- [-] 4.2 ~~Manifestes Kubernetes~~ : retirés (décision de Brian, 2026-10-21 : pas demandé explicitement ; « kube » en
+      question aux profs, Q8). S7 ne contrôle plus que le Dockerfile (hadolint).
 - [x] 4.3 Journaux structurés (JSON, identifiant d'erreur) et SLO écrit (`docs/slo.md`).
-- [ ] 4.4 SonarQube Cloud (compte à créer par un humain), niveau `nightly` de la moulinette (Schemathesis, Stryker).
+- [x] 4.4 SonarQube local sans compte (`make sonar-up`, `make sonar`, `sonar-project.properties`, couverture lcov).
+- [ ] 4.5 Niveau `nightly` de la moulinette (Schemathesis, Stryker).
 
 ## Phase 5 — Workflow piloté par le risque (agent puis humain)
 

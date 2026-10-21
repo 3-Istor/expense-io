@@ -20,7 +20,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/next.config.ts ./next.config.ts
-# Données OCR (tesseract) ; migrations et scripts pour le Job de migration et le seed de démo.
+# Données OCR (tesseract) ; migrations et scripts pour migrer et peupler depuis l'image.
 COPY tessdata ./tessdata
 COPY migrations ./migrations
 COPY scripts/migrate.mjs scripts/seed.mjs scripts/ensure-bucket.mjs ./scripts/
@@ -30,5 +30,5 @@ EXPOSE 3000
 # Sonde sans nouvel endpoint (contrat gelé) : la page de connexion répond 200 quand l'app est prête.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD ["node", "-e", "fetch('http://127.0.0.1:'+process.env.PORT+'/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-# Binaire appelé directement (pas npx, qui écrirait un cache) : compatible readOnlyRootFilesystem (Kubernetes).
+# Binaire appelé directement (pas npx, qui écrirait un cache) : compatible avec un système de fichiers en lecture seule.
 CMD ["node", "node_modules/next/dist/bin/next", "start"]

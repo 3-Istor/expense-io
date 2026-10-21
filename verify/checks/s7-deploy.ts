@@ -2,14 +2,13 @@ import { exec } from '../lib/exec'
 import type { Check } from '../types'
 
 interface DeployReport {
-  manifests: number
   results: { tool: string; status: 'ok' | 'fail' | 'absent'; out?: string }[]
 }
 
 export const s7Deploy: Check = {
   id: 'S7',
-  title: 'Artefacts de déploiement',
-  risk: 'Image ou manifestes Kubernetes invalides découverts au déploiement plutôt qu\'à la PR',
+  title: 'Dockerfile',
+  risk: 'Dockerfile non conforme aux bonnes pratiques (root, versions non épinglées) découvert au déploiement',
   levels: ['pr', 'nightly'],
   blocking: true,
   async run() {
@@ -27,6 +26,6 @@ export const s7Deploy: Check = {
     }
     if (absent.length === report.results.length) return { status: 'skip', summary: `Outils absents : ${absent.join(', ')}` }
     const note = absent.length ? ` (non exécuté : ${absent.join(', ')})` : ''
-    return { status: absent.length ? 'warn' : 'pass', summary: `Dockerfile et ${report.manifests} manifestes valides${note}` }
+    return { status: absent.length ? 'warn' : 'pass', summary: `Dockerfile conforme (hadolint)${note}` }
   },
 }
