@@ -18,7 +18,9 @@ concurrency:
 
 env:
   # Valeurs de test publiques, identiques à docker-compose.yml et à tests/support/env.ts.
-  DATABASE_URL: postgres://expense:expense@localhost:5433/expense_io
+  # L'app se connecte avec le compte limité créé par les migrations (SEC-05) ; l'administrateur migre et peuple.
+  DATABASE_URL: postgres://expense_app_login:expense_app@localhost:5433/expense_io
+  DATABASE_ADMIN_URL: postgres://expense:expense@localhost:5433/expense_io
   S3_ENDPOINT: http://localhost:4567
   S3_REGION: us-east-1
   S3_BUCKET: receipts
@@ -73,7 +75,7 @@ jobs:
         run: npm ci
       - name: Base et stockage de test
         run: |
-          npx node-pg-migrate up -m migrations
+          node scripts/migrate.mjs up
           node scripts/ensure-bucket.mjs
 
       - name: Moulinette (niveau pr)

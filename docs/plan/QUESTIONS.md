@@ -5,15 +5,6 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
 
 ## Ouvertes
 
-- [ ] 2026-10-20 — SEC-05, fin du correctif : l'app se connecte à PostgreSQL avec le compte `expense`, qui est
-      administrateur (superutilisateur) dans l'image Docker. Un administrateur ignore la RLS. Fait : chaque
-      transaction métier bascule sur le rôle limité `expense_app` (`SET LOCAL ROLE`), donc la RLS s'applique aux
-      routes. Reste : la connexion elle-même (connexion, inscription, et toute requête hors `withUserScope`) et le
-      cas d'une injection SQL, qui pourrait revenir en administrateur (`RESET ROLE`). Correctif : un compte de
-      connexion non administrateur dans `DATABASE_URL`, l'administrateur réservé aux migrations. Il faut modifier
-      `.env.example` et `.env`, que l'agent n'a pas le droit de lire. Option proposée : autoriser l'agent à lire et
-      modifier `.env.example` (valeurs de dev publiques, comme `docker-compose.yml`) ; un humain recopie la ligne
-      dans son `.env`. En attendant : rôle endossé par transaction, T16 en échec attendu. Réversible.
 - [ ] 2026-10-20 — Employé sans manager (T08) : ses notes ne sont proposées à personne. Question posée aux profs
       (`questions-profs.md`, Q5). En attendant : comportement actuel figé par T08. Réversible.
 - [ ] 2026-10-20 — Numérotation T01–T18 : seules T07 et T11–T18 viennent du doc de vision ; T01–T06 et T08–T10 ont
@@ -24,6 +15,11 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
 
 ## Fermées
+
+- [x] 2026-10-21 — SEC-05 terminé : compte de connexion limité `expense_app_login` (migration 0004), administrateur
+      réservé aux migrations et au seed (`DATABASE_ADMIN_URL`). Brian a autorisé la lecture de `.env.example`.
+      **À faire une fois par chaque membre de l'équipe** : ajouter dans son `.env` les deux lignes `DATABASE_URL` et
+      `DATABASE_ADMIN_URL` de `.env.example` (sinon l'app marche quand même, en administrateur).
 
 - [x] 2026-10-21 — ADR 0002 et 0003 : rejetés par Brian, le contrat d'API ne change pas. Failles corrigées avec les
       codes existants (409 pour un corps illisible, tri hors liste ignoré). Question gardée pour les profs (Q3).

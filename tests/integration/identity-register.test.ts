@@ -6,7 +6,8 @@ import { afterAll, expect, it } from 'vitest'
 import { TEST_ENV } from '../support/env'
 
 process.env.DATABASE_URL ??= TEST_ENV.DATABASE_URL
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+// Le module se connecte comme l'app (DATABASE_URL, compte limité) ; les vérifications lisent en administrateur.
+const pool = new Pool({ connectionString: TEST_ENV.DATABASE_ADMIN_URL })
 afterAll(async () => {
   await pool.end()
   await global.__pgPool?.end()

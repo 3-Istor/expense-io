@@ -182,3 +182,13 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
   T19 rouge sans la trace ; règles Semgrep des routes vérifiées sur une route sonde ; spec générée identique à
   la spec manuelle (87 éléments), comparateur vérifié par mutation.
 - Rappel de session cloud : `scripts/cloud-services.sh` relance Postgres et le S3 local après un redémarrage.
+
+## 2026-10-21 — Décisions de Brian appliquées (branche `phase-3/architecture`)
+
+- `AUTH_SECRET` facultatif : secret aléatoire par processus s'il manque ou s'il vaut une valeur publique connue
+  (vérifié : app sans `AUTH_SECRET`, connexion 302 puis liste 200).
+- Contrat strictement inchangé : ADR 0002 et 0003 rejetés ; 409 existant pour un corps illisible, tri hors liste ignoré,
+  `stack` gardé vide dans les 500. Codes des 14 opérations identiques à ceux de la phase 1 (comparaison automatique).
+- SEC-05 terminé : compte de connexion limité, administrateur pour migrations et seed. T16 et T16b verts ;
+  **plus aucun test en échec attendu**. 69 tests d'API, 29 unitaires, 1 d'intégration.
+- `.env.example` lisible par l'agent (décision de Brian), `.env` toujours interdit.

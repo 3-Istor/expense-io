@@ -11,7 +11,9 @@ import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { encode } from 'next-auth/jwt'
 import { expect, request as playwrightRequest, test, type APIRequestContext } from '@playwright/test'
+import { Pool, type PoolClient } from 'pg'
 import { closeDb, createCompany, createNote, createUser, db, login, type TestUser } from '../support/fixtures'
+import { TEST_ENV } from '../support/env'
 
 interface Company {
   hr: TestUser
@@ -262,10 +264,32 @@ test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux
   expect(results.every((successes) => successes === 1)).toBe(true)
 })
 
+// Connexion avec les identifiants de l'APPLICATION (DATABASE_URL), pas ceux des fixtures (administrateur).
+async function asApp<T>(run: (client: PoolClient) => Promise<T>): Promise<T> {
+  const pool = new Pool({ connectionString: TEST_ENV.DATABASE_URL, max: 1 })
+  const client = await pool.connect()
+  try {
+    return await run(client)
+  } finally {
+    client.release()
+    await pool.end()
+  }
+}
+
 test('T16 [SEC-05] l\'app ne se connecte pas avec un rôle qui ignore la RLS', async () => {
-  knownFlaw('SEC-05', 'la connexion se fait encore avec un superutilisateur : seules les transactions de withUserScope endossent expense_app (correctif complet : rôle de connexion dédié, à valider, voir QUESTIONS.md)')
-  const res = await db().query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user')
-  expect(res.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
+  const role = await asApp((c) => c.query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user'))
+  expect(role.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
+})
+
+test('T16b [SEC-05] sans contexte utilisateur, la connexion de l\'app ne voit aucune note, même après RESET ROLE', async () => {
+  await createNote(A.employee.id)
+  const total = Number((await db().query('SELECT count(*) FROM expense_notes')).rows[0].count)
+  expect(total, 'contrôle : l\'administrateur voit des notes').toBeGreaterThan(0)
+  const seen = await asApp(async (c) => {
+    await c.query('RESET ROLE') // ce qu'une injection SQL tenterait pour sortir du rôle limité
+    return Number((await c.query('SELECT count(*) FROM expense_notes')).rows[0].count)
+  })
+  expect(seen).toBe(0)
 })
 
 test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', async () => {

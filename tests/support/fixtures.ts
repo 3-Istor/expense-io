@@ -19,7 +19,7 @@ export interface TestUser {
 
 let pool: Pool | undefined
 export function db(): Pool {
-  pool ??= new Pool({ connectionString: TEST_ENV.DATABASE_URL, max: 4 })
+  pool ??= new Pool({ connectionString: TEST_ENV.DATABASE_ADMIN_URL, max: 4 })
   return pool
 }
 export async function closeDb(): Promise<void> {

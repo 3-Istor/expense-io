@@ -114,14 +114,19 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   défense qui manque ; la gravité tient à ce que toute faille applicative devient une fuite inter-entreprises)
 - **Preuve** : T16 (rôle de connexion superutilisateur), T17 (8 politiques sans entreprise), T17b, nouveau : avec les
   anciennes politiques, le RH de B lit la note d'un manager de A sous un rôle soumis à la RLS (1 ligne au lieu de 0).
-- **Correctif, partie faite** : migration `1700000000002_rls-par-entreprise.sql` (réversible, testée up/down/up) :
-  rôle `expense_app` NOLOGIN, ni superuser ni BYPASSRLS, droits minimaux ; politiques qui comparent l'entreprise de
-  l'auteur à celle de l'appelant ; `withUserScope` endosse `expense_app` (`SET LOCAL ROLE`). Les 66 tests d'API
-  passent sous la RLS réelle.
-- **Reste à faire (décision humaine, voir QUESTIONS.md)** : se connecter avec un rôle dédié non superutilisateur
-  (mot de passe, donc secret et `.env`, interdits à l'agent) et passer sous `withUserScope` les requêtes restantes
-  (`getPool()` de la connexion Auth.js, de l'annuaire RH et de l'enregistrement du reçu).
-- **Statut** : partiellement corrigé. T17 et T17b verts ; T16 reste en échec attendu, avec un motif mis à jour.
+- **Correctif** :
+  1. migration `1700000000002` : rôle `expense_app` (ni superuser ni BYPASSRLS), politiques qui comparent l'entreprise,
+     `withUserScope` endosse ce rôle dans chaque transaction métier ;
+  2. migration `1700000000004` : compte de connexion `expense_app_login`, membre de `expense_app`, qui peut en plus
+     seulement lire et créer des comptes (connexion, inscription). L'app se connecte avec lui (`DATABASE_URL`),
+     l'administrateur ne sert plus qu'aux migrations et au seed (`DATABASE_ADMIN_URL`, `scripts/migrate.mjs`).
+     Mot de passe de développement public, comme celui de `docker-compose.yml` ; en production, le changer
+     (`ALTER ROLE`). Rétrocompatible : un ancien `.env` sans `DATABASE_ADMIN_URL` continue de marcher (connexion
+     administrateur, rôle limité endossé par transaction).
+- **Preuve** : T16 (compte de connexion ni superuser ni BYPASSRLS), T16b (sans contexte utilisateur et même après
+  `RESET ROLE`, la connexion de l'app voit 0 note ; avec l'ancienne connexion administrateur : 5 136), T17, T17b.
+  Les 69 tests d'API passent avec l'app connectée sous le compte limité.
+- **Statut** : corrigé, T16 vert sans marquage. Plus aucun test en échec attendu.
 
 ## SEC-12 — Note créée sans reçu si le stockage échoue
 

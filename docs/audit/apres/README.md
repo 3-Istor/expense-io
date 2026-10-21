@@ -9,7 +9,7 @@ l'audit « avant » : `scripts/audit.sh docs/audit/apres`. Sorties brutes, comma
 | Fichiers jamais importés | 7 (façade `domain`, `ports`, `adapters`, `utils`) | **0** | knip 6.42.1 |
 | Exports inutilisés | 0 | **0** | knip |
 | Constats de sécurité statiques | 17 | **0** | Semgrep 1.181.0, 8 règles maison* |
-| Failles d'autorisation prouvées | 11 tests en échec attendu | **1** (T16, SEC-05 partiel) | Playwright |
+| Failles d'autorisation prouvées | 11 tests en échec attendu | **0** | Playwright |
 | Tests d'API | 0 | **68** (contrat, autorisations, trace) | Playwright |
 | Tests unitaires et d'intégration | 0 | **27 + 1** | Vitest |
 | Règles d'architecture | aucune | **6 règles bloquantes, 0 violation** | dependency-cruiser |
@@ -24,7 +24,7 @@ code dupliqué et la façade inutilisée ; la duplication baisse en valeur absol
 
 ## Ce qui reste ouvert
 
-- **SEC-05** : connexion à PostgreSQL en superutilisateur (T16). Décision humaine : mot de passe dans `.env`.
+- ~~SEC-05~~ : corrigé le 2026-10-21 (compte de connexion limité, T16 et T16b).
 - **SEC-13** : clé S3 prévisible. Attend la réponse des profs sur `receiptKey`.
 - **SEC-15** : inscription par domaine sans vérification. Gardée pour la démo (ADR 0004).
 - **Dépendances** : `next` 16.3.5 (critique, `next/og` non utilisé), `sharp`, `source-map-js`. Montée de niveau 3
