@@ -75,10 +75,19 @@ Contrainte (décision de Brian, 2026-10-21) : contrat d'API strictement inchang�
 - [x] 4.4 SonarQube local sans compte (`make sonar-up`, `make sonar`, `sonar-project.properties`, couverture lcov).
 - [ ] 4.5 Niveau `nightly` de la moulinette (Schemathesis, Stryker).
 
-## Phase 5 — Workflow piloté par le risque (agent puis humain)
+## Phase 5 — Workflow piloté par le risque (agent, branche `phase-5/qualite`)
 
-`verify/risk.ts`, skills (`add-feature`, `triage-finding`, `write-adr`), hooks, relecteurs (architecture,
-sécurité), carte du workflow ; trois répétitions chronométrées : validation finance, export CSV, plafond par catégorie.
+Objectif : le jour du live coding, chaque demande suit un chemin connu et chronométré, et le harnais empêche
+l'agent de se tromper sans le voir.
+
+- [x] 5.1 `verify/risk.ts` : classe un diff dans les niveaux 0 à 3 d'`AGENTS.md`, avec les raisons et les points de
+      contrôle humains ; `npm run risk` ; contrôle S8 (informatif) ; tests unitaires des règles.
+- [ ] 5.2 Skills d'équipe (`.claude/skills/`) : `add-feature`, `triage-finding`, `write-adr`.
+- [ ] 5.3 Hooks (`.claude/settings.json`) : pas de commit si la moulinette `pr` est rouge ; résumé de risque en fin de tour.
+- [ ] 5.4 Relecteurs en contexte neuf (`.claude/agents/`) : sécurité et architecture, lecture seule.
+- [ ] 5.5 Carte du workflow (`docs/workflow.md`, schéma pour la soutenance).
+- [ ] 5.6 Trois répétitions chronométrées sur des branches jetables (validation finance, export CSV, plafond par
+      catégorie) ; temps, points de friction et correctifs du harnais dans `docs/rehearsals.md`.
 
 ## Phase 6 — Soutenance (équipe, agent en appui)
 
