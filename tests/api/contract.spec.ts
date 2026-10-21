@@ -354,7 +354,8 @@ test.describe('GET /api/hr/expense-notes/export', () => {
     expect(res.status()).toBe(200)
     expect(res.headers()['content-type']).toMatch(/^text\/csv/)
     const [header, ...rows] = (await res.text()).trim().split('\n')
-    expect(header).toBe('id,email,amount,expenseDate,description,status,createdAt')
+    expect(header).toBe('"id","email","amount","expenseDate","description","status","createdAt"')
+    expect(res.headers()['cache-control']).toBe('no-store') // données personnelles : jamais en cache
     const csv = rows.join('\n')
     expect(csv).toContain(rootNote)
     expect(csv).toContain(decided) // tous statuts

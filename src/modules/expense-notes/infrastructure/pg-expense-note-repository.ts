@@ -42,11 +42,12 @@ const PENDING_IN_SCOPE: Record<ApproverKind, string> = {
   hr: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id
        WHERE ${SCOPE.hr} AND en.status = 'pending' ORDER BY en.created_at ASC`,
 }
+// Export borné (relecture sécurité : mémoire et pool de connexions) : les 10 000 notes les plus récentes au plus.
 const ALL_IN_SCOPE: Record<ApproverKind, string> = {
   manager: `SELECT en.*, u.email AS author_email FROM expense_notes en JOIN users u ON u.id = en.user_id
-            WHERE ${SCOPE.manager} ORDER BY en.created_at ASC`,
+            WHERE ${SCOPE.manager} ORDER BY en.created_at DESC LIMIT 10000`,
   hr: `SELECT en.*, u.email AS author_email FROM expense_notes en JOIN users u ON u.id = en.user_id
-       WHERE ${SCOPE.hr} ORDER BY en.created_at ASC`,
+       WHERE ${SCOPE.hr} ORDER BY en.created_at DESC LIMIT 10000`,
 }
 const FIND_IN_SCOPE: Record<ApproverKind, string> = {
   manager: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id WHERE ${SCOPE.manager} AND en.id = $2`,

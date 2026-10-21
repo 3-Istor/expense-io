@@ -38,6 +38,7 @@ export function exportCsvRoute(kind: ApproverKind) {
         headers: {
           'content-type': 'text/csv; charset=utf-8',
           'content-disposition': 'attachment; filename="notes-de-frais.csv"',
+          'cache-control': 'no-store',
         },
       })
     })
