@@ -55,6 +55,7 @@ export function noteJson(note: {
   description: string
   receiptKey: string
   status: string
+  category: string
   createdAt: Date
 }): ExpenseNoteJson {
   return {
@@ -65,6 +66,7 @@ export function noteJson(note: {
     description: note.description,
     receiptKey: note.receiptKey,
     status: note.status as ExpenseNoteJson['status'],
+    category: note.category as ExpenseNoteJson['category'],
     createdAt: note.createdAt.toISOString(),
   }
 }

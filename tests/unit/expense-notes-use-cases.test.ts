@@ -13,6 +13,7 @@ const note = (over: Partial<ExpenseNote> = {}): ExpenseNote => ({
   description: 'Taxi',
   receiptKey: 'receipts/1.png',
   status: 'pending',
+  category: 'autre',
   createdAt: new Date(0),
   ...over,
 })

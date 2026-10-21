@@ -107,6 +107,26 @@ test.describe('POST /api/expense-notes', () => {
     expect(note.receiptKey).toMatch(/^receipts\/\d+\.png$/)
   })
 
+  test('201 : catégorie enregistrée, « autre » par défaut', async () => {
+    const meal = await asEmployee.post('/api/expense-notes', { multipart: { ...valid(), amount: '25', category: 'repas' } })
+    expect(meal.status()).toBe(201)
+    expect(await meal.json()).toMatchObject({ category: 'repas', amount: 25 })
+    const byDefault = await asEmployee.post('/api/expense-notes', { multipart: valid() })
+    expect((await byDefault.json()).category).toBe('autre')
+  })
+
+  test('400 : montant au-dessus du plafond de la catégorie, ou catégorie inconnue', async () => {
+    for (const multipart of [
+      { ...valid(), amount: '30.01', category: 'repas' },
+      { ...valid(), amount: '150.01', category: 'hebergement' },
+      { ...valid(), category: 'casino' },
+    ]) {
+      const res = await asEmployee.post('/api/expense-notes', { multipart })
+      expect(res.status(), JSON.stringify(multipart.category)).toBe(400)
+      expectError(await res.json())
+    }
+  })
+
   test('400 : champ manquant ou montant invalide', async () => {
     for (const multipart of [
       { ...valid(), description: '  ' },

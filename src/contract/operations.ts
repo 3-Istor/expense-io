@@ -73,6 +73,9 @@ registry.registerPath({
             expenseDate: z.string().openapi({ description: 'Date AAAA-MM-JJ' }),
             description: z.string().min(1),
             receipt: receipt.openapi({ description: 'png, jpeg, webp ou pdf, 10 Mo au plus' }),
+            category: z.enum(['transport', 'repas', 'hebergement', 'autre']).optional().openapi({
+              description: 'Catégorie (défaut : autre). Montant au-dessus du plafond de la catégorie : 400.',
+            }),
           }),
         },
       },

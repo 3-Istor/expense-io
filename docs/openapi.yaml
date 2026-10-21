@@ -55,6 +55,13 @@ components:
           description: "Clé de stockage du reçu (prévisible : faille SEC-13)"
         status:
           $ref: "#/components/schemas/ExpenseNoteStatus"
+        category:
+          type: string
+          enum:
+            - transport
+            - repas
+            - hebergement
+            - autre
         createdAt:
           type: string
           format: date-time
@@ -66,6 +73,7 @@ components:
         - description
         - receiptKey
         - status
+        - category
         - createdAt
       additionalProperties: false
     ExpenseNoteStatus:
@@ -209,6 +217,14 @@ paths:
                   type: string
                   contentMediaType: application/octet-stream
                   description: png, jpeg, webp ou pdf, 10 Mo au plus
+                category:
+                  type: string
+                  enum:
+                    - transport
+                    - repas
+                    - hebergement
+                    - autre
+                  description: "Catégorie (défaut : autre). Montant au-dessus du plafond de la catégorie : 400."
               required:
                 - amount
                 - expenseDate

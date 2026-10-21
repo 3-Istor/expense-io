@@ -16,6 +16,7 @@ export const ExpenseNote = z
     description: z.string(),
     receiptKey: z.string().openapi({ description: 'Clé de stockage du reçu (prévisible : faille SEC-13)' }),
     status: ExpenseNoteStatus,
+    category: z.enum(['transport', 'repas', 'hebergement', 'autre']),
     createdAt: z.iso.datetime(),
   })
   .openapi('ExpenseNote')

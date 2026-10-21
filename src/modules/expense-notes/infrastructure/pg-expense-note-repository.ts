@@ -16,6 +16,7 @@ function toNote(row: Record<string, unknown>): ExpenseNote {
     description: row.description as string,
     receiptKey: row.receipt_key as string,
     status: row.status as ExpenseNote['status'],
+    category: row.category as ExpenseNote['category'],
     createdAt: new Date(row.created_at as string),
   }
 }
@@ -77,9 +78,9 @@ export const pgExpenseNoteRepository: ExpenseNoteRepository = {
   insert: (caller, note) =>
     withUserScope(caller.userId, async (db) => {
       const res = await db.query(
-        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key, receipt_seq)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [caller.userId, note.amount, note.expenseDate, note.description, note.receiptKey, note.receiptSeq],
+        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key, receipt_seq, category)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [caller.userId, note.amount, note.expenseDate, note.description, note.receiptKey, note.receiptSeq, note.category],
       )
       return toNote(res.rows[0])
     }),

@@ -45,7 +45,7 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
     /** Le reçu est stocké AVANT la note : pas de note sans reçu si le stockage échoue (SEC-12). */
     async create(
       caller: Caller,
-      input: { amount: unknown; expenseDate: unknown; description: unknown; receipt: ReceiptFile | null },
+      input: { amount: unknown; expenseDate: unknown; description: unknown; category?: unknown; receipt: ReceiptFile | null },
     ): Promise<ExpenseNote> {
       const fields = validateNewNote(input)
       if (!fields || !input.receipt) throw invalid()

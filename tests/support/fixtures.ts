@@ -80,7 +80,7 @@ export async function login(baseURL: string, user: TestUser): Promise<APIRequest
 // Formats du contrat (docs/contract.md). Clés exactes : un champ en plus ou en moins fait échouer le test.
 export function expectNote(body: unknown): void {
   expect(Object.keys(body as object).sort()).toEqual(
-    ['amount', 'createdAt', 'description', 'expenseDate', 'id', 'receiptKey', 'status', 'userId'].sort(),
+    ['amount', 'category', 'createdAt', 'description', 'expenseDate', 'id', 'receiptKey', 'status', 'userId'].sort(),
   )
   const note = body as Record<string, unknown>
   expect(note.id).toMatch(/^[0-9a-f-]{36}$/)

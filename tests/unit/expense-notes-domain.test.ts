@@ -34,7 +34,7 @@ describe('valideurs', () => {
 describe('saisie d\'une note', () => {
   it('refuse un montant nul, négatif ou illisible et une description vide', () => {
     const ok = { amount: '12.5', expenseDate: '2026-10-01', description: 'Taxi' }
-    expect(validateNewNote(ok)).toEqual({ amount: 12.5, expenseDate: '2026-10-01', description: 'Taxi' })
+    expect(validateNewNote(ok)).toEqual({ amount: 12.5, expenseDate: '2026-10-01', description: 'Taxi', category: 'autre' })
     for (const amount of ['0', '-3', 'abc', undefined]) expect(validateNewNote({ ...ok, amount })).toBeNull()
     expect(validateNewNote({ ...ok, description: '   ' })).toBeNull()
   })
@@ -43,6 +43,17 @@ describe('saisie d\'une note', () => {
     expect(checkReceipt({ type: 'text/plain', size: 1 })).toBe('type-not-allowed')
     expect(checkReceipt({ type: 'application/pdf', size: 10 * 1024 * 1024 + 1 })).toBe('too-large')
     expect(receiptKeyFor(42, 'image/jpeg')).toBe('receipts/42.jpg')
+  })
+})
+
+describe('plafonds par catégorie', () => {
+  const ok = { amount: '30', expenseDate: '2026-10-01', description: 'Repas client' }
+  it('accepte au plafond, refuse au-dessus, refuse une catégorie inconnue', () => {
+    expect(validateNewNote({ ...ok, category: 'repas' })?.category).toBe('repas')
+    expect(validateNewNote({ ...ok, amount: '30.01', category: 'repas' })).toBeNull()
+    expect(validateNewNote({ ...ok, amount: '99999', category: 'autre' })?.category).toBe('autre') // sans plafond
+    expect(validateNewNote({ ...ok, category: 'casino' })).toBeNull()
+    expect(validateNewNote({ ...ok, category: 42 })).toBeNull()
   })
 })
 

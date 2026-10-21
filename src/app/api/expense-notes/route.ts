@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
       amount: form.get('amount'),
       expenseDate: form.get('expenseDate'),
       description: form.get('description'),
+      category: form.get('category'),
       receipt: receiptFrom(form.get('receipt')),
     })
     return Response.json(noteJson(note), { status: 201 })
