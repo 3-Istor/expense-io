@@ -10,15 +10,17 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CVSS v4.0** : 9.3 critique — `CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T18b (`tests/api/authz.spec.ts`) forge une session RH d'une autre entreprise avec le secret lu dans
   l'historique Git, et obtient l'annuaire (200). Semgrep `secret-en-dur` sur `src/lib/auth.ts:8`.
-- **Correctif** : `AUTH_SECRET` lu dans l'environnement ; `src/instrumentation.ts` signale au démarrage un secret
-  absent ou de moins de 32 caractères (`src/lib/auth-secret.ts`, test unitaire) ; `make env` en génère un aléatoire
-  dans `.env` ; les tests en génèrent un par exécution.
+- **Correctif** : `AUTH_SECRET` lu dans l'environnement, jamais dans le code (`src/lib/auth-secret.ts`, tests unitaires).
+  Décision de Brian (2026-10-21) : l'app doit démarrer sans configuration (moulinette des profs). Un secret absent,
+  ou égal à une valeur publique connue (l'ancien secret du dépôt, la valeur d'exemple de `.env.example`, repérés par
+  empreinte SHA-256), est remplacé par un secret aléatoire propre au processus, avec un avertissement. `make env` en
+  écrit un dans `.env`. Vérifié : app lancée sans `AUTH_SECRET`, connexion 302 puis liste 200.
 - **Reste à faire (humain)** : le secret publié reste dans l'historique Git pour toujours. Il ne protège plus rien
   puisqu'il n'est plus utilisé, mais tout environnement déployé avec lui doit changer de secret (les sessions
   existantes tombent). gitleaks le retrouvera dans l'historique (scan de nuit) : le marquer comme révoqué relève d'un
   humain (`false-positives.md`).
-- **Limite constatée** : en `next dev`, l'erreur de démarrage est journalisée mais le serveur continue ; Auth.js
-  refuse alors toute session. Comportement de `next start` à vérifier en phase 4 (Dockerfile).
+- **Limite** : sans `AUTH_SECRET` fixé, les sessions tombent à chaque redémarrage, et plusieurs instances n'auraient
+  pas le même secret. Sans effet pour la démo et la moulinette ; en production, fixer la variable.
 - **Statut** : corrigé, T18b vert sans marquage.
 
 ## SEC-07 — Stacktrace et détail SQL renvoyés au client ; erreurs qui échappent au catch

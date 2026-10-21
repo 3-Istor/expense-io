@@ -1,13 +1,36 @@
-import { describe, expect, it } from 'vitest'
-import { requireAuthSecret } from '@/lib/auth-secret'
+import { execFileSync } from 'node:child_process'
+import { describe, expect, it, vi } from 'vitest'
+import { ensureAuthSecret } from '@/lib/auth-secret'
 
-describe('requireAuthSecret (SEC-02)', () => {
-  it('refuse un secret absent ou trop court', () => {
-    expect(() => requireAuthSecret({})).toThrow(/AUTH_SECRET/)
-    expect(() => requireAuthSecret({ AUTH_SECRET: 'court' })).toThrow(/32 caractères/)
-  })
-  it('renvoie le secret de l\'environnement', () => {
+// Décision de Brian (2026-10-21) : l'app doit démarrer sans configuration (moulinette des profs). Le secret absent est
+// donc remplacé par un secret aléatoire au lieu d'arrêter l'app ; un secret public n'est jamais accepté (SEC-02).
+vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+describe('ensureAuthSecret (SEC-02)', () => {
+  it('garde un secret fourni et sûr', () => {
     const secret = 'x'.repeat(32)
-    expect(requireAuthSecret({ AUTH_SECRET: secret })).toBe(secret)
+    expect(ensureAuthSecret({ AUTH_SECRET: secret })).toBe(secret)
+  })
+
+  it('génère un secret aléatoire si absent, et le partage via l\'environnement', () => {
+    const env: Record<string, string | undefined> = {}
+    const secret = ensureAuthSecret(env)
+    expect(secret).toMatch(/^[0-9a-f]{64}$/)
+    expect(env.AUTH_SECRET).toBe(secret)
+    expect(ensureAuthSecret(env)).toBe(secret) // second appel (autre module) : même secret
+    expect(ensureAuthSecret({})).not.toBe(secret) // jamais une valeur fixe
+  })
+
+  it('refuse les secrets publics : l\'ancien secret du dépôt et la valeur de .env.example', () => {
+    const leaked = /AUTH_SECRET = '([^']+)'/.exec(
+      execFileSync('git', ['show', '265924b:src/lib/auth.ts'], { encoding: 'utf8' }),
+    )![1]
+    for (const publicValue of [leaked, 'changeme-generate-a-real-secret-for-non-local-use']) {
+      expect(ensureAuthSecret({ AUTH_SECRET: publicValue })).not.toBe(publicValue)
+    }
+  })
+
+  it('refuse un secret fourni mais trop court', () => {
+    expect(() => ensureAuthSecret({ AUTH_SECRET: 'court' })).toThrow(/32 caractères/)
   })
 })

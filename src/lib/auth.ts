@@ -1,11 +1,12 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import { ensureAuthSecret } from '@/lib/auth-secret'
 import { identity } from '@/modules/identity'
 
-// Le secret vient de l'environnement (SEC-02). Son absence arrête l'app au démarrage (src/instrumentation.ts) ;
-// Auth.js refuse aussi de signer une session sans lui.
+// Le secret vient de l'environnement, jamais du code (SEC-02) ; absent ou public, il est remplacé par un secret
+// aléatoire propre au processus (src/lib/auth-secret.ts).
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET,
+  secret: ensureAuthSecret(),
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',

@@ -5,10 +5,11 @@ Chaque question : le contexte en deux lignes, la question, et ce qu'on fait en a
 ## Contrat et moulinette
 
 **Q1. Comment la moulinette lance-t-elle l'app et se connecte-t-elle ?**
-Nous avons retiré le secret de session écrit en dur dans le code (faille : n'importe qui pouvait forger une session).
-L'app exige maintenant une variable `AUTH_SECRET` d'au moins 32 caractères (`make env` en génère une).
-→ La moulinette utilise-t-elle `make dev`, un `.env` fourni, ou ses propres variables ? Avec quels comptes ?
-*En attendant : `make dev` génère le secret automatiquement.*
+Nous avons retiré le secret de session écrit en dur (n'importe qui pouvait forger une session). L'app marche quand
+même sans configuration : sans `AUTH_SECRET`, elle génère un secret aléatoire au démarrage.
+→ La moulinette utilise-t-elle `make dev`, un `.env` fourni, ou ses propres variables ? Avec quels comptes (ceux du
+seed : `hr@expense.io`, `manager@expense.io`, `demo@expense.io`) ?
+*En attendant : rien à configurer, ça démarre dans tous les cas.*
 
 **Q2. Les codes 401 et 403 actuels sont-ils attendus tels quels ?**
 Aujourd'hui, un rôle insuffisant reçoit 401 sur les routes manager, mais 403 sur les routes RH (l'usage standard est
