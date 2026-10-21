@@ -26,7 +26,14 @@ export function checkManagerAssignment(targetId: string, managerId: string | nul
 }
 
 export const MIN_PASSWORD_LENGTH = 8
-const EMAIL_PATTERN = /^[^\s@]+@([^\s@]+\.[^\s@]+)$/
+// Deux classes disjointes du « @ » : vérification linéaire, sans retour arrière exponentiel (Sonar S8786, ReDoS).
+const EMAIL_SHAPE = /^[^\s@]+@([^\s@]+)$/
+
+/** Domaine d'un email `local@domaine` dont le domaine contient un point ni en tête ni en fin ; null sinon. */
+export function emailDomain(email: string): string | null {
+  const domain = EMAIL_SHAPE.exec(email)?.[1]
+  return domain && domain.slice(1, -1).includes('.') ? domain.toLowerCase() : null
+}
 
 export interface Registration {
   name: string
@@ -37,9 +44,9 @@ export interface Registration {
 }
 
 export function validateRegistration(input: { name: unknown; email: unknown; password: unknown }): Registration | null {
-  const match = typeof input.email === 'string' ? EMAIL_PATTERN.exec(input.email) : null
+  const domain = typeof input.email === 'string' ? emailDomain(input.email) : null
   if (typeof input.name !== 'string' || input.name.trim().length === 0) return null
-  if (!match || typeof input.email !== 'string') return null
+  if (!domain || typeof input.email !== 'string') return null
   if (typeof input.password !== 'string' || input.password.length < MIN_PASSWORD_LENGTH) return null
-  return { name: input.name.trim(), email: input.email, password: input.password, domain: match[1].toLowerCase() }
+  return { name: input.name.trim(), email: input.email, password: input.password, domain }
 }

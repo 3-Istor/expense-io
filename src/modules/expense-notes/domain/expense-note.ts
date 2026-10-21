@@ -37,7 +37,7 @@ export interface NewExpenseNote {
 }
 
 export function validateNewNote(input: { amount: unknown; expenseDate: unknown; description: unknown }): NewExpenseNote | null {
-  const amount = typeof input.amount === 'string' ? Number.parseFloat(input.amount) : NaN
+  const amount = typeof input.amount === 'string' ? Number.parseFloat(input.amount) : Number.NaN
   if (!Number.isFinite(amount) || amount <= 0) return null
   if (typeof input.expenseDate !== 'string') return null
   if (typeof input.description !== 'string' || input.description.trim().length === 0) return null

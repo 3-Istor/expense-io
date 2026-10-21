@@ -62,8 +62,14 @@ export function AdminConsole() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadUsers()
-    loadNotes()
+    loadUsers().catch(() => {
+      setUsersError('Impossible de charger les utilisateurs.')
+      setUsersLoading(false)
+    })
+    loadNotes().catch(() => {
+      setNotesError('Impossible de charger les notes en attente.')
+      setNotesLoading(false)
+    })
   }, [loadUsers, loadNotes])
 
   const managers = users.filter((user) => user.role === 'manager')

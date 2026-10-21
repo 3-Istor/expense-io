@@ -20,7 +20,8 @@
     "contract:generate": "tsx scripts/generate-openapi.ts",
     "docker:lint": "node scripts/check-deploy.mjs",
     "test:coverage": "vitest run --coverage",
-    "sonar": "sonar-scanner"
+    "sonar": "sonar-scanner",
+    "risk": "tsx verify/risk-cli.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",
