@@ -41,13 +41,15 @@ const RULES: Rule[] = [
   { level: 3, reason: 'authentification ou session', match: path(/^src\/(lib\/auth|lib\/auth-secret|instrumentation|modules\/identity\/(session|infrastructure)|app\/actions\/auth)/) },
   { level: 3, reason: "isolation (contexte utilisateur, accès base)", match: path(/^src\/lib\/db\.ts$/) },
   { level: 3, reason: "règles d'accès des valideurs", match: path(/^src\/modules\/expense-notes\/(domain\/approvers|infrastructure\/pg-)/) },
-  { level: 3, reason: 'RLS, rôles ou droits PostgreSQL', match: adds(/\b(POLICY|ROW LEVEL SECURITY|GRANT|REVOKE|CREATE ROLE|ALTER ROLE|BYPASSRLS|SET ROLE)\b/i) },
+  // Contenu SQL seulement : un mot-clé cité dans du TypeScript ou de la doc ne déclenche rien.
+  { level: 3, reason: 'RLS, rôles ou droits PostgreSQL', match: (f) => /^migrations\/|\.sql$/.test(f.path) && adds(/\b(POLICY|ROW LEVEL SECURITY|GRANT|REVOKE|CREATE ROLE|ALTER ROLE|BYPASSRLS|SET ROLE)\b/i)(f) },
   { level: 3, reason: 'secrets ou configuration sensible', match: path(/(^|\/)\.env(\.|$)|^\.gitleaksignore$|^docs\/security\/false-positives\.md$/) },
   { level: 3, reason: 'CI', match: path(/^\.github\//) },
   { level: 3, reason: 'moulinette ou ses règles', match: path(/^(verify\/|\.semgrep\/|\.dependency-cruiser\.cjs$|\.spectral\.yaml$|redocly\.yaml$)/) },
   { level: 3, reason: "harnais de l'agent", match: path(/^(\.claude\/|AGENTS\.md$|CLAUDE\.md$)/) },
   { level: 3, reason: 'test supprimé', match: (f) => f.status === 'D' && /(^tests\/|\.test\.ts$|\.spec\.ts$)/.test(f.path) },
-  { level: 3, reason: 'test affaibli (fail, skip, only)', match: (f) => /^tests\//.test(f.path) && adds(/\btest\.(fail|skip|fixme|only)\b|\bit\.(skip|only)\b|knownFlaw\(/)(f) },
+  // Appel réel en début d'instruction (pas une chaîne de caractères qui cite le mot).
+  { level: 3, reason: 'test affaibli (fail, skip, only)', match: (f) => /^tests\//.test(f.path) && adds(/^\s*(test|it|describe)\.(fail|skip|fixme|only)\(|^\s*knownFlaw\(/)(f) },
 
   // Niveau 2 : contrat, nouvel endpoint, migration, dépendances de production.
   { level: 2, reason: "contrat d'API", match: path(/^(src\/contract\/|docs\/openapi\.yaml$|docs\/contract\.md$)/) },

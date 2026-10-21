@@ -82,9 +82,9 @@ l'agent de se tromper sans le voir.
 
 - [x] 5.1 `verify/risk.ts` : classe un diff dans les niveaux 0 à 3 d'`AGENTS.md`, avec les raisons et les points de
       contrôle humains ; `npm run risk` ; contrôle S8 (informatif) ; tests unitaires des règles.
-- [ ] 5.2 Skills d'équipe (`.claude/skills/`) : `add-feature`, `triage-finding`, `write-adr`.
-- [ ] 5.3 Hooks (`.claude/settings.json`) : pas de commit si la moulinette `pr` est rouge ; résumé de risque en fin de tour.
-- [ ] 5.4 Relecteurs en contexte neuf (`.claude/agents/`) : sécurité et architecture, lecture seule.
+- [x] 5.2 Skills d'équipe (`.claude/skills/`) : `add-feature`, `triage-finding`, `write-adr`.
+- [x] 5.3 Hooks (`.claude/settings.json`) : pas de commit si la moulinette `pr` est rouge ; résumé de risque en fin de tour.
+- [x] 5.4 Relecteurs en contexte neuf (`.claude/agents/`) : sécurité et architecture, lecture seule.
 - [ ] 5.5 Carte du workflow (`docs/workflow.md`, schéma pour la soutenance).
 - [ ] 5.6 Trois répétitions chronométrées sur des branches jetables (validation finance, export CSV, plafond par
       catégorie) ; temps, points de friction et correctifs du harnais dans `docs/rehearsals.md`.

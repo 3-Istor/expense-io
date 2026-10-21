@@ -35,6 +35,10 @@ describe('niveau de risque (AGENTS.md)', () => {
     expect(level(m('tests/api/authz.spec.ts', ["  test.skip('T11', async () => {"]))).toBe(3)
     expect(level(m('tests/api/authz.spec.ts', ["  knownFlaw('SEC-03', 'raison')"]))).toBe(3)
   })
+  it('ne se trompe pas sur un mot-clé simplement cité', () => {
+    expect(level(m('src/modules/x/domain/y.ts', ['// GRANT et POLICY ne sont que cités']))).toBe(1)
+    expect(level(m('tests/unit/a.test.ts', ["    expect(f(\"test.skip('x')\")).toBe(1)"]))).toBe(1)
+  })
   it('le plus élevé l\'emporte, avec le point de contrôle associé', () => {
     const report = classify([m('docs/slo.md'), m('src/lib/auth.ts')])
     expect(report.level).toBe(3)
