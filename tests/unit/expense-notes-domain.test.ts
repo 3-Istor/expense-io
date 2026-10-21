@@ -58,3 +58,22 @@ describe('tri de la liste (SEC-01)', () => {
     }
   })
 })
+
+describe('cas limites (tests de mutation)', () => {
+  const ok = { amount: '12.5', expenseDate: '2026-10-01', description: 'Taxi' }
+  it('refuse un montant qui n\'est pas une chaîne, une date ou une description du mauvais type', () => {
+    expect(validateNewNote({ ...ok, amount: 12.5 })).toBeNull()
+    expect(validateNewNote({ ...ok, expenseDate: 20261001 })).toBeNull()
+    expect(validateNewNote({ ...ok, description: 42 })).toBeNull()
+  })
+  it('clé de reçu pour chaque type accepté', () => {
+    expect(receiptKeyFor(1, 'image/png')).toBe('receipts/1.png')
+    expect(receiptKeyFor(2, 'image/webp')).toBe('receipts/2.webp')
+    expect(receiptKeyFor(3, 'application/pdf')).toBe('receipts/3.pdf')
+    expect(receiptKeyFor(4, 'text/plain')).toBe('receipts/4')
+  })
+  it('le tri est ancré et tolère plusieurs espaces', () => {
+    expect(parseSort('1amount')).toBeNull()
+    expect(parseSort('amount  desc')).toEqual({ column: 'amount', direction: 'DESC' })
+  })
+})

@@ -34,3 +34,20 @@ describe('ensureAuthSecret (SEC-02)', () => {
     expect(() => ensureAuthSecret({ AUTH_SECRET: 'court' })).toThrow(/32 caractères/)
   })
 })
+
+describe('ensureAuthSecret, cas limites (tests de mutation)', () => {
+  it('ignore les espaces autour du secret', () => {
+    const secret = 'y'.repeat(32)
+    expect(ensureAuthSecret({ AUTH_SECRET: `  ${secret}\n` })).toBe(secret)
+  })
+  it('avertit, avec un message différent selon la cause', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    ensureAuthSecret({})
+    ensureAuthSecret({ AUTH_SECRET: 'changeme-generate-a-real-secret-for-non-local-use' })
+    const messages = warn.mock.calls.map((c) => JSON.parse(c[0] as string))
+    expect(messages.map((m) => m.level)).toEqual(['warn', 'warn'])
+    expect(messages[0].msg).toMatch(/absent.*En production, fixer AUTH_SECRET/)
+    expect(messages[1].msg).toMatch(/valeur publique connue/)
+    warn.mockRestore()
+  })
+})

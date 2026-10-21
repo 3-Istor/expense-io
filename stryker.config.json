@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Tests de mutation (Stryker) : modifie le code des règles métier et vérifie qu'un test unitaire échoue à chaque fois. Lancer : npm run test:mutation. Rapport : reports/mutation/mutation.html Seuil : échec sous 95 % (mesuré 98,35 % le 2026-10-21 ; 6 mutants équivalents documentés dans docs/test-strategy.md).",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.unit.config.ts",
+    "related": false
+  },
+  "mutate": [
+    "src/modules/*/domain/**/*.ts",
+    "src/modules/*/application/**/*.ts",
+    "src/lib/auth-secret.ts",
+    "src/lib/limits.ts"
+  ],
+  "reporters": [
+    "clear-text",
+    "progress",
+    "html",
+    "json"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/mutation.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/mutation.json"
+  },
+  "coverageAnalysis": "perTest",
+  "concurrency": 4,
+  "timeoutMS": 10000,
+  "tempDirName": ".stryker-tmp",
+  "thresholds": {
+    "high": 98,
+    "low": 95,
+    "break": 95
+  }
+}

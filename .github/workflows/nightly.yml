@@ -36,6 +36,9 @@ jobs:
       - run: npm ci
       - name: Moulinette (niveau nightly)
         run: npm run verify -- --level nightly
+      - name: Tests de mutation (Stryker, seuil 95 %)
+        if: always()
+        run: npm run test:mutation
       - name: Secrets dans tout l'historique Git (informatif, SEC-02 y restera)
         if: always()
         continue-on-error: true

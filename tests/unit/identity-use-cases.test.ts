@@ -74,3 +74,37 @@ describe('email d\'inscription (Sonar S8786 : pas de ReDoS)', () => {
     expect(performance.now() - started).toBeLessThan(100)
   })
 })
+
+describe('cas d\'usage identity : messages du contrat et délégation (tests de mutation)', () => {
+  it('annuaire réservé au RH, renvoie le dépôt', async () => {
+    const users = [{ id: 'u', name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: null }]
+    const id = setup({ users: { listDirectory: async () => users } })
+    expect(await id.directory(hr)).toBe(users)
+    expect(await kindOf(id.directory({ userId: 'e', role: 'employee' }))).toBe('denied')
+  })
+  it('messages exacts : « Invalid manager »', async () => {
+    const message = (p: Promise<unknown>) => p.then(() => 'ok', (e: Error) => e.message)
+    expect(await message(setup().assignManager(hr, 'cible', {}))).toBe('Invalid manager')
+    expect(await message(setup().assignManager(hr, uuid, { managerId: uuid }))).toBe('Invalid manager')
+    const refused = setup({ users: { assignManager: async () => ({ ok: false, reason: 'invalid-manager' }) } })
+    expect(await message(refused.assignManager(hr, 'cible', { managerId: null }))).toBe('Invalid manager')
+  })
+  it('renvoie l\'utilisateur rattaché', async () => {
+    const user = { id: 'cible', name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: null }
+    const id = setup({ users: { assignManager: async () => ({ ok: true, user }) } })
+    expect(await id.assignManager(hr, 'cible', { managerId: null })).toBe(user)
+  })
+  it('refuse des identifiants vides ou du mauvais type sans consulter les comptes', async () => {
+    let lookups = 0
+    const id = setup({ accounts: { findByEmail: async () => (lookups++, null) } })
+    for (const [email, password] of [['', 'x'], ['a@x.io', ''], [42, 'x'], ['a@x.io', 42]] as const) {
+      expect(await id.verifyCredentials(email, password)).toBeNull()
+    }
+    expect(lookups).toBe(0)
+  })
+  it('relit le rôle courant dans le dépôt de comptes', async () => {
+    const id = setup({ accounts: { roleOf: async (userId) => (userId === 'u1' ? 'manager' : null) } })
+    expect(await id.currentRole('u1')).toBe('manager')
+    expect(await id.currentRole('inconnu')).toBeNull()
+  })
+})
