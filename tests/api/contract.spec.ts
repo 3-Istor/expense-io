@@ -41,8 +41,6 @@ test.beforeAll(async ({ baseURL }) => {
 })
 
 test.afterAll(async () => {
-  // Couverture du contrat : chaque code documenté (hors 500) de chaque opération a été exercé au moins une fois.
-  expect(uncovered()).toEqual([])
   await Promise.all([asHr?.dispose(), asManager?.dispose(), asEmployee?.dispose()])
   await closeDb()
 })
@@ -408,4 +406,11 @@ test.describe('PUT /api/hr/users/{id}/manager', () => {
     const after = await db().query('SELECT manager_id FROM users WHERE id = $1', [otherEmployee.id])
     expect(after.rows[0].manager_id).toBeNull()
   })
+})
+
+// Dernier test du fichier (les tests d'un fichier s'exécutent dans l'ordre) : chaque code documenté (hors 500) de chaque
+// opération a été exercé au moins une fois. Un filtre `-g` (live coding) ne le sélectionne pas et ne le casse donc pas ;
+// la CI lance toujours le fichier entier (voir QUESTIONS.md, réserve du relecteur sécurité).
+test('couverture du contrat : chaque code documenté est exercé', () => {
+  expect(uncovered()).toEqual([])
 })

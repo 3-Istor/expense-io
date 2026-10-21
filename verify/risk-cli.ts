@@ -3,9 +3,16 @@
 import { execFileSync } from 'node:child_process'
 import { classify, type ChangedFile } from './risk'
 
+// Sortie coupée par `| head` : arrêt propre au lieu d'une exception EPIPE (friction relevée en répétition).
+process.stdout.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EPIPE') process.exit(0)
+  throw error
+})
+
 const args = process.argv.slice(2)
 const baseIndex = args.indexOf('--base')
-const base = baseIndex >= 0 ? args[baseIndex + 1] : 'origin/main'
+// Base : --base, sinon RISK_BASE (branche de départ d'un travail empilé, ex. phase-5/qualite), sinon origin/main.
+const base = baseIndex >= 0 ? args[baseIndex + 1] : process.env.RISK_BASE || 'origin/main'
 const git = (...a: string[]) => execFileSync('git', a, { encoding: 'utf8' })
 
 // Fusion des changements commités depuis la base et des changements locaux non commités.

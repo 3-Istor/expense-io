@@ -213,3 +213,13 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
   `make sonar`, `sonar-project.properties`, `docs/sonar.md`. Couverture lcov par `npm run test:coverage`
   (22,6 % des lignes par les tests Vitest ; les 69 tests d'API passent par HTTP et ne sont pas comptés).
 - Non exécuté dans la session cloud (Docker Hub et téléchargements SonarSource bloqués) : à lancer sur une machine.
+
+## 2026-10-21 — Phase 5 (branche `phase-5/qualite`) et constats Sonar
+
+- 6 constats SonarQube corrigés (dont l'expression régulière ReDoS), à confirmer par `make sonar`.
+- 5.1 `verify/risk.ts` et S8 ; 5.2 skills `add-feature`, `triage-finding`, `write-adr` ; 5.3 hooks (commit refusé si la
+  moulinette est rouge, vérifié ; niveau de risque en fin de tour) ; 5.4 relecteurs `security-reviewer` et
+  `architecture-reviewer` ; 5.5 `docs/workflow.md` ; 5.6 trois répétitions (`docs/rehearsals.md`).
+- Répétitions : 8 min, 4 min et < 1 min d'agent ; le relecteur a trouvé deux vrais bugs de sécurité ; six frictions du
+  harnais relevées et corrigées.
+- Question ajoutée : couverture du contrat en dernier test (réserve du relecteur).

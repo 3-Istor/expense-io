@@ -25,9 +25,12 @@ describe('niveau de risque (AGENTS.md)', () => {
   it('3 : authentification, isolation, accès, RLS, secrets, CI, moulinette, harnais', () => {
     for (const p of ['src/lib/auth.ts', 'src/lib/db.ts', 'src/modules/identity/session.ts', '.github/workflows/ci.yml',
       'verify/config.json', '.semgrep/expense-io.yml', '.claude/settings.json', 'AGENTS.md', '.env.example',
-      'src/modules/expense-notes/infrastructure/pg-expense-note-repository.ts']) {
+      'src/modules/expense-notes/domain/approvers.ts']) {
       expect(level(m(p)), p).toBe(3)
     }
+    const repo = 'src/modules/expense-notes/infrastructure/pg-expense-note-repository.ts'
+    expect(level(m(repo, ['  hr: `SELECT … WHERE ${SCOPE.hr}`,']))).toBe(3) // périmètre touché
+    expect(level(m(repo, ['        [caller.userId, note.category],']))).toBe(1) // simple colonne
     expect(level(m('migrations/1700000000005_x.sql', ['CREATE POLICY p ON expense_notes USING (true);']))).toBe(3)
   })
   it('3 : un test supprimé ou affaibli', () => {

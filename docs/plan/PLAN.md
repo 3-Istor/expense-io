@@ -86,7 +86,7 @@ l'agent de se tromper sans le voir.
 - [x] 5.3 Hooks (`.claude/settings.json`) : pas de commit si la moulinette `pr` est rouge ; résumé de risque en fin de tour.
 - [x] 5.4 Relecteurs en contexte neuf (`.claude/agents/`) : sécurité et architecture, lecture seule.
 - [x] 5.5 Carte du workflow (`docs/workflow.md`, schéma pour la soutenance).
-- [ ] 5.6 Trois répétitions chronométrées sur des branches jetables (validation finance, export CSV, plafond par
+- [x] 5.6 Trois répétitions chronométrées sur des branches jetables (validation finance, export CSV, plafond par
       catégorie) ; temps, points de friction et correctifs du harnais dans `docs/rehearsals.md`.
 
 ## Phase 6 — Soutenance (équipe, agent en appui)
