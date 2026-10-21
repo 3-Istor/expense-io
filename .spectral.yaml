@@ -1,0 +1,43 @@
+# Règles maison sur le contrat (contrôle S5, en avertissement tant que la phase 3 n'est pas faite).
+# Chaque règle porte sa raison dans `description` : c'est ce que l'agent lit quand elle se déclenche.
+extends: [[spectral:oas, recommended]]
+rules:
+  expense-erreurs-4xx-format-commun:
+    description: Toute réponse 4xx décrit un corps JSON (format d'erreur unique, RFC 9457 visé en phase 2).
+    severity: warn
+    given: $.paths[*][*].responses[?(@property.match(/^4/))]
+    then:
+      field: content.application/json
+      function: truthy
+  expense-pas-de-stacktrace:
+    description: Une réponse d'erreur ne doit pas exposer de stacktrace (CWE-209, faille SEC-07).
+    severity: warn
+    given: $.components.schemas[*].properties
+    then:
+      field: stack
+      function: falsy
+  expense-proprietes-camelcase:
+    description: Les champs JSON du contrat sont en camelCase.
+    severity: warn
+    given: $.components.schemas[*].properties
+    then:
+      field: '@key'
+      function: casing
+      functionOptions: { type: camel }
+  expense-objets-fermes:
+    description: Les schémas de réponse sont fermés (additionalProperties false) pour détecter tout champ ajouté par erreur.
+    severity: warn
+    given: $.components.schemas[?(@.type == 'object')]
+    then:
+      field: additionalProperties
+      function: defined
+  expense-routes-sous-api:
+    description: Toutes les routes du contrat vivent sous /api/.
+    severity: error
+    given: $.paths
+    then:
+      field: '@key'
+      function: pattern
+      functionOptions: { match: '^/api/' }
+  # Le résumé (summary) suffit pour chaque opération : la description longue n'est exigée que si elle apporte du sens.
+  operation-description: off

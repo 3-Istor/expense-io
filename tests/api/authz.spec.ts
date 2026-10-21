@@ -1,0 +1,302 @@
+// Matrice d'autorisations (tâche 1.4) : deux entreprises, et les règles métier du cours.
+// - tout le monde crée et consulte SES notes ;
+// - un manager ne décide que des notes de ses subordonnés directs ;
+// - le RH décide des notes des managers racine (sans manager) de SON entreprise, jamais des siennes ;
+// - rien ne traverse la frontière entre entreprises.
+//
+// Les scénarios qui révèlent une faille sont marqués `test.fail` avec la référence SEC-NN (= correctif n° NN du
+// document de vision). Ils décrivent le comportement ATTENDU : ils échouent aujourd'hui, et le correctif de la
+// phase 2 retire le `test.fail`. Liste et preuves : docs/audit/avant/authz.md.
+import { execFileSync } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
+import { encode } from 'next-auth/jwt'
+import { expect, request as playwrightRequest, test, type APIRequestContext } from '@playwright/test'
+import { closeDb, createCompany, createNote, createUser, db, login, type TestUser } from '../support/fixtures'
+
+interface Company {
+  hr: TestUser
+  hr2: TestUser
+  manager: TestUser // manager racine
+  manager2: TestUser // second manager racine, avec sa propre équipe
+  employee: TestUser // rattaché à manager
+  employee2: TestUser // rattaché à manager2
+  orphan: TestUser // employé sans manager
+}
+
+let A: Company, B: Company
+const as: Record<string, APIRequestContext> = {}
+
+async function makeCompany(): Promise<Company> {
+  const c = await createCompany()
+  const manager = await createUser(c, 'Manager', 'manager')
+  const manager2 = await createUser(c, 'Manager2', 'manager')
+  return {
+    hr: await createUser(c, 'Rh', 'hr_admin'),
+    hr2: await createUser(c, 'Rh2', 'hr_admin'),
+    manager,
+    manager2,
+    employee: await createUser(c, 'Employe', 'employee', manager.id),
+    employee2: await createUser(c, 'Employe2', 'employee', manager2.id),
+    orphan: await createUser(c, 'Orphelin', 'employee'),
+  }
+}
+
+test.beforeAll(async ({ baseURL }) => {
+  A = await makeCompany()
+  B = await makeCompany()
+  for (const [key, user] of Object.entries({
+    hrA: A.hr,
+    hr2A: A.hr2,
+    managerA: A.manager,
+    employeeA: A.employee,
+    orphanA: A.orphan,
+    hrB: B.hr,
+    managerB: B.manager,
+  })) {
+    as[key] = await login(baseURL!, user)
+  }
+})
+
+test.afterAll(async () => {
+  await Promise.all(Object.values(as).map((ctx) => ctx.dispose()))
+  await closeDb()
+})
+
+const ids = async (res: { json(): Promise<unknown> }) => ((await res.json()) as { id: string }[]).map((n) => n.id)
+
+// ---------------------------------------------------------------- Règles respectées aujourd'hui (garde-fous)
+
+test('T01 tout le monde peut créer une note (employé, employé sans manager, manager, RH)', async () => {
+  const PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+    'base64',
+  )
+  for (const who of ['employeeA', 'orphanA', 'managerA', 'hrA']) {
+    const res = await as[who].post('/api/expense-notes', {
+      multipart: {
+        amount: '10',
+        expenseDate: '2026-10-01',
+        description: `T01 ${who}`,
+        receipt: { name: 'r.png', mimeType: 'image/png', buffer: PNG },
+      },
+    })
+    expect(res.status(), who).toBe(201)
+  }
+})
+
+test('T02 on ne voit et ne lit que ses propres notes, y compris entre entreprises', async () => {
+  const mine = await createNote(A.employee.id)
+  const colleague = await createNote(A.employee2.id)
+  const otherCompany = await createNote(B.employee.id)
+  const list = await ids(await as.employeeA.get('/api/expense-notes'))
+  expect(list).toContain(mine)
+  expect(list).not.toContain(colleague)
+  expect(list).not.toContain(otherCompany)
+  for (const id of [colleague, otherCompany]) {
+    expect((await as.employeeA.get(`/api/expense-notes/${id}/receipt-url`)).status()).toBe(404)
+  }
+})
+
+test('T03 un manager ne voit que les notes en attente de SES subordonnés', async () => {
+  const team = await createNote(A.employee.id)
+  const otherTeam = await createNote(A.employee2.id)
+  const orphan = await createNote(A.orphan.id)
+  const otherCompany = await createNote(B.employee.id)
+  const list = await ids(await as.managerA.get('/api/manager/expense-notes'))
+  expect(list).toContain(team)
+  for (const id of [otherTeam, orphan, otherCompany]) expect(list).not.toContain(id)
+})
+
+test('T04 un manager décide des notes de ses subordonnés', async () => {
+  const id = await createNote(A.employee.id)
+  expect((await as.managerA.post(`/api/manager/expense-notes/${id}/approve`)).status()).toBe(200)
+})
+
+test('T05 un manager ne décide pas des notes hors de son équipe (même entreprise)', async () => {
+  for (const owner of [A.employee2, A.orphan, A.manager2, A.hr]) {
+    const id = await createNote(owner.id)
+    for (const action of ['approve', 'reject']) {
+      const res = await as.managerA.post(`/api/manager/expense-notes/${id}/${action}`)
+      expect(res.status(), `${action} note de ${owner.name}`).toBe(404)
+    }
+  }
+})
+
+test('T06 un manager ne décide pas des notes d\'une autre entreprise', async () => {
+  const id = await createNote(B.employee.id)
+  expect((await as.managerA.post(`/api/manager/expense-notes/${id}/approve`)).status()).toBe(404)
+})
+
+test('T07 personne ne valide sa propre note (manager, RH)', async () => {
+  const managerNote = await createNote(A.manager.id)
+  expect((await as.managerA.post(`/api/manager/expense-notes/${managerNote}/approve`)).status()).toBe(404)
+  const hrNote = await createNote(A.hr.id)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${hrNote}/approve`)).status()).toBe(404)
+  // Le RH ne valide pas non plus la note d'un autre RH : seules les notes des managers racine lui reviennent.
+  const hr2Note = await createNote(A.hr2.id)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${hr2Note}/approve`)).status()).toBe(404)
+})
+
+test('T08 la note d\'un employé sans manager n\'est proposée à personne (comportement actuel, voir QUESTIONS.md)', async () => {
+  const id = await createNote(A.orphan.id)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).not.toContain(id)
+  expect(await ids(await as.managerA.get('/api/manager/expense-notes'))).not.toContain(id)
+})
+
+test('T09 le RH voit et décide des notes des managers racine de son entreprise', async () => {
+  const id = await createNote(A.manager2.id)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).toContain(id)
+  expect((await as.hrA.get(`/api/hr/expense-notes/${id}/receipt-url`)).status()).toBe(200)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${id}/reject`)).status()).toBe(200)
+})
+
+test('T10 le RH ne voit rien d\'une autre entreprise', async () => {
+  const id = await createNote(B.manager.id)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).not.toContain(id)
+  expect((await as.hrA.get(`/api/hr/expense-notes/${id}/receipt-url`)).status()).toBe(404)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${id}/approve`)).status()).toBe(404)
+  const users = (await (await as.hrA.get('/api/hr/users')).json()) as { id: string }[]
+  expect(users.map((u) => u.id)).not.toContain(B.employee.id)
+  const res = await as.hrA.put(`/api/hr/users/${B.employee.id}/manager`, { data: { managerId: null } })
+  expect(res.status()).toBe(404)
+})
+
+// ---------------------------------------------------------------- Failles connues (échecs attendus)
+
+test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équipe', async () => {
+  knownFlaw('SEC-03', 'la route signe l\'URL de n\'importe quelle note, sans vérifier le rattachement ni l\'entreprise')
+  for (const owner of [A.employee2, B.employee]) {
+    const id = await createNote(owner.id)
+    const res = await as.managerA.get(`/api/manager/expense-notes/${id}/receipt-url`)
+    expect(res.status(), `reçu de ${owner.email}`).toBe(404)
+  }
+})
+
+test('T12 [SEC-04] le RH ne rattache pas un employé à un manager d\'une autre entreprise', async () => {
+  knownFlaw('SEC-04', 'seul le rôle du manager choisi est vérifié, pas son entreprise')
+  const employee = await createUser({ id: await companyOf(A.hr), domain: domainOf(A.hr) }, `T12-${short()}`, 'employee')
+  const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, { data: { managerId: B.manager.id } })
+  expect(res.status()).toBe(409)
+})
+
+test('T12b [SEC-14] le RH ne crée pas de cycle de managers', async () => {
+  knownFlaw('SEC-14', 'aucun contrôle de cycle (A manage B, B manage A)')
+  const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
+  const m1 = await createUser(c, `T12b1-${short()}`, 'manager')
+  const m2 = await createUser(c, `T12b2-${short()}`, 'manager', m1.id)
+  const res = await as.hrA.put(`/api/hr/users/${m1.id}/manager`, { data: { managerId: m2.id } })
+  expect(res.status()).toBe(409)
+})
+
+test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le manager', async () => {
+  knownFlaw('SEC-09', 'un corps illisible est lu comme { managerId: null } et détache le manager')
+  const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
+  const employee = await createUser(c, `T13-${short()}`, 'employee', A.manager.id)
+  const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, {
+    headers: { 'content-type': 'application/json' },
+    data: '{ pas du json',
+  })
+  const after = await db().query('SELECT manager_id FROM users WHERE id = $1', [employee.id])
+  expect(after.rows[0].manager_id, 'le rattachement doit être intact').toBe(A.manager.id)
+  expect(res.status()).toBe(400)
+})
+
+test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris', async () => {
+  knownFlaw('SEC-01', 'sort est concaténé dans la requête SQL (CWE-89)')
+  // Tri booléen : la réponse dépend d'une sous-requête arbitraire, donc d'une donnée qu'on ne devrait pas lire.
+  const injected = "(CASE WHEN (SELECT count(*) FROM users) > 0 THEN amount ELSE 0 END)"
+  const res = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent(injected)}`)
+  expect(res.status()).toBe(400)
+})
+
+test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
+  knownFlaw('SEC-07', 'respondError renvoie { error: message SQL, stack }')
+  // Un identifiant qui n'est pas un UUID fait lever une erreur PostgreSQL, rattrapée par respondError.
+  const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
+  expect(res.status()).toBe(500)
+  const body = await res.json()
+  expect(body).not.toHaveProperty('stack')
+  expect(JSON.stringify(body)).not.toContain('invalid input syntax')
+})
+
+test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux requêtes simultanées', async () => {
+  knownFlaw('SEC-08', 'lecture puis écriture sans verrou ni condition sur le statut (concurrence)')
+  // 100 paires approve/reject simultanées : sans décision atomique, au moins une paire renvoie deux 200.
+  const notes = await Promise.all(Array.from({ length: 100 }, () => createNote(A.employee.id)))
+  const results = await Promise.all(
+    notes.map(async (id) => {
+      const [approve, reject] = await Promise.all([
+        as.managerA.post(`/api/manager/expense-notes/${id}/approve`),
+        as.managerA.post(`/api/manager/expense-notes/${id}/reject`),
+      ])
+      return [approve.status(), reject.status()].filter((s) => s === 200).length
+    }),
+  )
+  expect(results.every((successes) => successes === 1)).toBe(true)
+})
+
+test('T16 [SEC-05] l\'app ne se connecte pas avec un rôle qui ignore la RLS', async () => {
+  knownFlaw('SEC-05', 'le rôle de l\'app est superutilisateur, la RLS (même FORCE) ne s\'applique pas')
+  const res = await db().query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user')
+  expect(res.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
+})
+
+test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', async () => {
+  knownFlaw('SEC-05', 'les politiques RH ne comparent pas l\'entreprise du RH à celle de l\'auteur')
+  const res = await db().query(
+    "SELECT policyname, coalesce(qual, '') || coalesce(with_check, '') AS rule FROM pg_policies WHERE tablename = 'expense_notes'",
+  )
+  const withoutCompany = res.rows.filter((p) => !p.rule.includes('company_id')).map((p) => p.policyname)
+  expect(withoutCompany).toEqual([])
+})
+
+test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({
+  baseURL,
+}) => {
+  knownFlaw('SEC-10', 'le rôle vient du JWT (photo prise à la connexion), jamais relu en base')
+  const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
+  const demoted = await createUser(c, `T18-${short()}`, 'manager')
+  const ctx = await login(baseURL!, demoted)
+  await db().query("UPDATE users SET role = 'employee' WHERE id = $1", [demoted.id])
+  const res = await ctx.get('/api/manager/expense-notes')
+  await ctx.dispose()
+  expect(res.status()).toBe(401)
+})
+
+test('T18b [SEC-02] un jeton signé avec le secret publié dans le dépôt est refusé', async ({ baseURL }) => {
+  knownFlaw('SEC-02', 'AUTH_SECRET est en dur dans src/lib/auth.ts, donc public : on forge une session RH')
+  // Le secret est lu dans l'historique Git (commit d'origine), pas recopié ici : après le correctif, l'app doit
+  // refuser tout jeton signé avec ce secret, qui reste public pour toujours.
+  const source = execFileSync('git', ['show', '265924b:src/lib/auth.ts'], { encoding: 'utf8' })
+  const leaked = /AUTH_SECRET = '([^']+)'/.exec(source)![1]
+  const cookieName = 'authjs.session-token'
+  const token = await encode({ secret: leaked, salt: cookieName, token: { id: B.hr.id, role: 'hr_admin' } })
+  const ctx = await playwrightRequest.newContext({
+    baseURL,
+    extraHTTPHeaders: { cookie: `${cookieName}=${token}` },
+  })
+  const res = await ctx.get('/api/hr/users')
+  await ctx.dispose()
+  expect(res.status()).toBe(403)
+})
+
+// ---------------------------------------------------------------- Outils
+
+/**
+ * Marque le test en « échec attendu » à cause d'une faille référencée. Avec AUTHZ_SHOW_FLAWS=1, le marquage est
+ * levé : la sortie montre alors l'échec réel de chaque scénario, pour vérifier qu'il échoue pour la bonne raison.
+ */
+function knownFlaw(ref: string, reason: string): void {
+  test.info().annotations.push({ type: 'faille', description: `${ref} : ${reason}` })
+  test.fail(process.env.AUTHZ_SHOW_FLAWS !== '1', `${ref} : ${reason}`)
+}
+
+function short(): string {
+  return randomUUID().slice(0, 6)
+}
+function domainOf(user: TestUser): string {
+  return user.email.split('@')[1]
+}
+async function companyOf(user: TestUser): Promise<string> {
+  return (await db().query('SELECT company_id FROM users WHERE id = $1', [user.id])).rows[0].company_id
+}

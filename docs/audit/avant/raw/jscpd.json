@@ -1,0 +1,1235 @@
+{
+  "duplicates": [
+    {
+      "firstFile": {
+        "end": 9,
+        "endLoc": {
+          "column": 22,
+          "line": 9,
+          "position": 325
+        },
+        "name": "app/api/expense-notes/[id]/receipt-url/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { auth } from '@/lib/auth'\nimport { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\nimport { getReceiptUrl } from '@/lib/storage'\n\nexport async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user) {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 9,
+        "endLoc": {
+          "column": 22,
+          "line": 9,
+          "position": 325
+        },
+        "name": "app/api/hr/expense-notes/[id]/receipt-url/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 66
+    },
+    {
+      "firstFile": {
+        "end": 9,
+        "endLoc": {
+          "column": 22,
+          "line": 9,
+          "position": 325
+        },
+        "name": "app/api/expense-notes/[id]/receipt-url/route.ts",
+        "start": 2,
+        "startLoc": {
+          "column": 23,
+          "line": 2,
+          "position": 57
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\nimport { getReceiptUrl } from '@/lib/storage'\n\nexport async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user) {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 9,
+        "endLoc": {
+          "column": 22,
+          "line": 9,
+          "position": 319
+        },
+        "name": "app/api/manager/expense-notes/[id]/receipt-url/route.ts",
+        "start": 2,
+        "startLoc": {
+          "column": 17,
+          "line": 2,
+          "position": 51
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 30,
+        "endLoc": {
+          "column": 1,
+          "line": 30,
+          "position": 943
+        },
+        "name": "app/api/expense-notes/[id]/receipt-url/route.ts",
+        "start": 16,
+        "startLoc": {
+          "column": 78,
+          "line": 16,
+          "position": 632
+        }
+      },
+      "format": "typescript",
+      "fragment": "        'SELECT receipt_key FROM expense_notes WHERE id = $1 AND user_id = $2',\n        [id, session.user.id]\n      )\n      return result.rows[0]\n    })\n    if (!note) {\n      return Response.json({ error: 'Not found' }, { status: 404 })\n    }\n\n    const url = await getReceiptUrl(note.receipt_key)\n    return Response.json({ url })\n  } catch (error) {\n    return respondError(error)\n  }\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 15,
+      "secondFile": {
+        "end": 33,
+        "endLoc": {
+          "column": 1,
+          "line": 33,
+          "position": 1146
+        },
+        "name": "app/api/hr/expense-notes/[id]/receipt-url/route.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 75,
+          "line": 19,
+          "position": 835
+        }
+      },
+      "tokens": 76
+    },
+    {
+      "firstFile": {
+        "end": 30,
+        "endLoc": {
+          "column": 1,
+          "line": 30,
+          "position": 943
+        },
+        "name": "app/api/expense-notes/[id]/receipt-url/route.ts",
+        "start": 21,
+        "startLoc": {
+          "column": 4,
+          "line": 21,
+          "position": 711
+        }
+      },
+      "format": "typescript",
+      "fragment": "    if (!note) {\n      return Response.json({ error: 'Not found' }, { status: 404 })\n    }\n\n    const url = await getReceiptUrl(note.receipt_key)\n    return Response.json({ url })\n  } catch (error) {\n    return respondError(error)\n  }\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 28,
+        "endLoc": {
+          "column": 1,
+          "line": 28,
+          "position": 1017
+        },
+        "name": "app/api/manager/expense-notes/[id]/receipt-url/route.ts",
+        "start": 19,
+        "startLoc": {
+          "column": 4,
+          "line": 19,
+          "position": 785
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 13,
+        "endLoc": {
+          "column": 9,
+          "line": 13,
+          "position": 368
+        },
+        "name": "app/api/expense-notes/receipt-suggestion/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 43,
+          "line": 5,
+          "position": 164
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(request: Request) {\n  try {\n    const session = await auth()\n    if (!session?.user) {\n      return Response.json({ error: 'Unauthorized' }, { status: 401 })\n    }\n\n    const formData = await request.formData()\n    const receipt = formData.get('receipt')",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 64,
+        "endLoc": {
+          "column": 9,
+          "line": 64,
+          "position": 2028
+        },
+        "name": "app/api/expense-notes/route.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 47,
+          "line": 56,
+          "position": 1824
+        }
+      },
+      "tokens": 47
+    },
+    {
+      "firstFile": {
+        "end": 31,
+        "endLoc": {
+          "column": 26,
+          "line": 31,
+          "position": 941
+        },
+        "name": "app/api/expense-notes/route.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 0,
+          "line": 18,
+          "position": 557
+        }
+      },
+      "format": "typescript",
+      "fragment": "function toExpenseNote(row: Record<string, unknown>) {\n  return {\n    id: row.id,\n    userId: row.user_id,\n    amount: Number.parseFloat(row.amount as string),\n    expenseDate: row.expense_date,\n    description: row.description,\n    receiptKey: row.receipt_key,\n    status: row.status,\n    createdAt: new Date(row.created_at as string).toISOString(),\n  }\n}\n\nexport async function GET(request: NextRequest) {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 14,
+      "secondFile": {
+        "end": 18,
+        "endLoc": {
+          "column": 26,
+          "line": 18,
+          "position": 504
+        },
+        "name": "app/api/hr/expense-notes/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 0,
+          "line": 5,
+          "position": 120
+        }
+      },
+      "tokens": 87
+    },
+    {
+      "firstFile": {
+        "end": 38,
+        "endLoc": {
+          "column": 9,
+          "line": 38,
+          "position": 1119
+        },
+        "name": "app/api/expense-notes/route.ts",
+        "start": 31,
+        "startLoc": {
+          "column": 25,
+          "line": 31,
+          "position": 940
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function GET(request: NextRequest) {\n  try {\n    const session = await auth()\n    if (!session?.user) {\n      return Response.json({ error: 'Unauthorized' }, { status: 401 })\n    }\n\n    const url = new URL(request.url)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 63,
+        "endLoc": {
+          "column": 9,
+          "line": 63,
+          "position": 1982
+        },
+        "name": "app/api/expense-notes/route.ts",
+        "start": 56,
+        "startLoc": {
+          "column": 26,
+          "line": 56,
+          "position": 1803
+        }
+      },
+      "tokens": 42
+    },
+    {
+      "firstFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 41,
+          "line": 29,
+          "position": 1105
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { auth } from '@/lib/auth'\nimport { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\n\nexport async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }\n    const { id } = await params\n\n    return withUserScope(session.user.id, async (client) => {\n      const existing = await client.query(\n        `SELECT en.* FROM expense_notes en\n         JOIN users u ON u.id = en.user_id\n         WHERE en.id = $1 AND u.role = 'manager' AND u.manager_id IS NULL\n           AND u.company_id = (SELECT company_id FROM users WHERE id = $2)`,\n        [id, session.user.id]\n      )\n      const row = existing.rows[0]\n      if (!row) {\n        return Response.json({ error: 'Not found' }, { status: 404 })\n      }\n      if (row.status !== 'pending') {\n        return Response.json({ error: 'Already decided' }, { status: 409 })\n      }\n\n      const updated = await client.query(",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 29,
+      "secondFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 41,
+          "line": 29,
+          "position": 1105
+        },
+        "name": "app/api/hr/expense-notes/[id]/reject/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 198
+    },
+    {
+      "firstFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 305
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { auth } from '@/lib/auth'\nimport { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\n\nexport async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 305
+        },
+        "name": "app/api/manager/expense-notes/[id]/approve/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 305
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { auth } from '@/lib/auth'\nimport { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\n\nexport async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 8,
+        "endLoc": {
+          "column": 47,
+          "line": 8,
+          "position": 305
+        },
+        "name": "app/api/manager/expense-notes/[id]/reject/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 11,
+        "endLoc": {
+          "column": 31,
+          "line": 11,
+          "position": 428
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 26,
+          "line": 5,
+          "position": 146
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }\n    const { id } = await params",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 31,
+          "line": 12,
+          "position": 473
+        },
+        "name": "app/api/hr/expense-notes/[id]/receipt-url/route.ts",
+        "start": 6,
+        "startLoc": {
+          "column": 25,
+          "line": 6,
+          "position": 191
+        }
+      },
+      "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 10,
+        "endLoc": {
+          "column": 5,
+          "line": 10,
+          "position": 396
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 93,
+          "line": 5,
+          "position": 213
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 23,
+        "endLoc": {
+          "column": 5,
+          "line": 23,
+          "position": 687
+        },
+        "name": "app/api/hr/expense-notes/route.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 26,
+          "line": 18,
+          "position": 504
+        }
+      },
+      "tokens": 45
+    },
+    {
+      "firstFile": {
+        "end": 11,
+        "endLoc": {
+          "column": 31,
+          "line": 11,
+          "position": 428
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 35,
+          "line": 5,
+          "position": 155
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }\n    const { id } = await params",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 11,
+        "endLoc": {
+          "column": 31,
+          "line": 11,
+          "position": 420
+        },
+        "name": "app/api/hr/users/[id]/manager/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 33,
+          "line": 5,
+          "position": 147
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 1,
+          "line": 48,
+          "position": 1650
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 75,
+          "line": 18,
+          "position": 770
+        }
+      },
+      "format": "typescript",
+      "fragment": "           AND u.company_id = (SELECT company_id FROM users WHERE id = $2)`,\n        [id, session.user.id]\n      )\n      const row = existing.rows[0]\n      if (!row) {\n        return Response.json({ error: 'Not found' }, { status: 404 })\n      }\n      if (row.status !== 'pending') {\n        return Response.json({ error: 'Already decided' }, { status: 409 })\n      }\n\n      const updated = await client.query(\n        `UPDATE expense_notes SET status = 'approved' WHERE id = $1 RETURNING *`,\n        [id]\n      )\n      const note = updated.rows[0]\n      return Response.json({\n        id: note.id,\n        userId: note.user_id,\n        amount: Number.parseFloat(note.amount),\n        expenseDate: note.expense_date,\n        description: note.description,\n        receiptKey: note.receipt_key,\n        status: note.status,\n        createdAt: new Date(note.created_at).toISOString(),\n      })\n    })\n  } catch (error) {\n    return respondError(error)\n  }\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 31,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 1,
+          "line": 47,
+          "position": 1548
+        },
+        "name": "app/api/manager/expense-notes/[id]/approve/route.ts",
+        "start": 17,
+        "startLoc": {
+          "column": 48,
+          "line": 17,
+          "position": 668
+        }
+      },
+      "tokens": 178
+    },
+    {
+      "firstFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 1,
+          "line": 48,
+          "position": 1650
+        },
+        "name": "app/api/hr/expense-notes/[id]/approve/route.ts",
+        "start": 30,
+        "startLoc": {
+          "column": 80,
+          "line": 30,
+          "position": 1186
+        }
+      },
+      "format": "typescript",
+      "fragment": "        `UPDATE expense_notes SET status = 'approved' WHERE id = $1 RETURNING *`,\n        [id]\n      )\n      const note = updated.rows[0]\n      return Response.json({\n        id: note.id,\n        userId: note.user_id,\n        amount: Number.parseFloat(note.amount),\n        expenseDate: note.expense_date,\n        description: note.description,\n        receiptKey: note.receipt_key,\n        status: note.status,\n        createdAt: new Date(note.created_at).toISOString(),\n      })\n    })\n  } catch (error) {\n    return respondError(error)\n  }\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 19,
+      "secondFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 1,
+          "line": 48,
+          "position": 1650
+        },
+        "name": "app/api/hr/expense-notes/[id]/reject/route.ts",
+        "start": 30,
+        "startLoc": {
+          "column": 80,
+          "line": 30,
+          "position": 1186
+        }
+      },
+      "tokens": 98
+    },
+    {
+      "firstFile": {
+        "end": 14,
+        "endLoc": {
+          "column": 9,
+          "line": 14,
+          "position": 484
+        },
+        "name": "app/api/hr/expense-notes/[id]/receipt-url/route.ts",
+        "start": 9,
+        "startLoc": {
+          "column": 8,
+          "line": 9,
+          "position": 311
+        }
+      },
+      "format": "typescript",
+      "fragment": "    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }\n    const { id } = await params\n\n    const note = await withUserScope(session.user.id, async (client) => {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 9,
+          "line": 12,
+          "position": 430
+        },
+        "name": "app/api/hr/users/[id]/manager/route.ts",
+        "start": 8,
+        "startLoc": {
+          "column": 8,
+          "line": 8,
+          "position": 258
+        }
+      },
+      "tokens": 40
+    },
+    {
+      "firstFile": {
+        "end": 48,
+        "endLoc": {
+          "column": 1,
+          "line": 48,
+          "position": 1650
+        },
+        "name": "app/api/hr/expense-notes/[id]/reject/route.ts",
+        "start": 23,
+        "startLoc": {
+          "column": 63,
+          "line": 23,
+          "position": 926
+        }
+      },
+      "format": "typescript",
+      "fragment": "        return Response.json({ error: 'Not found' }, { status: 404 })\n      }\n      if (row.status !== 'pending') {\n        return Response.json({ error: 'Already decided' }, { status: 409 })\n      }\n\n      const updated = await client.query(\n        `UPDATE expense_notes SET status = 'rejected' WHERE id = $1 RETURNING *`,\n        [id]\n      )\n      const note = updated.rows[0]\n      return Response.json({\n        id: note.id,\n        userId: note.user_id,\n        amount: Number.parseFloat(note.amount),\n        expenseDate: note.expense_date,\n        description: note.description,\n        receiptKey: note.receipt_key,\n        status: note.status,\n        createdAt: new Date(note.created_at).toISOString(),\n      })\n    })\n  } catch (error) {\n    return respondError(error)\n  }\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 26,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 1,
+          "line": 47,
+          "position": 1548
+        },
+        "name": "app/api/manager/expense-notes/[id]/reject/route.ts",
+        "start": 22,
+        "startLoc": {
+          "column": 63,
+          "line": 22,
+          "position": 824
+        }
+      },
+      "tokens": 138
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 47,
+          "line": 21,
+          "position": 596
+        },
+        "name": "app/api/hr/expense-notes/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "format": "typescript",
+      "fragment": "import { auth } from '@/lib/auth'\nimport { withUserScope } from '@/lib/db'\nimport { respondError } from '@/lib/errors'\n\nfunction toExpenseNote(row: Record<string, unknown>) {\n  return {\n    id: row.id,\n    userId: row.user_id,\n    amount: Number.parseFloat(row.amount as string),\n    expenseDate: row.expense_date,\n    description: row.description,\n    receiptKey: row.receipt_key,\n    status: row.status,\n    createdAt: new Date(row.created_at as string).toISOString(),\n  }\n}\n\nexport async function GET() {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 21,
+      "secondFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 47,
+          "line": 21,
+          "position": 596
+        },
+        "name": "app/api/manager/expense-notes/route.ts",
+        "start": 1,
+        "startLoc": {
+          "column": 0,
+          "line": 1,
+          "position": 0
+        }
+      },
+      "tokens": 129
+    },
+    {
+      "firstFile": {
+        "end": 23,
+        "endLoc": {
+          "column": 5,
+          "line": 23,
+          "position": 687
+        },
+        "name": "app/api/hr/expense-notes/route.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 0,
+          "line": 18,
+          "position": 478
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function GET() {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'hr_admin') {\n      return Response.json({ error: 'Unauthorized' }, { status: 403 })\n    }",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 10,
+        "endLoc": {
+          "column": 5,
+          "line": 10,
+          "position": 323
+        },
+        "name": "app/api/hr/users/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 0,
+          "line": 5,
+          "position": 114
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 11,
+        "endLoc": {
+          "column": 31,
+          "line": 11,
+          "position": 427
+        },
+        "name": "app/api/manager/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 48,
+          "line": 5,
+          "position": 168
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'manager') {\n      return Response.json({ error: 'Unauthorized' }, { status: 401 })\n    }\n    const { id } = await params",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 7,
+      "secondFile": {
+        "end": 12,
+        "endLoc": {
+          "column": 31,
+          "line": 12,
+          "position": 466
+        },
+        "name": "app/api/manager/expense-notes/[id]/receipt-url/route.ts",
+        "start": 6,
+        "startLoc": {
+          "column": 47,
+          "line": 6,
+          "position": 207
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 28,
+        "endLoc": {
+          "column": 41,
+          "line": 28,
+          "position": 1003
+        },
+        "name": "app/api/manager/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 48,
+          "line": 5,
+          "position": 168
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'manager') {\n      return Response.json({ error: 'Unauthorized' }, { status: 401 })\n    }\n    const { id } = await params\n\n    return withUserScope(session.user.id, async (client) => {\n      const existing = await client.query(\n        `SELECT en.* FROM expense_notes en\n         JOIN users u ON u.id = en.user_id\n         WHERE en.id = $1 AND u.manager_id = $2`,\n        [id, session.user.id]\n      )\n      const row = existing.rows[0]\n      if (!row) {\n        return Response.json({ error: 'Not found' }, { status: 404 })\n      }\n      if (row.status !== 'pending') {\n        return Response.json({ error: 'Already decided' }, { status: 409 })\n      }\n\n      const updated = await client.query(",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 24,
+      "secondFile": {
+        "end": 28,
+        "endLoc": {
+          "column": 41,
+          "line": 28,
+          "position": 1003
+        },
+        "name": "app/api/manager/expense-notes/[id]/reject/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 48,
+          "line": 5,
+          "position": 168
+        }
+      },
+      "tokens": 170
+    },
+    {
+      "firstFile": {
+        "end": 10,
+        "endLoc": {
+          "column": 5,
+          "line": 10,
+          "position": 395
+        },
+        "name": "app/api/manager/expense-notes/[id]/approve/route.ts",
+        "start": 5,
+        "startLoc": {
+          "column": 93,
+          "line": 5,
+          "position": 213
+        }
+      },
+      "format": "typescript",
+      "fragment": "export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {\n  try {\n    const session = await auth()\n    if (!session?.user || session.user.role !== 'manager') {\n      return Response.json({ error: 'Unauthorized' }, { status: 401 })\n    }",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 6,
+      "secondFile": {
+        "end": 23,
+        "endLoc": {
+          "column": 5,
+          "line": 23,
+          "position": 686
+        },
+        "name": "app/api/manager/expense-notes/route.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 26,
+          "line": 18,
+          "position": 504
+        }
+      },
+      "tokens": 45
+    },
+    {
+      "firstFile": {
+        "end": 258,
+        "endLoc": {
+          "column": 104,
+          "line": 258,
+          "position": 9281
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 249,
+        "startLoc": {
+          "column": 15,
+          "line": 249,
+          "position": 8873
+        }
+      },
+      "format": "tsx",
+      "fragment": "      </section>\n\n      {error && (\n        <p role=\"alert\" className=\"rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300\">\n          {error}\n        </p>\n      )}\n\n      <section className=\"rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900\">\n        <h2 className=\"border-b border-gray-200 px-6 py-4 text-base font-semibold dark:border-gray-800\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 10,
+      "secondFile": {
+        "end": 90,
+        "endLoc": {
+          "column": 104,
+          "line": 90,
+          "position": 2761
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 81,
+        "startLoc": {
+          "column": 11,
+          "line": 81,
+          "position": 2353
+        }
+      },
+      "tokens": 40
+    },
+    {
+      "firstFile": {
+        "end": 284,
+        "endLoc": {
+          "column": 34,
+          "line": 284,
+          "position": 10561
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 277,
+        "startLoc": {
+          "column": 62,
+          "line": 277,
+          "position": 10218
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <th className=\"px-6 py-3 font-medium\">Statut</th>\n                  <th className=\"px-6 py-3\" />\n                </tr>\n              </thead>\n              <tbody className=\"divide-y divide-gray-100 dark:divide-gray-800\">\n                {notes.map((note) => (\n                  <tr key={note.id} className=\"hover:bg-gray-50 dark:hover:bg-gray-800/50\">\n                    <td className=\"px-6 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 8,
+      "secondFile": {
+        "end": 116,
+        "endLoc": {
+          "column": 34,
+          "line": 116,
+          "position": 4047
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 109,
+        "startLoc": {
+          "column": 74,
+          "line": 109,
+          "position": 3704
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
+        "end": 291,
+        "endLoc": {
+          "column": 34,
+          "line": 291,
+          "position": 11004
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 283,
+        "startLoc": {
+          "column": 90,
+          "line": 283,
+          "position": 10525
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <tr key={note.id} className=\"hover:bg-gray-50 dark:hover:bg-gray-800/50\">\n                    <td className=\"px-6 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400\">\n                      {dateFormatter.format(new Date(note.expenseDate))}\n                    </td>\n                    <td className=\"px-6 py-3\">{note.description}</td>\n                    <td className=\"px-6 py-3 text-right font-medium whitespace-nowrap\">\n                      {currencyFormatter.format(note.amount)}\n                    </td>\n                    <td className=\"px-6 py-3\">",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 126,
+        "endLoc": {
+          "column": 34,
+          "line": 126,
+          "position": 4665
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 118,
+        "startLoc": {
+          "column": 24,
+          "line": 118,
+          "position": 4186
+        }
+      },
+      "tokens": 72
+    },
+    {
+      "firstFile": {
+        "end": 312,
+        "endLoc": {
+          "column": 1,
+          "line": 312,
+          "position": 11652
+        },
+        "name": "app/expenses/page.tsx",
+        "start": 301,
+        "startLoc": {
+          "column": 22,
+          "line": 301,
+          "position": 11466
+        }
+      },
+      "format": "tsx",
+      "fragment": "                      </button>\n                    </td>\n                  </tr>\n                ))}\n              </tbody>\n            </table>\n          </div>\n        )}\n      </section>\n    </main>\n  )\n}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 12,
+      "secondFile": {
+        "end": 160,
+        "endLoc": {
+          "column": 1,
+          "line": 160,
+          "position": 6052
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 149,
+        "startLoc": {
+          "column": 22,
+          "line": 149,
+          "position": 5866
+        }
+      },
+      "tokens": 46
+    },
+    {
+      "firstFile": {
+        "end": 41,
+        "endLoc": {
+          "column": 27,
+          "line": 41,
+          "position": 1556
+        },
+        "name": "app/login/page.tsx",
+        "start": 27,
+        "startLoc": {
+          "column": 6,
+          "line": 27,
+          "position": 1040
+        }
+      },
+      "format": "tsx",
+      "fragment": "      >\n        <div className=\"flex flex-col gap-1.5\">\n          <label htmlFor=\"email\" className=\"text-sm font-medium\">\n            Email\n          </label>\n          <input id=\"email\" name=\"email\" type=\"email\" required className={inputClass} />\n        </div>\n        <div className=\"flex flex-col gap-1.5\">\n          <label htmlFor=\"password\" className=\"text-sm font-medium\">\n            Mot de passe\n          </label>\n          <input\n            id=\"password\"\n            name=\"password\"\n            type=\"password\"",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 15,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 27,
+          "line": 47,
+          "position": 1813
+        },
+        "name": "app/signup/page.tsx",
+        "start": 33,
+        "startLoc": {
+          "column": 13,
+          "line": 33,
+          "position": 1297
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 20,
+          "line": 58,
+          "position": 2133
+        },
+        "name": "app/login/page.tsx",
+        "start": 44,
+        "startLoc": {
+          "column": 11,
+          "line": 44,
+          "position": 1624
+        }
+      },
+      "format": "tsx",
+      "fragment": "          />\n        </div>\n\n        {state?.error && (\n          <p role=\"alert\" className=\"rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300\">\n            {state.error}\n          </p>\n        )}\n\n        <button\n          type=\"submit\"\n          disabled={pending}\n          className=\"mt-1 w-full rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60\"\n        >\n          {pending ? 'Connexion…' : 'Se connecter'}",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 15,
+      "secondFile": {
+        "end": 66,
+        "endLoc": {
+          "column": 20,
+          "line": 66,
+          "position": 2490
+        },
+        "name": "app/signup/page.tsx",
+        "start": 52,
+        "startLoc": {
+          "column": 72,
+          "line": 52,
+          "position": 1981
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 103,
+        "endLoc": {
+          "column": 21,
+          "line": 103,
+          "position": 3115
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 95,
+        "startLoc": {
+          "column": 19,
+          "line": 95,
+          "position": 2858
+        }
+      },
+      "format": "tsx",
+      "fragment": "      setNotesError('Impossible de récupérer le reçu.')\n      return\n    }\n    const { url } = await response.json()\n    window.open(url, '_blank', 'noopener,noreferrer')\n  }\n\n  async function handleDecide(id: string, decision: 'approve' | 'reject') {\n    setDecidingId(id)",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 21,
+          "line": 54,
+          "position": 1518
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 46,
+        "startLoc": {
+          "column": 14,
+          "line": 46,
+          "position": 1261
+        }
+      },
+      "tokens": 46
+    },
+    {
+      "firstFile": {
+        "end": 214,
+        "endLoc": {
+          "column": 56,
+          "line": 214,
+          "position": 7947
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 201,
+        "startLoc": {
+          "column": 22,
+          "line": 201,
+          "position": 7301
+        }
+      },
+      "format": "tsx",
+      "fragment": "        {notesLoading ? (\n          <p className=\"px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400\">\n            Chargement…\n          </p>\n        ) : notes.length === 0 ? (\n          <p className=\"px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400\">\n            Aucune note en attente.\n          </p>\n        ) : (\n          <div className=\"overflow-x-auto\">\n            <table className=\"w-full text-left text-sm\">\n              <thead>\n                <tr className=\"border-b border-gray-200 text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400\">\n                  <th className=\"px-6 py-3 font-medium\">Manager</th>",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 14,
+      "secondFile": {
+        "end": 106,
+        "endLoc": {
+          "column": 56,
+          "line": 106,
+          "position": 3477
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 93,
+        "startLoc": {
+          "column": 17,
+          "line": 93,
+          "position": 2831
+        }
+      },
+      "tokens": 67
+    },
+    {
+      "firstFile": {
+        "end": 222,
+        "endLoc": {
+          "column": 36,
+          "line": 222,
+          "position": 8387
+        },
+        "name": "components/AdminConsole.tsx",
+        "start": 214,
+        "startLoc": {
+          "column": 63,
+          "line": 214,
+          "position": 7954
+        }
+      },
+      "format": "tsx",
+      "fragment": "                  <th className=\"px-6 py-3 font-medium\">Manager</th>\n                  <th className=\"px-6 py-3 font-medium\">Date</th>\n                  <th className=\"px-6 py-3 font-medium\">Description</th>\n                  <th className=\"px-6 py-3 text-right font-medium\">Montant</th>\n                  <th className=\"px-6 py-3\" />\n                </tr>\n              </thead>\n              <tbody className=\"divide-y divide-gray-100 dark:divide-gray-800\">\n                {notes.map((note) => {",
+      "isNew": false,
+      "kind": "exact",
+      "lines": 9,
+      "secondFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 36,
+          "line": 114,
+          "position": 3918
+        },
+        "name": "components/PendingApprovalsPanel.tsx",
+        "start": 106,
+        "startLoc": {
+          "column": 64,
+          "line": 106,
+          "position": 3485
+        }
+      },
+      "tokens": 75
+    }
+  ],
+  "statistics": {
+    "detectionDate": "2026-10-20T15:16:44.152Z",
+    "formats": {
+      "css": {
+        "clones": 0,
+        "duplicatedLines": 0,
+        "duplicatedTokens": 0,
+        "lines": 18,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 0.0,
+        "percentageTokens": 0.0,
+        "sources": 1,
+        "tokens": 95
+      },
+      "tsx": {
+        "clones": 9,
+        "duplicatedLines": 101,
+        "duplicatedTokens": 540,
+        "lines": 1052,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 9.600760456273765,
+        "percentageTokens": 9.968617315857484,
+        "sources": 10,
+        "tokens": 5417
+      },
+      "typescript": {
+        "clones": 22,
+        "duplicatedLines": 284,
+        "duplicatedTokens": 1867,
+        "lines": 1143,
+        "newClones": 0,
+        "newDuplicatedLines": 0,
+        "percentage": 24.84689413823272,
+        "percentageTokens": 28.305033353547604,
+        "sources": 27,
+        "tokens": 6596
+      }
+    },
+    "total": {
+      "clones": 31,
+      "duplicatedLines": 385,
+      "duplicatedTokens": 2407,
+      "lines": 2213,
+      "newClones": 0,
+      "newDuplicatedLines": 0,
+      "percentage": 17.397198373248983,
+      "percentageTokens": 19.8794185662372,
+      "sources": 38,
+      "tokens": 12108
+    }
+  }
+}

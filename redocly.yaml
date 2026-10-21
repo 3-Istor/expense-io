@@ -1,0 +1,6 @@
+# Lint structurel de docs/openapi.yaml (contrôle S5 de la moulinette) : règles recommandées de Redocly.
+extends:
+  - recommended
+apis:
+  expense-io:
+    root: docs/openapi.yaml

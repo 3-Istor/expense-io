@@ -14,24 +14,24 @@ critère passe et que la preuve (sortie de commande) est collée dans `PROGRESS.
 
 Objectif : tout changement futur doit prouver qu'il ne casse rien. Ne modifier AUCUN comportement de l'app.
 
-- [ ] 1.1 Environnement de test : Vitest (unitaires), Playwright en mode requêtes HTTP (API), base de test via
+- [x] 1.1 Environnement de test : Vitest (unitaires), Playwright en mode requêtes HTTP (API), base de test via
       docker compose. Critère : `npm test` et `npm run test:api` passent avec un test de fumée chacun.
-- [ ] 1.2 Squelette de la moulinette `verify/` : CLI `npm run verify -- --level fast|pr|nightly`, un module par
+- [x] 1.2 Squelette de la moulinette `verify/` : CLI `npm run verify -- --level fast|pr|nightly`, un module par
       contrôle, rapport `verify-report.json` + `verify-summary.md` (≤ 20 lignes). Contrôles de départ : S1 (tsc,
       ESLint), S2 (dependency-cruiser, règles en avertissement tant que la phase 3 n'est pas faite), S3 (gitleaks),
       S4 (knip, jscpd). Critère : `npm run verify -- --level fast` produit le résumé.
-- [ ] 1.3 Tests de caractérisation du contrat : les 14 endpoints de `docs/contract.md`, statuts et formats JSON
+- [x] 1.3 Tests de caractérisation du contrat : les 14 endpoints de `docs/contract.md`, statuts et formats JSON
       actuels, y compris les codes 401/403 actuels. Critère : tous verts sur le code actuel.
-- [ ] 1.4 Matrice d'autorisations : fixtures à deux entreprises (A et B : RH, manager racine, employé rattaché,
+- [x] 1.4 Matrice d'autorisations : fixtures à deux entreprises (A et B : RH, manager racine, employé rattaché,
       employé sans manager, second RH), scénarios T01–T18 de la task A. Les scénarios qui révèlent une faille
       sont marqués `test.fail` avec la référence de la faille (ex. `SEC-03`). Critère : suite exécutée, liste des
       échecs attendus recopiée dans `docs/audit/avant/authz.md`.
-- [ ] 1.5 OpenAPI de l'existant : `docs/openapi.yaml` (OpenAPI 3.1) décrivant l'existant à l'identique ;
+- [x] 1.5 OpenAPI de l'existant : `docs/openapi.yaml` (OpenAPI 3.1) décrivant l'existant à l'identique ;
       Redocly lint ; règles Spectral maison en avertissement ; validation de chaque réponse des tests 1.3 contre
       le schéma. Critère : spec valide, toutes les réponses conformes.
-- [ ] 1.6 CI GitHub Actions : Postgres et LocalStack en services, `npm run verify -- --level pr` sur chaque PR ;
+- [x] 1.6 CI GitHub Actions : Postgres et LocalStack en services, `npm run verify -- --level pr` sur chaque PR ;
       workflow `nightly` (squelette, planifié). Critère : CI verte sur la PR de la phase 1.
-- [ ] 1.7 Audit « avant » : lancer jscpd, knip, Semgrep (règles TypeScript + règles maison), gitleaks,
+- [x] 1.7 Audit « avant » : lancer jscpd, knip, Semgrep (règles TypeScript + règles maison), gitleaks,
       OSV-Scanner ; archiver sorties, commandes et versions dans `docs/audit/avant/`. Critère : `docs/audit/avant/README.md`
       résume les chiffres avec la commande pour les reproduire.
 

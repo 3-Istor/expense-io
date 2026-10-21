@@ -1,0 +1,2 @@
+[1mDuplications detection: Found 31 exact clones with 385(17.40%) duplicated lines in 38 (3 formats) files.[22m
+[32mJSON report saved to /tmp/tmp.Vmp6O8kOAy/jscpd-report.json[39m

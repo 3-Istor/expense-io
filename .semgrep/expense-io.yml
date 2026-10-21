@@ -1,0 +1,75 @@
+# Règles Semgrep maison (contrôle de sécurité statique). Chaque règle cible une faille vue dans l'audit et dit
+# comment corriger : c'est le message que l'agent lit. Lancer : semgrep scan --config .semgrep/ src
+rules:
+  - id: sql-fragment-concatene
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Requête SQL construite par interpolation (CWE-89, SEC-01). Passer les valeurs en paramètres ($1, $2…) ;
+      pour un tri, choisir le fragment dans une liste blanche fermée.
+    metadata: { cwe: 'CWE-89', owasp-api: 'API8:2023', ref: SEC-01 }
+    pattern-either:
+      - pattern: $DB.query(`...${$X}...`, $P)
+      - pattern: $DB.query(`...${$X}...`)
+
+  - id: pool-brut-dans-une-route
+    languages: [typescript]
+    severity: WARNING
+    message: >-
+      getPool() direct dans une route métier : la requête échappe au contexte utilisateur et entreprise
+      (règle d'isolation d'AGENTS.md, SEC-05). Passer par withUserScope ou par le module métier.
+    metadata: { cwe: 'CWE-284', owasp-api: 'API1:2023', ref: SEC-05 }
+    paths: { include: ['src/app/api/**'] }
+    pattern: getPool()
+
+  - id: secret-en-dur
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Secret écrit dans le code (CWE-798, SEC-02). Le lire dans l'environnement et refuser de démarrer s'il manque ;
+      le secret déjà publié doit être considéré comme compromis.
+    metadata: { cwe: 'CWE-798', owasp-api: 'API2:2023', ref: SEC-02 }
+    patterns:
+      - pattern: const $NAME = '$VALUE'
+      - metavariable-regex: { metavariable: $NAME, regex: '(?i).*(secret|password|token|api_?key).*' }
+      - metavariable-regex: { metavariable: $VALUE, regex: '.{16,}' }
+
+  - id: stacktrace-dans-la-reponse
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      La réponse HTTP expose une stacktrace (CWE-209, SEC-07). Journaliser l'erreur côté serveur et renvoyer un
+      message générique (RFC 9457).
+    metadata: { cwe: 'CWE-209', owasp-api: 'API8:2023', ref: SEC-07 }
+    pattern-either:
+      - pattern: 'Response.json({..., stack, ...}, ...)'
+      - pattern: 'Response.json({..., stack: $S, ...}, ...)'
+
+  - id: promesse-renvoyee-sans-await-dans-try
+    languages: [typescript]
+    severity: WARNING
+    message: >-
+      `return promesse` sans `await` dans un try : un rejet échappe au catch (réponse 500 vide, erreur non
+      journalisée). Écrire `return await …`.
+    metadata: { cwe: 'CWE-755', ref: SEC-07 }
+    patterns:
+      - pattern-inside: |
+          try { ... } catch ($E) { ... }
+      - pattern: return withUserScope(...)
+
+  - id: route-sans-controle-de-session
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      Handler de route sans appel à auth() : chaque route vérifie elle-même la session et les droits
+      (AGENTS.md, OWASP API5:2023).
+    metadata: { cwe: 'CWE-862', owasp-api: 'API5:2023' }
+    paths:
+      include: ['src/app/api/**/route.ts']
+      exclude: ['src/app/api/auth/**']
+    patterns:
+      - pattern: |
+          async function $METHOD(...) { ... }
+      - metavariable-regex: { metavariable: $METHOD, regex: '^(GET|POST|PUT|PATCH|DELETE)$' }
+      - pattern-not: |
+          async function $METHOD(...) { ... await auth(); ... }
