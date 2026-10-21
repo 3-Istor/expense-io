@@ -1,8 +1,9 @@
 import path from 'node:path'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getPool, withUserScope } from '@/lib/db'
+import { withUserScope } from '@/lib/db'
 import { respondError } from '@/lib/errors'
+import { toExpenseNote } from '@/lib/expense-note-dto'
 import { receiptKeyFor, uploadReceipt } from '@/lib/storage'
 
 const ALLOWED_RECEIPT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf']
@@ -15,17 +16,24 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   'application/pdf': '.pdf',
 }
 
-function toExpenseNote(row: Record<string, unknown>) {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    amount: Number.parseFloat(row.amount as string),
-    expenseDate: row.expense_date,
-    description: row.description,
-    receiptKey: row.receipt_key,
-    status: row.status,
-    createdAt: new Date(row.created_at as string).toISOString(),
-  }
+
+// Tris autorisés (SEC-01) : `<colonne>` ou `<colonne> ASC|DESC`. Chaque requête est une constante choisie dans
+// une liste fermée ; la valeur reçue n'est jamais recopiée dans le SQL.
+const SORTABLE_COLUMNS = ['created_at', 'amount', 'expense_date', 'status', 'description'] as const
+const LIST_QUERY_BY_SORT = new Map<string, string>(
+  SORTABLE_COLUMNS.flatMap((column) =>
+    (['ASC', 'DESC'] as const).map((direction) => [
+      `${column} ${direction}`,
+      `SELECT * FROM expense_notes WHERE user_id = $1 ORDER BY ${column} ${direction}`,
+    ])
+  )
+)
+
+function listQueryFor(sort: string | null): string | undefined {
+  if (!sort) return LIST_QUERY_BY_SORT.get('created_at DESC')
+  const match = /^\s*([a-z_]+)(?:\s+(asc|desc))?\s*$/i.exec(sort)
+  if (!match) return undefined
+  return LIST_QUERY_BY_SORT.get(`${match[1].toLowerCase()} ${(match[2] ?? 'ASC').toUpperCase()}`)
 }
 
 export async function GET(request: NextRequest) {
@@ -35,17 +43,13 @@ export async function GET(request: NextRequest) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const url = new URL(request.url)
-    // Le tri est construit dynamiquement plutôt que via une valeur liée :
-    // ORDER BY n'accepte pas de paramètre positionnel pour un nom de colonne
-    // en SQL standard, donc ce fragment est concaténé directement.
-    const sort = url.searchParams.get('sort') || 'created_at DESC'
+    const query = listQueryFor(new URL(request.url).searchParams.get('sort'))
+    if (!query) {
+      return Response.json({ error: 'Tri non autorisé' }, { status: 400 })
+    }
 
-    return withUserScope(session.user.id, async (client) => {
-      const result = await client.query(
-        `SELECT * FROM expense_notes WHERE user_id = $1 ORDER BY ${sort}`,
-        [session.user.id]
-      )
+    return await withUserScope(session.user.id, async (client) => {
+      const result = await client.query(query, [session.user.id])
       return Response.json(result.rows.map(toExpenseNote))
     })
   } catch (error) {
@@ -85,27 +89,27 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Fichier trop volumineux' }, { status: 400 })
     }
 
+    // Le reçu est stocké AVANT la note (SEC-12) : si le stockage échoue, aucune note sans reçu n'est créée.
+    // La clé est connue d'avance grâce au numéro de séquence réservé (format de clé inchangé, voir SEC-13).
+    const receiptSeq = await withUserScope(session.user.id, async (client) => {
+      const reserved = await client.query("SELECT nextval('expense_notes_receipt_seq_seq') AS seq")
+      return Number(reserved.rows[0].seq)
+    })
+    const extension = EXTENSION_BY_MIME[receipt.type] ?? path.extname(receipt.name) ?? ''
+    const receiptKey = receiptKeyFor(receiptSeq, extension)
+    await uploadReceipt(receiptKey, Buffer.from(await receipt.arrayBuffer()), receipt.type)
+
     const note = await withUserScope(session.user.id, async (client) => {
       const inserted = await client.query(
-        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key, receipt_seq)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [session.user.id, amount, expenseDate, description, '']
+        [session.user.id, amount, expenseDate, description, receiptKey, receiptSeq]
       )
       return inserted.rows[0]
     })
 
-    const extension = EXTENSION_BY_MIME[receipt.type] ?? path.extname(receipt.name) ?? ''
-    const receiptKey = receiptKeyFor(note.receipt_seq, extension)
-    const buffer = Buffer.from(await receipt.arrayBuffer())
-    await uploadReceipt(receiptKey, buffer, receipt.type)
-
-    const updated = await getPool().query(
-      `UPDATE expense_notes SET receipt_key = $1 WHERE id = $2 RETURNING *`,
-      [receiptKey, note.id]
-    )
-
-    return Response.json(toExpenseNote(updated.rows[0]), { status: 201 })
+    return Response.json(toExpenseNote(note), { status: 201 })
   } catch (error) {
     return respondError(error)
   }

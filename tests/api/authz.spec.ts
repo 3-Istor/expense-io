@@ -164,7 +164,6 @@ test('T10 le RH ne voit rien d\'une autre entreprise', async () => {
 // ---------------------------------------------------------------- Failles connues (échecs attendus)
 
 test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équipe', async () => {
-  knownFlaw('SEC-03', 'la route signe l\'URL de n\'importe quelle note, sans vérifier le rattachement ni l\'entreprise')
   for (const owner of [A.employee2, B.employee]) {
     const id = await createNote(owner.id)
     const res = await as.managerA.get(`/api/manager/expense-notes/${id}/receipt-url`)
@@ -173,14 +172,12 @@ test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équip
 })
 
 test('T12 [SEC-04] le RH ne rattache pas un employé à un manager d\'une autre entreprise', async () => {
-  knownFlaw('SEC-04', 'seul le rôle du manager choisi est vérifié, pas son entreprise')
   const employee = await createUser({ id: await companyOf(A.hr), domain: domainOf(A.hr) }, `T12-${short()}`, 'employee')
   const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, { data: { managerId: B.manager.id } })
   expect(res.status()).toBe(409)
 })
 
 test('T12b [SEC-14] le RH ne crée pas de cycle de managers', async () => {
-  knownFlaw('SEC-14', 'aucun contrôle de cycle (A manage B, B manage A)')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const m1 = await createUser(c, `T12b1-${short()}`, 'manager')
   const m2 = await createUser(c, `T12b2-${short()}`, 'manager', m1.id)
@@ -189,7 +186,6 @@ test('T12b [SEC-14] le RH ne crée pas de cycle de managers', async () => {
 })
 
 test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le manager', async () => {
-  knownFlaw('SEC-09', 'un corps illisible est lu comme { managerId: null } et détache le manager')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const employee = await createUser(c, `T13-${short()}`, 'employee', A.manager.id)
   const res = await as.hrA.put(`/api/hr/users/${employee.id}/manager`, {
@@ -202,7 +198,6 @@ test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le ma
 })
 
 test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris', async () => {
-  knownFlaw('SEC-01', 'sort est concaténé dans la requête SQL (CWE-89)')
   // Tri booléen : la réponse dépend d'une sous-requête arbitraire, donc d'une donnée qu'on ne devrait pas lire.
   const injected = "(CASE WHEN (SELECT count(*) FROM users) > 0 THEN amount ELSE 0 END)"
   const res = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent(injected)}`)
@@ -210,7 +205,6 @@ test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris',
 })
 
 test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
-  knownFlaw('SEC-07', 'respondError renvoie { error: message SQL, stack }')
   // Un identifiant qui n'est pas un UUID fait lever une erreur PostgreSQL, rattrapée par respondError.
   const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
   expect(res.status()).toBe(500)
@@ -219,8 +213,16 @@ test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', 
   expect(JSON.stringify(body)).not.toContain('invalid input syntax')
 })
 
+test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 500 JSON générique', async () => {
+  // Avant : `return withUserScope(...)` sans await laissait l'erreur échapper au catch (500 au corps vide).
+  const res = await as.managerA.post('/api/manager/expense-notes/pas-un-uuid/approve')
+  expect(res.status()).toBe(500)
+  const body = await res.json()
+  expect(Object.keys(body).sort()).toEqual(['error', 'errorId'])
+  expect(body.error).toBe('Erreur interne')
+})
+
 test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux requêtes simultanées', async () => {
-  knownFlaw('SEC-08', 'lecture puis écriture sans verrou ni condition sur le statut (concurrence)')
   // 100 paires approve/reject simultanées : sans décision atomique, au moins une paire renvoie deux 200.
   const notes = await Promise.all(Array.from({ length: 100 }, () => createNote(A.employee.id)))
   const results = await Promise.all(
@@ -236,13 +238,12 @@ test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux
 })
 
 test('T16 [SEC-05] l\'app ne se connecte pas avec un rôle qui ignore la RLS', async () => {
-  knownFlaw('SEC-05', 'le rôle de l\'app est superutilisateur, la RLS (même FORCE) ne s\'applique pas')
+  knownFlaw('SEC-05', 'la connexion se fait encore avec un superutilisateur : seules les transactions de withUserScope endossent expense_app (correctif complet : rôle de connexion dédié, à valider, voir QUESTIONS.md)')
   const res = await db().query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user')
   expect(res.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
 })
 
 test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', async () => {
-  knownFlaw('SEC-05', 'les politiques RH ne comparent pas l\'entreprise du RH à celle de l\'auteur')
   const res = await db().query(
     "SELECT policyname, coalesce(qual, '') || coalesce(with_check, '') AS rule FROM pg_policies WHERE tablename = 'expense_notes'",
   )
@@ -250,10 +251,28 @@ test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', 
   expect(withoutCompany).toEqual([])
 })
 
+test('T17b [SEC-05] sous le rôle applicatif, la base cache et protège les notes d\'une autre entreprise', async () => {
+  const id = await createNote(A.manager.id) // note d'un manager racine de A : du ressort du RH de A seulement
+  const client = await db().connect()
+  const as = (userId: string) => client.query("SELECT set_config('app.current_user_id', $1, true)", [userId])
+  try {
+    await client.query('BEGIN')
+    await client.query('SET LOCAL ROLE expense_app')
+    await as(B.hr.id)
+    expect((await client.query('SELECT id FROM expense_notes WHERE id = $1', [id])).rowCount, 'lecture par le RH de B').toBe(0)
+    const update = await client.query("UPDATE expense_notes SET status = 'approved' WHERE id = $1", [id])
+    expect(update.rowCount, 'écriture par le RH de B').toBe(0)
+    await as(A.hr.id) // contrôle positif : la politique n'interdit pas tout
+    expect((await client.query('SELECT id FROM expense_notes WHERE id = $1', [id])).rowCount, 'lecture par le RH de A').toBe(1)
+  } finally {
+    await client.query('ROLLBACK')
+    client.release()
+  }
+})
+
 test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({
   baseURL,
 }) => {
-  knownFlaw('SEC-10', 'le rôle vient du JWT (photo prise à la connexion), jamais relu en base')
   const c = { id: await companyOf(A.hr), domain: domainOf(A.hr) }
   const demoted = await createUser(c, `T18-${short()}`, 'manager')
   const ctx = await login(baseURL!, demoted)
@@ -264,7 +283,6 @@ test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans att
 })
 
 test('T18b [SEC-02] un jeton signé avec le secret publié dans le dépôt est refusé', async ({ baseURL }) => {
-  knownFlaw('SEC-02', 'AUTH_SECRET est en dur dans src/lib/auth.ts, donc public : on forge une session RH')
   // Le secret est lu dans l'historique Git (commit d'origine), pas recopié ici : après le correctif, l'app doit
   // refuser tout jeton signé avec ce secret, qui reste public pour toujours.
   const source = execFileSync('git', ['show', '265924b:src/lib/auth.ts'], { encoding: 'utf8' })

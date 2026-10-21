@@ -69,6 +69,25 @@ test.describe('GET /api/expense-notes', () => {
   })
 })
 
+test.describe('GET /api/expense-notes?sort', () => {
+  test('200 : tri autorisé appliqué (montant croissant)', async () => {
+    await createNote(employee.id, { amount: 99 })
+    await createNote(employee.id, { amount: 1 })
+    const res = await asEmployee.get('/api/expense-notes?sort=amount%20asc')
+    expect(res.status()).toBe(200)
+    const amounts = ((await res.json()) as { amount: number }[]).map((n) => n.amount)
+    expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
+  })
+
+  test('400 : tri hors liste (ADR 0003)', async () => {
+    for (const sort of ['colonne_inexistante', 'amount; DROP TABLE users', '(SELECT 1)']) {
+      const res = await asEmployee.get(`/api/expense-notes?sort=${encodeURIComponent(sort)}`)
+      expect(res.status(), sort).toBe(400)
+      expectError(await res.json())
+    }
+  })
+})
+
 test.describe('POST /api/expense-notes', () => {
   const valid = () => ({ amount: '42.50', expenseDate: '2026-10-01', description: 'Taxi', receipt: png() })
 
@@ -147,6 +166,13 @@ test.describe('POST /api/expense-notes/receipt-suggestion', () => {
 
   test('400 sans fichier', async () => {
     const res = await asEmployee.post('/api/expense-notes/receipt-suggestion', { multipart: { autre: 'x' } })
+    expect(res.status()).toBe(400)
+    expectError(await res.json())
+  })
+
+  test('400 : reçu de plus de 10 Mo, refusé avant l\'OCR (SEC-11)', async () => {
+    const receipt = { name: 'gros.png', mimeType: 'image/png', buffer: Buffer.alloc(10 * 1024 * 1024 + 1) }
+    const res = await asEmployee.post('/api/expense-notes/receipt-suggestion', { multipart: { receipt } })
     expect(res.status()).toBe(400)
     expectError(await res.json())
   })
@@ -355,6 +381,15 @@ test.describe('PUT /api/hr/users/{id}/manager', () => {
     const detached = await asHr.put(url, { data: { managerId: null } })
     expect(detached.status()).toBe(200)
     expect(await detached.json()).toMatchObject({ id: otherEmployee.id, managerId: null })
+  })
+
+  test('400 : corps illisible ou managerId invalide (ADR 0002)', async () => {
+    const url = `/api/hr/users/${otherEmployee.id}/manager`
+    for (const data of ['{ pas du json', { autre: 1 }, { managerId: 'pas-un-uuid' }, { managerId: 42 }]) {
+      const res = await asHr.put(url, { headers: { 'content-type': 'application/json' }, data })
+      expect(res.status(), JSON.stringify(data)).toBe(400)
+      expectError(await res.json())
+    }
   })
 
   test('404 : utilisateur inconnu', async () => {

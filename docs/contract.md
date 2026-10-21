@@ -3,12 +3,12 @@
 Relevé sur le commit `265924b`, confirmé par les tests de caractérisation `tests/api/contract.spec.ts` (tâche 1.3) :
 codes HTTP et clés JSON exactes de chaque endpoint.
 Version machine : `docs/openapi.yaml` (OpenAPI 3.1), contre laquelle chaque réponse de ces tests est validée.
-Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `500 {error, stack}`
-(la stacktrace sera retirée en phase 2, le champ `error` est conservé).
+Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `500 {error, errorId}`, message
+générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error` est conservé).
 
 | Méthode et chemin | Rôle | Entrée | Succès | Erreurs |
 | --- | --- | --- | --- | --- |
-| `GET /api/expense-notes` | connecté | query `sort` (facultatif) | 200, notes de l'appelant | 401 |
+| `GET /api/expense-notes` | connecté | query `sort` (facultatif, liste fermée) | 200, notes de l'appelant | 400 (ADR 0003), 401 |
 | `POST /api/expense-notes` | connecté | multipart `amount`, `expenseDate`, `description`, `receipt` (png, jpg, webp, pdf, ≤ 10 Mo) | 201, la note | 400, 401 |
 | `GET /api/expense-notes/{id}/receipt-url` | propriétaire | — | 200 `{url}` | 401, 404 |
 | `POST /api/expense-notes/receipt-suggestion` | connecté | multipart `receipt` | 200 `{amount?, expenseDate?}` | 400, 401 |
@@ -21,7 +21,7 @@ Toutes les routes exigent une session Auth.js (cookie). En cas d'exception : `50
 | `POST /api/hr/expense-notes/{id}/reject` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `GET /api/hr/expense-notes/{id}/receipt-url` | `hr_admin` | — | 200 `{url}` | 403, 404 |
 | `GET /api/hr/users` | `hr_admin` | — | 200, employés et managers de l'entreprise | 403 |
-| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}` ou `null` | 200, l'utilisateur | 403, 404, 409 |
+| `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}`, uuid ou `null` | 200, l'utilisateur | 400 (ADR 0002), 403, 404, 409 |
 
 Formats :
 

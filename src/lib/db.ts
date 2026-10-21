@@ -20,10 +20,10 @@ export function getPool(): Pool {
 }
 
 /**
- * Pose le contexte utilisateur pour la durée de la transaction — l'isolation
- * entre utilisateurs et entre entreprises est garantie par PostgreSQL (Row
- * Level Security, voir migrations/), ce helper ne fait qu'exposer l'id
- * courant aux policies.
+ * Transaction métier dans le contexte de l'utilisateur. Deux protections (SEC-05) :
+ * - le rôle `expense_app` (ni superuser ni BYPASSRLS) est endossé : les politiques RLS s'appliquent vraiment ;
+ * - l'id de l'appelant est exposé aux politiques, qui en déduisent aussi son entreprise.
+ * Les routes gardent leurs propres contrôles : la RLS est une seconde ligne, pas la seule.
  */
 export async function withUserScope<T>(
   userId: string,
@@ -33,6 +33,7 @@ export async function withUserScope<T>(
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
+    await client.query('SET LOCAL ROLE expense_app')
     await client.query("SELECT set_config('app.current_user_id', $1, true)", [userId])
     const result = await fn(client)
     await client.query('COMMIT')

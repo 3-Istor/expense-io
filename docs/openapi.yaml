@@ -38,14 +38,17 @@ paths:
         - name: sort
           in: query
           required: false
-          description: Tri. Par défaut `created_at DESC`. Faille connue SEC-01 (fragment SQL concaténé).
-          schema: { type: string }
+          description: >-
+            Tri, `<colonne>` ou `<colonne> ASC|DESC` (insensible à la casse), colonnes created_at, amount,
+            expense_date, status, description. Par défaut `created_at DESC`. Autre valeur : 400 (ADR 0003).
+          schema: { type: string, examples: ['amount DESC'] }
       responses:
         '200':
           description: Notes de l'appelant
           content:
             application/json:
               schema: { type: array, items: { $ref: '#/components/schemas/ExpenseNote' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '500': { $ref: '#/components/responses/InternalError' }
     post:
@@ -158,7 +161,6 @@ paths:
       tags: [manager]
       operationId: managerGetReceiptUrl
       summary: URL signée du reçu d'une note d'un subordonné
-      description: Faille connue SEC-03 (aucune vérification du rattachement).
       parameters: [{ $ref: '#/components/parameters/NoteId' }]
       responses:
         '200': { $ref: '#/components/responses/ReceiptUrl' }
@@ -256,6 +258,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
@@ -323,11 +326,12 @@ components:
         error: { type: string }
     InternalError:
       type: object
-      description: Expose la stacktrace (faille SEC-07). Certaines routes renvoient un corps vide.
+      additionalProperties: false
+      description: Message générique ; le détail reste dans les journaux du serveur (SEC-07).
       required: [error]
       properties:
         error: { type: string }
-        stack: { type: string }
+        errorId: { type: string, format: uuid, description: Identifiant de l'erreur dans les journaux }
 
   responses:
     Note:

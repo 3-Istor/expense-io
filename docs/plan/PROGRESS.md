@@ -139,3 +139,32 @@ Une session qui démarre lit ce fichier en premier.
   fait passer au vert. Le premier run réel de la CI reste à observer (impossible depuis cette session).
 - Erreur corrigée : l'audit 1.7 annonçait 18 constats Semgrep ; l'archive en contient 17 (le 18e venait de la route
   sonde temporaire). README et seuil corrigés.
+
+## 2026-10-20 — Phase 2 (correctifs de sécurité), en autonomie déléguée, branche `phase-2/securite`
+
+Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fiches : `docs/security/findings.md`
+(CWE, OWASP API Top 10, CVSS v4.0 calculé avec la bibliothèque `cvss`). Moulinette `pr` VERTE avant chaque commit
+(un oubli sur SEC-03, rattrapé au commit suivant et dit dans son message).
+
+| Réf. | Statut | Preuve |
+| --- | --- | --- |
+| SEC-01 injection `sort` | corrigé (ADR 0003 proposé : 400) | T14 + 2 tests de contrat |
+| SEC-02 secret en dur | corrigé | T18b + test unitaire |
+| SEC-03 reçu côté manager | corrigé | T11 |
+| SEC-04 manager d'une autre entreprise | corrigé côté app | T12 |
+| SEC-05 RLS | **partiel** : politiques par entreprise, rôle `expense_app` endossé par transaction | T17, T17b ; T16 attend une décision |
+| SEC-06 auto-validation | fait (défense en profondeur) | T07 |
+| SEC-07 stacktrace, erreurs hors catch | corrigé | T14b, T14c |
+| SEC-08 décision concurrente | corrigé | T15 (3/3) |
+| SEC-09 corps illisible | corrigé (ADR 0002 proposé : 400) | T13 + test de contrat |
+| SEC-10 rôle figé dans le JWT | corrigé | T18 |
+| SEC-11 OCR non borné | corrigé | test de contrat + 3 unitaires |
+| SEC-12 note sans reçu | corrigé | test unitaire (stockage en panne) |
+| SEC-13 clé S3 prévisible | **en attente** : change le format de `receiptKey`, question posée aux profs | — |
+| SEC-14 cycles de managers | corrigé | T12b |
+| SEC-15 inscription par domaine | documenté (ADR 0004 proposé) | — |
+
+- Effets mesurés : Semgrep 17 → 0 constat ; duplication 17,4 % → 6,8 % (regroupement des règles d'accès des
+  valideurs dans `src/lib/approvals.ts`) ; tests d'API 61 → 67, unitaires 1 → 7 ; échecs attendus 11 → 1 (T16).
+- À relire par un humain : ADR 0002, 0003, 0004 (proposés), migration `1700000000002_rls-par-entreprise.sql`,
+  `src/lib/approvals.ts`, `src/lib/auth.ts`. Questions : `QUESTIONS.md`.
