@@ -223,3 +223,13 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
 - Répétitions : 8 min, 4 min et < 1 min d'agent ; le relecteur a trouvé deux vrais bugs de sécurité ; six frictions du
   harnais relevées et corrigées.
 - Question ajoutée : couverture du contrat en dernier test (réserve du relecteur).
+
+## Preuves de tests (branche `phase-4/preuves-tests`, empilée sur `phase-5/qualite`)
+
+Synthèse : `docs/test-strategy.md`.
+- Matrice d'autorisations générée : 14 routes × 7 profils, 99 tests ; contrôle de rôle retiré → 12 échecs.
+- Stryker : 98,35 % de mutants tués (seuil bloquant 95 %, nightly) ; 6 survivants équivalents.
+- Couverture V8 du vrai serveur pendant les tests d'API : 95,1 % des lignes serveur ; UI 19,4 % (pas de test navigateur).
+- Schemathesis (`npm run test:fuzz`, 3 rôles) : 2 386 requêtes, 0 échec, après correction de 5 causes de 500 et d'un
+  contournement de `checkReceipt` ; exceptions FP-FUZZ-01 à 04 ; question Q10 (montant lu avec `parseFloat`).
+- Reste : comparaison différentielle avec l'app d'origine (suite de contrat de la phase 1 rejouée), PR.
