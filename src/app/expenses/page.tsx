@@ -68,7 +68,10 @@ export default function ExpensesPage() {
     // Le setState effectif n'intervient qu'après l'await dans loadNotes,
     // la règle react-hooks est ici trop conservatrice.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadNotes()
+    loadNotes().catch(() => {
+      setError('Impossible de charger les notes de frais.')
+      setLoading(false)
+    })
   }, [loadNotes])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {

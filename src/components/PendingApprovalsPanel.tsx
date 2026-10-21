@@ -36,7 +36,10 @@ export function PendingApprovalsPanel() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadPending()
+    loadPending().catch(() => {
+      setError('Impossible de charger les notes en attente.')
+      setLoading(false)
+    })
   }, [loadPending])
 
   async function handleViewReceipt(id: string) {

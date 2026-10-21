@@ -57,3 +57,20 @@ describe('connexion et inscription', () => {
     expect(await id.register({ name: 'A', email: 'a@x.io', password: 'secret12' })).toBe('Un compte existe déjà avec cet email.')
   })
 })
+
+describe('email d\'inscription (Sonar S8786 : pas de ReDoS)', () => {
+  it('garde exactement les règles d\'avant', async () => {
+    const { emailDomain } = await import('@/modules/identity/domain/user')
+    const before = /^[^\s@]+@([^\s@]+\.[^\s@]+)$/ // ancienne expression, comme référence
+    const cases = ['a@x.io', 'a@X.IO', 'a@x.', 'a@.x', 'a@x', 'a b@x.io', 'a@@x.io', '@x.io', 'a@x..io', 'a@sub.x.io', 'a@.x.y']
+    for (const email of cases) {
+      expect(emailDomain(email), email).toBe(before.exec(email)?.[1].toLowerCase() ?? null)
+    }
+  })
+  it('reste instantanée sur une entrée piégée', async () => {
+    const { emailDomain } = await import('@/modules/identity/domain/user')
+    const started = performance.now()
+    emailDomain(`a@${'a.'.repeat(50_000)}@`)
+    expect(performance.now() - started).toBeLessThan(100)
+  })
+})
