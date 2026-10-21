@@ -18,20 +18,22 @@ const kindOf = (p: Promise<unknown>) =>
   )
 const hr = { userId: 'rh', role: 'hr_admin' as const }
 const uuid = '11111111-1111-4111-8111-111111111111'
+// Cible réaliste : un id qui n'est pas un UUID est rejeté d'emblée (404).
+const TARGET = '22222222-2222-4222-8222-222222222222'
 
 describe('rattachement de manager', () => {
   it('réservé au RH', async () => {
-    expect(await kindOf(setup().assignManager({ userId: 'm', role: 'manager' }, 'cible', { managerId: null }))).toBe('denied')
+    expect(await kindOf(setup().assignManager({ userId: 'm', role: 'manager' }, TARGET, { managerId: null }))).toBe('denied')
   })
   it('409 si le corps est invalide (SEC-09, contrat inchangé) ou si on se rattache à soi-même', async () => {
     for (const body of [undefined, {}, { managerId: 'x' }, { managerId: 3 }, [uuid]]) {
-      expect(await kindOf(setup().assignManager(hr, 'cible', body))).toBe('conflict')
+      expect(await kindOf(setup().assignManager(hr, TARGET, body))).toBe('conflict')
     }
     expect(await kindOf(setup().assignManager(hr, uuid, { managerId: uuid }))).toBe('conflict')
   })
   it('traduit les refus du dépôt : 404 cible inconnue, 409 manager invalide', async () => {
     const refuse = (reason: 'target-not-found' | 'invalid-manager') =>
-      setup({ users: { assignManager: async () => ({ ok: false, reason }) } }).assignManager(hr, 'cible', { managerId: null })
+      setup({ users: { assignManager: async () => ({ ok: false, reason }) } }).assignManager(hr, TARGET, { managerId: null })
     expect(await kindOf(refuse('target-not-found'))).toBe('not-found')
     expect(await kindOf(refuse('invalid-manager'))).toBe('conflict')
   })
@@ -72,5 +74,39 @@ describe('email d\'inscription (Sonar S8786 : pas de ReDoS)', () => {
     const started = performance.now()
     emailDomain(`a@${'a.'.repeat(50_000)}@`)
     expect(performance.now() - started).toBeLessThan(100)
+  })
+})
+
+describe('cas d\'usage identity : messages du contrat et délégation (tests de mutation)', () => {
+  it('annuaire réservé au RH, renvoie le dépôt', async () => {
+    const users = [{ id: 'u', name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: null }]
+    const id = setup({ users: { listDirectory: async () => users } })
+    expect(await id.directory(hr)).toBe(users)
+    expect(await kindOf(id.directory({ userId: 'e', role: 'employee' }))).toBe('denied')
+  })
+  it('messages exacts : « Invalid manager »', async () => {
+    const message = (p: Promise<unknown>) => p.then(() => 'ok', (e: Error) => e.message)
+    expect(await message(setup().assignManager(hr, TARGET, {}))).toBe('Invalid manager')
+    expect(await message(setup().assignManager(hr, uuid, { managerId: uuid }))).toBe('Invalid manager')
+    const refused = setup({ users: { assignManager: async () => ({ ok: false, reason: 'invalid-manager' }) } })
+    expect(await message(refused.assignManager(hr, TARGET, { managerId: null }))).toBe('Invalid manager')
+  })
+  it('renvoie l\'utilisateur rattaché', async () => {
+    const user = { id: TARGET, name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: null }
+    const id = setup({ users: { assignManager: async () => ({ ok: true, user }) } })
+    expect(await id.assignManager(hr, TARGET, { managerId: null })).toBe(user)
+  })
+  it('refuse des identifiants vides ou du mauvais type sans consulter les comptes', async () => {
+    let lookups = 0
+    const id = setup({ accounts: { findByEmail: async () => (lookups++, null) } })
+    for (const [email, password] of [['', 'x'], ['a@x.io', ''], [42, 'x'], ['a@x.io', 42]] as const) {
+      expect(await id.verifyCredentials(email, password)).toBeNull()
+    }
+    expect(lookups).toBe(0)
+  })
+  it('relit le rôle courant dans le dépôt de comptes', async () => {
+    const id = setup({ accounts: { roleOf: async (userId) => (userId === 'u1' ? 'manager' : null) } })
+    expect(await id.currentRole('u1')).toBe('manager')
+    expect(await id.currentRole('inconnu')).toBeNull()
   })
 })

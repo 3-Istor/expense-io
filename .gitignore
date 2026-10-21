@@ -49,3 +49,8 @@ next-env.d.ts
 # Couverture (SonarQube)
 /coverage
 /.scannerwork
+
+# Tests de mutation
+/.stryker-tmp
+/reports
+/.schemathesis

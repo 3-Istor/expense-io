@@ -198,10 +198,13 @@ paths:
               properties:
                 amount:
                   type: string
-                  description: Nombre strictement positif
+                  description: Nombre strictement positif, au plus 99 999 999,99
+                  example: "42.50"
                 expenseDate:
                   type: string
-                  description: Date AAAA-MM-JJ
+                  format: date
+                  description: Date du calendrier, AAAA-MM-JJ
+                  example: 2026-10-01
                 description:
                   type: string
                   minLength: 1

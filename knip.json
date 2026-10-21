@@ -1,4 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": [".claude/hooks/*.mjs"]
+  "entry": [
+    ".claude/hooks/*.mjs",
+    "vitest.unit.config.ts",
+    "scripts/coverage-report.mjs",
+    "scripts/session-cookie.mjs"
+  ]
 }

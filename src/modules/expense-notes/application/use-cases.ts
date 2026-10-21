@@ -1,5 +1,6 @@
 // Cas d'usage du module : ils appliquent les règles du domaine et ne parlent qu'aux ports.
 import { conflict, denied, invalid, notFound } from '@/shared/app-error'
+import { isUuid } from '@/shared/ids'
 import { approverKind, type ApproverKind, type Role } from '../domain/approvers'
 import { checkDecision, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
 import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor } from '../domain/receipt'
@@ -35,6 +36,15 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
     return kind
   }
 
+  /** Rôle vérifié d'abord (401/403), puis la note dans le périmètre de l'approbateur, sinon 404. */
+  async function findForApprover(actor: Actor, expected: ApproverKind, noteId: string) {
+    const kind = asApprover(actor, expected)
+    if (!isUuid(noteId)) throw notFound()
+    const note = await notes.findInScope(actor, kind, noteId)
+    if (!note) throw notFound()
+    return { kind, note }
+  }
+
   return {
     async listOwn(caller: Caller, sortParam: string | null): Promise<ExpenseNote[]> {
       // Contrat gelé (décision de Brian) : un tri hors liste n'est pas une erreur, il est ignoré (tri par défaut).
@@ -58,6 +68,7 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
     },
 
     async ownReceiptUrl(caller: Caller, noteId: string): Promise<string> {
+      if (!isUuid(noteId)) throw notFound()
       const note = await notes.findOwn(caller, noteId)
       if (!note) throw notFound()
       return storage.signedUrl(note.receiptKey)
@@ -75,9 +86,7 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
     },
 
     async decide(actor: Actor, expected: ApproverKind, noteId: string, decision: Decision): Promise<ExpenseNote> {
-      const kind = asApprover(actor, expected)
-      const note = await notes.findInScope(actor, kind, noteId)
-      if (!note) throw notFound()
+      const { kind, note } = await findForApprover(actor, expected, noteId)
       const refusal = checkDecision(note, decision, actor.userId)
       // Sa propre note n'est jamais dans le périmètre (404, comportement du contrat) ; la règle reste écrite ici.
       if (refusal === 'self-decision') throw notFound()
@@ -88,8 +97,7 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
     },
 
     async approverReceiptUrl(actor: Actor, expected: ApproverKind, noteId: string): Promise<string> {
-      const note = await notes.findInScope(actor, asApprover(actor, expected), noteId)
-      if (!note) throw notFound()
+      const { note } = await findForApprover(actor, expected, noteId)
       return storage.signedUrl(note.receiptKey)
     },
   }

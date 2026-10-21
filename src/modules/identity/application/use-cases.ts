@@ -1,4 +1,5 @@
 import { conflict, denied, notFound } from '@/shared/app-error'
+import { isUuid } from '@/shared/ids'
 import {
   checkManagerAssignment,
   MIN_PASSWORD_LENGTH,
@@ -36,6 +37,7 @@ export function identityUseCases({ users, accounts, verifyPassword, hashPassword
       const parsed = parseManagerAssignment(body)
       // Corps illisible : refusé avec le 409 « manager invalide » déjà au contrat, rien n'est modifié (SEC-09).
       if (!parsed) throw conflict('Invalid manager')
+      if (!isUuid(targetId)) throw notFound()
       if (checkManagerAssignment(targetId, parsed.managerId) === 'self') throw conflict('Invalid manager')
       const result = await users.assignManager(actor, targetId, parsed.managerId)
       if (result.ok) return result.user

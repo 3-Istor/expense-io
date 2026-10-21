@@ -1,0 +1,30 @@
+# Fuzzing du contrat (Schemathesis) : génère des requêtes depuis docs/openapi.yaml et vérifie chaque réponse
+# (pas de 500, codes et schémas conformes). Lancer : npm run test:fuzz (scripts/fuzz.sh, un passage par rôle).
+[auth.openapi.session]
+# Schéma de sécurité « session » du contrat (cookie authjs.session-token) ; valeur fournie par scripts/fuzz.sh.
+api_key = "${SESSION_TOKEN}"
+
+# Méthodes non déclarées : on vérifie que GET/PUT/POST/DELETE/PATCH en trop sont refusées (405).
+# TRACE est exclu : Next.js le rejette lui-même (500 « Internal Server Error », corps générique) avant toute route ;
+# risque accepté, documenté dans docs/security/false-positives.md (FP-FUZZ-01, expire 2027-04-30).
+[phases.coverage]
+unexpected-methods = ["GET", "PUT", "POST", "DELETE", "PATCH"]
+
+# Le contrôle « méthode non supportée » exige aussi l'en-tête Allow, que Next.js n'envoie pas avec son 405
+# (FP-FUZZ-03, expire 2027-04-30). Le 405 lui-même reste prouvé par tests/api/methods.spec.ts ; les requêtes
+# non déclarées restent envoyées et tout 500 reste un échec (not_a_server_error).
+[checks.unsupported_method]
+enabled = false
+
+# receipt-suggestion est une aide « au mieux » : un reçu illisible ou qui n'est pas un fichier donne {} (200), jamais
+# une erreur. Le contrôle « données invalides rejetées » y est donc sans objet (FP-FUZZ-02, expire 2027-04-30).
+[[operations]]
+include-operation-id = "suggestFromReceipt"
+checks.negative_data_rejection.enabled = false
+
+# Le contrat type le montant comme une chaîne sans en fixer le format (l'app d'origine lit avec parseFloat, Q10), ni le type du reçu (décrit en texte) ;
+# vide, nul, négatif ou trop grand donne 400, code documenté. « Donnée valide refusée » y est donc attendu
+# (FP-FUZZ-04, expire 2027-04-30). Les autres contrôles (aucun 500, schémas de réponse) restent actifs.
+[[operations]]
+include-operation-id = "createExpenseNote"
+checks.positive_data_acceptance.enabled = false

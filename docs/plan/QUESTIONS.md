@@ -13,14 +13,15 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
 - [ ] 2026-10-20 — Relecture des tests « échec attendu » (`tests/api/authz.spec.ts`, T11 à T18) : écrits en
       autonomie. Un test « échec attendu » décrit le comportement CORRECT et échoue tant que la faille existe ; si
       l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
-
-- [ ] 2026-10-21 — Couverture du contrat déplacée de `afterAll` vers un dernier test (`tests/api/contract.spec.ts`) :
-      sinon lancer un seul test avec `-g` (live coding) échoue toujours. Le relecteur sécurité y voit un affaiblissement
-      (un lancement filtré ou découpé ne vérifie plus la couverture). La CI lance toujours le fichier entier, donc le
-      contrôle y tourne. Options : (a) garder ; (b) revenir à `afterAll` et ne jamais filtrer. En attendant : (a).
-      Réversible.
+- [ ] 2026-10-21 — Montant laxiste, trouvé par le fuzzing (Schemathesis) : l'app lit le montant avec `parseFloat`
+      depuis l'origine, donc « 8* » est accepté et vaut 8, « 12abc » vaut 12, « 1.999 » est arrondi par la base.
+      Options : (a) garder tel quel ; (b) refuser tout montant qui n'est pas un décimal propre (400). (b) change un
+      succès en erreur pour ces entrées, donc touche le contrat : question pour les profs
+      (`questions-profs.md`, Q10). Option prudente retenue : (a), la spec décrit l'existant (pas de motif strict). Réversible.
 
 ## Fermées
+
+- [x] 2026-10-21 — Couverture du contrat en dernier test (pour lancer un seul test en live coding) : gardée (Brian).
 
 - [x] 2026-10-21 — SEC-05 terminé : compte de connexion limité `expense_app_login` (migration 0004), administrateur
       réservé aux migrations et au seed (`DATABASE_ADMIN_URL`). Brian a autorisé la lecture de `.env.example`.
