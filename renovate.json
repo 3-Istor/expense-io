@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "timezone": "Europe/Paris",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"],
+    "schedule": ["at any time"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  },
+  "packageRules": [
+    {
+      "description": "Mises à jour mineures et correctifs groupés : une PR par semaine",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dépendances mineures"
+    },
+    {
+      "description": "Images Docker et actions GitHub épinglées, mises à jour à part",
+      "matchManagers": ["docker-compose", "dockerfile", "github-actions"],
+      "groupName": "infrastructure"
+    },
+    {
+      "description": "Next.js, React et Auth.js : une PR dédiée, niveau de risque 3",
+      "matchPackageNames": ["next", "react", "react-dom", "next-auth", "eslint-config-next"],
+      "groupName": "framework",
+      "labels": ["dependencies", "risque-3"]
+    }
+  ]
+}

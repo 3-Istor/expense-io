@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Bash(git push upstream *)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git remote set-url *)"
+    ]
+  }
+}
