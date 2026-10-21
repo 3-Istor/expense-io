@@ -44,6 +44,7 @@ services:
       - '9000:9000'
     environment:
       SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+      SONAR_SEARCH_JAVAADDITIONALOPTS: '-Dcluster.routing.allocation.disk.threshold_enabled=false'
     volumes:
       - sonarqube-data:/opt/sonarqube/data
 
