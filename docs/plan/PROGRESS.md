@@ -192,3 +192,15 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
 - SEC-05 terminé : compte de connexion limité, administrateur pour migrations et seed. T16 et T16b verts ;
   **plus aucun test en échec attendu**. 69 tests d'API, 29 unitaires, 1 d'intégration.
 - `.env.example` lisible par l'agent (décision de Brian), `.env` toujours interdit.
+
+## 2026-10-21 — Phase 4, partie 1 (branche `phase-4/run`, PR #6)
+
+- 4.1 Build de production sans Internet (polices locales, instrumentation compatible Edge) ; `Dockerfile` multi-étapes,
+  non-root, binaires appelés sans npx (système de fichiers en lecture seule).
+- 4.2 `deploy/k8s` (Deployment, Job de migration, Service, PDB, modèle de Secret) ; contrôle S7 (hadolint et
+  kubernetes-validate strict), vérifié sur un manifeste volontairement invalide.
+- 4.3 Journaux JSON (une ligne par appel : opération du contrat, code, durée) ; `docs/slo.md`.
+- Preuves : CI verte, job `image` : image construite, migrée depuis l'image, démarrée avec le compte limité et
+  sans `AUTH_SECRET`, **43 tests de contrat passés contre le conteneur**. Deux problèmes trouvés par la CI et
+  corrigés après reproduction locale : `tests/` exclu du contexte Docker, `dotenv` en dépendance de dev.
+- Reste 4.4 : SonarQube Cloud (compte à créer par un humain), niveau nightly (Schemathesis, Stryker).
