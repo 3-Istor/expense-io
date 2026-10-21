@@ -15,6 +15,8 @@ export interface ExpenseNoteRepository {
   insert(caller: Caller, note: NewExpenseNote & { receiptKey: string; receiptSeq: number }): Promise<ExpenseNote>
   listPendingInScope(caller: Caller, kind: ApproverKind): Promise<ExpenseNote[]>
   findInScope(caller: Caller, kind: ApproverKind, noteId: string): Promise<ExpenseNote | null>
+  /** Toutes les notes du périmètre, tous statuts, avec l'email de l'auteur (export). */
+  listAllInScope(caller: Caller, kind: ApproverKind): Promise<(ExpenseNote & { authorEmail: string })[]>
   /** Écrit la décision seulement si la note est encore en attente (atomique, SEC-08) ; null sinon. */
   saveDecision(caller: Caller, kind: ApproverKind, noteId: string, decision: Decision): Promise<ExpenseNote | null>
 }

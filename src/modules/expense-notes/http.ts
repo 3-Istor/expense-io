@@ -29,6 +29,20 @@ export function decisionRoute(kind: ApproverKind, decision: Decision) {
     })
 }
 
+export function exportCsvRoute(kind: ApproverKind) {
+  return () =>
+    handle(kind === 'hr' ? 'exportRootManagerNotes' : 'exportTeamNotes', DENIED_STATUS[kind], async () => {
+      const me = await requireUser()
+      const csv = await expenseNotes.exportCsv(me, kind)
+      return new Response(csv, {
+        headers: {
+          'content-type': 'text/csv; charset=utf-8',
+          'content-disposition': 'attachment; filename="notes-de-frais.csv"',
+        },
+      })
+    })
+}
+
 export function approverReceiptUrlRoute(kind: ApproverKind) {
   return (_request: Request, { params }: Params) =>
     handle(`${kind}GetReceiptUrl`, DENIED_STATUS[kind], async () => {

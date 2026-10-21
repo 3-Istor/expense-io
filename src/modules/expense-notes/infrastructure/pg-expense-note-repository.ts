@@ -42,6 +42,12 @@ const PENDING_IN_SCOPE: Record<ApproverKind, string> = {
   hr: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id
        WHERE ${SCOPE.hr} AND en.status = 'pending' ORDER BY en.created_at ASC`,
 }
+const ALL_IN_SCOPE: Record<ApproverKind, string> = {
+  manager: `SELECT en.*, u.email AS author_email FROM expense_notes en JOIN users u ON u.id = en.user_id
+            WHERE ${SCOPE.manager} ORDER BY en.created_at ASC`,
+  hr: `SELECT en.*, u.email AS author_email FROM expense_notes en JOIN users u ON u.id = en.user_id
+       WHERE ${SCOPE.hr} ORDER BY en.created_at ASC`,
+}
 const FIND_IN_SCOPE: Record<ApproverKind, string> = {
   manager: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id WHERE ${SCOPE.manager} AND en.id = $2`,
   hr: `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id WHERE ${SCOPE.hr} AND en.id = $2`,
@@ -86,6 +92,14 @@ export const pgExpenseNoteRepository: ExpenseNoteRepository = {
 
   listPendingInScope: (caller, kind) =>
     withUserScope(caller.userId, async (db) => (await db.query(PENDING_IN_SCOPE[kind], [caller.userId])).rows.map(toNote)),
+
+  listAllInScope: (caller, kind) =>
+    withUserScope(caller.userId, async (db) =>
+      (await db.query(ALL_IN_SCOPE[kind], [caller.userId])).rows.map((row) => ({
+        ...toNote(row),
+        authorEmail: row.author_email as string,
+      })),
+    ),
 
   findInScope: (caller, kind, noteId) =>
     withUserScope(caller.userId, async (db) => first((await db.query(FIND_IN_SCOPE[kind], [caller.userId, noteId])).rows)),

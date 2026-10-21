@@ -41,8 +41,6 @@ test.beforeAll(async ({ baseURL }) => {
 })
 
 test.afterAll(async () => {
-  // Couverture du contrat : chaque code documenté (hors 500) de chaque opération a été exercé au moins une fois.
-  expect(uncovered()).toEqual([])
   await Promise.all([asHr?.dispose(), asManager?.dispose(), asEmployee?.dispose()])
   await closeDb()
 })
@@ -337,6 +335,35 @@ test.describe('GET /api/hr/expense-notes/{id}/receipt-url', () => {
   })
 })
 
+test.describe('GET /api/hr/expense-notes/export', () => {
+  test('sans session ou sans rôle hr_admin : 403', async ({ request }) => {
+    expect((await request.get('/api/hr/expense-notes/export')).status()).toBe(403)
+    const res = await asManager.get('/api/hr/expense-notes/export')
+    expect(res.status()).toBe(403)
+    expectError(await res.json())
+  })
+
+  test('200 : CSV des notes des managers racine de l\'entreprise, rien d\'autre, sans injection de formule', async () => {
+    const rootNote = await createNote(manager.id, { description: '=HYPERLINK("http://evil","clic")' })
+    const decided = await createNote(manager.id, { status: 'approved' })
+    const employeeNote = await createNote(employee.id)
+    const other = await createCompany()
+    const otherNote = await createNote((await createUser(other, 'Ailleurs', 'manager')).id)
+
+    const res = await asHr.get('/api/hr/expense-notes/export')
+    expect(res.status()).toBe(200)
+    expect(res.headers()['content-type']).toMatch(/^text\/csv/)
+    const [header, ...rows] = (await res.text()).trim().split('\n')
+    expect(header).toBe('id,email,amount,expenseDate,description,status,createdAt')
+    const csv = rows.join('\n')
+    expect(csv).toContain(rootNote)
+    expect(csv).toContain(decided) // tous statuts
+    expect(csv).not.toContain(employeeNote)
+    expect(csv).not.toContain(otherNote)
+    expect(csv).toContain(`"'=HYPERLINK(""http://evil"",""clic"")"`) // neutralisée et échappée
+  })
+})
+
 test.describe('GET /api/hr/users', () => {
   test('sans session ou sans rôle hr_admin : 403', async ({ request }) => {
     expect((await request.get('/api/hr/users')).status()).toBe(403)
@@ -408,4 +435,10 @@ test.describe('PUT /api/hr/users/{id}/manager', () => {
     const after = await db().query('SELECT manager_id FROM users WHERE id = $1', [otherEmployee.id])
     expect(after.rows[0].manager_id).toBeNull()
   })
+})
+
+// Dernier test du fichier (les tests d'un fichier s'exécutent dans l'ordre) : chaque code documenté (hors 500) de chaque
+// opération a été exercé au moins une fois. Un filtre `-g` (live coding) ne le sélectionne pas, et ne le casse donc pas.
+test('couverture du contrat : chaque code documenté est exercé', () => {
+  expect(uncovered()).toEqual([])
 })

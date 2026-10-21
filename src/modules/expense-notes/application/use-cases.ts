@@ -2,6 +2,7 @@
 import { conflict, denied, invalid, notFound } from '@/shared/app-error'
 import { approverKind, type ApproverKind, type Role } from '../domain/approvers'
 import { checkDecision, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
+import { toCsv } from '../domain/csv'
 import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor } from '../domain/receipt'
 import { parseSort } from '../domain/sort'
 import type { Caller, ExpenseNoteRepository, ReceiptReader, ReceiptStorage } from '../ports'
@@ -85,6 +86,15 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
       const saved = await notes.saveDecision(actor, kind, noteId, decision)
       if (!saved) throw conflict('Already decided') // décidée entre-temps par une autre requête (SEC-08)
       return saved
+    },
+
+    /** Export CSV du périmètre du valideur, tous statuts (cellules neutralisées : injection de formules). */
+    async exportCsv(actor: Actor, expected: ApproverKind): Promise<string> {
+      const inScope = await notes.listAllInScope(actor, asApprover(actor, expected))
+      return toCsv(
+        ['id', 'email', 'amount', 'expenseDate', 'description', 'status', 'createdAt'],
+        inScope.map((n) => [n.id, n.authorEmail, n.amount, n.expenseDate, n.description, n.status, n.createdAt.toISOString()]),
+      )
     },
 
     async approverReceiptUrl(actor: Actor, expected: ApproverKind, noteId: string): Promise<string> {

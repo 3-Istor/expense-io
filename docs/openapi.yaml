@@ -626,6 +626,31 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+  /api/hr/expense-notes/export:
+    get:
+      tags:
+        - hr
+      operationId: exportRootManagerNotes
+      summary: Exporte en CSV les notes des managers racine de l'entreprise, tous statuts
+      responses:
+        "200":
+          description: CSV (UTF-8, séparateur virgule), une ligne par note ; cellules neutralisées contre l'injection de formules
+          content:
+            text/csv:
+              schema:
+                type: string
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
   /api/hr/users:
     get:
       tags:

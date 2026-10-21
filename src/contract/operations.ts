@@ -145,6 +145,21 @@ for (const kind of ['manager', 'hr'] as const) {
 
 registry.registerPath({
   method: 'get',
+  path: '/api/hr/expense-notes/export',
+  tags: ['hr'],
+  operationId: 'exportRootManagerNotes',
+  summary: "Exporte en CSV les notes des managers racine de l'entreprise, tous statuts",
+  responses: {
+    200: {
+      description: 'CSV (UTF-8, séparateur virgule), une ligne par note ; cellules neutralisées contre l\'injection de formules',
+      content: { 'text/csv': { schema: z.string() } },
+    },
+    ...pick(403, 500),
+  },
+})
+
+registry.registerPath({
+  method: 'get',
   path: '/api/hr/users',
   tags: ['hr'],
   operationId: 'listCompanyUsers',

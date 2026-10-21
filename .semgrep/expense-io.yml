@@ -87,7 +87,7 @@ rules:
     severity: ERROR
     message: >-
       Handler de route exporté comme constante sans passer par une fabrique qui contrôle la session
-      (pendingListRoute, decisionRoute, approverReceiptUrlRoute de src/modules/expense-notes/http.ts). Écrire une
+      (pendingListRoute, decisionRoute, approverReceiptUrlRoute, exportCsvRoute de src/modules/expense-notes/http.ts). Écrire une
       fonction qui appelle requireUser() dans handle(), ou utiliser une fabrique contrôlée (OWASP API5:2023).
     metadata: { cwe: 'CWE-862', owasp-api: 'API5:2023' }
     paths:
@@ -99,3 +99,4 @@ rules:
       - pattern-not: export const $METHOD = pendingListRoute(...)
       - pattern-not: export const $METHOD = decisionRoute(...)
       - pattern-not: export const $METHOD = approverReceiptUrlRoute(...)
+      - pattern-not: export const $METHOD = exportCsvRoute(...)
