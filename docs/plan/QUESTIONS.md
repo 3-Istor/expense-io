@@ -14,13 +14,9 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       autonomie. Un test « échec attendu » décrit le comportement CORRECT et échoue tant que la faille existe ; si
       l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
 
-- [ ] 2026-10-21 — Couverture du contrat déplacée de `afterAll` vers un dernier test (`tests/api/contract.spec.ts`) :
-      sinon lancer un seul test avec `-g` (live coding) échoue toujours. Le relecteur sécurité y voit un affaiblissement
-      (un lancement filtré ou découpé ne vérifie plus la couverture). La CI lance toujours le fichier entier, donc le
-      contrôle y tourne. Options : (a) garder ; (b) revenir à `afterAll` et ne jamais filtrer. En attendant : (a).
-      Réversible.
-
 ## Fermées
+
+- [x] 2026-10-21 — Couverture du contrat en dernier test (pour lancer un seul test en live coding) : gardée (Brian).
 
 - [x] 2026-10-21 — SEC-05 terminé : compte de connexion limité `expense_app_login` (migration 0004), administrateur
       réservé aux migrations et au seed (`DATABASE_ADMIN_URL`). Brian a autorisé la lecture de `.env.example`.
