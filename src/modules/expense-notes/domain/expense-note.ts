@@ -53,7 +53,8 @@ export function validateNewNote(input: {
   if (typeof input.expenseDate !== 'string') return null
   if (typeof input.description !== 'string' || input.description.trim().length === 0) return null
   const category = input.category === undefined || input.category === null ? 'autre' : input.category
-  if (typeof category !== 'string' || !(category in CATEGORY_CEILINGS)) return null
+  // Object.hasOwn, pas `in` : `in` accepte aussi toString, __proto__… (relecture sécurité, répétition 2).
+  if (typeof category !== 'string' || !Object.hasOwn(CATEGORY_CEILINGS, category)) return null
   const ceiling = CATEGORY_CEILINGS[category as Category]
   if (ceiling !== null && amount > ceiling) return null
   return { amount, expenseDate: input.expenseDate, description: input.description, category: category as Category }

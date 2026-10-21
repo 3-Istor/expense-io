@@ -54,6 +54,9 @@ describe('plafonds par catégorie', () => {
     expect(validateNewNote({ ...ok, amount: '99999', category: 'autre' })?.category).toBe('autre') // sans plafond
     expect(validateNewNote({ ...ok, category: 'casino' })).toBeNull()
     expect(validateNewNote({ ...ok, category: 42 })).toBeNull()
+    for (const inherited of ['toString', '__proto__', 'constructor', 'valueOf', 'Repas', ' repas', '']) {
+      expect(validateNewNote({ ...ok, amount: '99999', category: inherited }), inherited).toBeNull()
+    }
   })
 })
 
