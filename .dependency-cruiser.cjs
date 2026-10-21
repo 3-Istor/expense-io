@@ -19,6 +19,29 @@ module.exports = {
       to: { path: '(^src/lib/|^src/adapters/|/infrastructure/|node_modules/)' },
     },
     {
+      name: 'application-sans-infrastructure',
+      comment:
+        "Un cas d'usage ne parle qu'aux ports. Passer la dépendance technique en paramètre (Deps) et l'implémenter dans infrastructure/.",
+      severity: 'error',
+      from: { path: '^src/modules/[^/]+/application/' },
+      to: { path: '(^src/lib/|^src/app/|/infrastructure/|node_modules/(pg|next|next-auth|@aws-sdk|tesseract\\.js)/)' },
+    },
+    {
+      name: 'routes-par-les-modules',
+      comment:
+        "Une route métier n'accède pas à la base directement : elle appelle le module (src/modules/<module>/index.ts), qui applique les règles d'accès et l'isolation.",
+      severity: 'error',
+      from: { path: '^src/app/api/', pathNot: '^src/app/api/auth/' },
+      to: { path: '(^src/lib/db\\.ts$|/infrastructure/|node_modules/pg/)' },
+    },
+    {
+      name: 'modules-par-leur-api',
+      comment: "Un module n'importe d'un autre module que son index.ts (API publique), jamais ses fichiers internes.",
+      severity: 'error',
+      from: { path: '^src/modules/([^/]+)/' },
+      to: { path: '^src/modules/([^/]+)/.+', pathNot: ['^src/modules/$1/', '^src/modules/[^/]+/index\\.ts$', '^src/modules/identity/session\\.ts$'] },
+    },
+    {
       name: 'pas-de-cycle',
       comment: 'Les cycles rendent les modules inséparables. Extraire la partie commune dans un module partagé.',
       severity: 'warn',

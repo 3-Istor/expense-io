@@ -168,3 +168,27 @@ Un commit par correctif, chacun retire le `test.fail` du test qui le prouve. Fic
   valideurs dans `src/lib/approvals.ts`) ; tests d'API 61 → 67, unitaires 1 → 7 ; échecs attendus 11 → 1 (T16).
 - À relire par un humain : ADR 0002, 0003, 0004 (proposés), migration `1700000000002_rls-par-entreprise.sql`,
   `src/lib/approvals.ts`, `src/lib/auth.ts`. Questions : `QUESTIONS.md`.
+
+## 2026-10-20 — Phase 3 (architecture cible), en autonomie déléguée, branche `phase-3/architecture`
+
+- 3.1 module `expense-notes` (domaine pur, ports, cas d'usage, adaptateurs), 3.2 module `identity` (y compris la
+  connexion et l'inscription, désormais atomique), 3.3 trace des décisions (`decided_by`, `decided_at`, T19),
+  3.4 façade supprimée et S2 bloquant, 3.6 contrat Zod et OpenAPI généré (S5 vérifie qu'il est à jour), 3.7 audit
+  « après » (`docs/audit/apres/README.md`).
+- **3.5 (RFC 9457) mise de côté** : elle change le format de toutes les erreurs (QUESTIONS.md).
+- Résultats : duplication 17,4 % → 4,3 %, fichiers morts 7 → 0, Semgrep 17 → 0, échecs attendus 11 → 1,
+  68 tests d'API, 28 tests Vitest, 6 règles d'architecture bloquantes sans violation.
+- Preuves : moulinette `pr` VERTE avant chaque commit ; chaque refactorisation garde les 67 puis 68 tests d'API verts ;
+  T19 rouge sans la trace ; règles Semgrep des routes vérifiées sur une route sonde ; spec générée identique à
+  la spec manuelle (87 éléments), comparateur vérifié par mutation.
+- Rappel de session cloud : `scripts/cloud-services.sh` relance Postgres et le S3 local après un redémarrage.
+
+## 2026-10-21 — Décisions de Brian appliquées (branche `phase-3/architecture`)
+
+- `AUTH_SECRET` facultatif : secret aléatoire par processus s'il manque ou s'il vaut une valeur publique connue
+  (vérifié : app sans `AUTH_SECRET`, connexion 302 puis liste 200).
+- Contrat strictement inchangé : ADR 0002 et 0003 rejetés ; 409 existant pour un corps illisible, tri hors liste ignoré,
+  `stack` gardé vide dans les 500. Codes des 14 opérations identiques à ceux de la phase 1 (comparaison automatique).
+- SEC-05 terminé : compte de connexion limité, administrateur pour migrations et seed. T16 et T16b verts ;
+  **plus aucun test en échec attendu**. 69 tests d'API, 29 unitaires, 1 d'intégration.
+- `.env.example` lisible par l'agent (décision de Brian), `.env` toujours interdit.

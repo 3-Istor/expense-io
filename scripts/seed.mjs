@@ -22,7 +22,8 @@ if (!domain) {
   throw new Error(`Email RH invalide : "${hrEmail}"`)
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+// Le seed écrit directement en base : compte administrateur (DATABASE_ADMIN_URL), à défaut DATABASE_URL (ancien .env).
+const pool = new Pool({ connectionString: process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL })
 
 // Un PNG 1x1 valide (pas juste des octets arbitraires) : "voir le reçu"
 // affiche une vraie image dans le navigateur plutôt qu'un fichier corrompu.

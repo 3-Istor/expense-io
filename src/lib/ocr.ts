@@ -4,7 +4,7 @@ import { createLimiter, withTimeout } from '@/lib/limits'
 
 const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 // OCR borné (SEC-11) : c'est l'opération la plus coûteuse de l'app, déclenchable par tout utilisateur connecté.
-export const OCR_MAX_BYTES = 10 * 1024 * 1024
+// La taille maximale est vérifiée en amont par le cas d'usage (MAX_RECEIPT_BYTES).
 const OCR_TIMEOUT_MS = 15_000
 const OCR_MAX_CONCURRENT = 2
 const limitOcr = createLimiter(OCR_MAX_CONCURRENT)

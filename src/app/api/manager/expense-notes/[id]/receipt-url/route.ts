@@ -1,3 +1,3 @@
-import { receiptUrlHandler } from '@/lib/approvals'
+import { approverReceiptUrlRoute } from '@/modules/expense-notes/http'
 
-export const GET = receiptUrlHandler('manager')
+export const GET = approverReceiptUrlRoute('manager')

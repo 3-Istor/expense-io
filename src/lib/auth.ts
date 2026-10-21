@@ -1,12 +1,12 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
-import { getPool } from '@/lib/db'
+import { ensureAuthSecret } from '@/lib/auth-secret'
+import { identity } from '@/modules/identity'
 
-// Le secret vient de l'environnement (SEC-02). Son absence arrête l'app au démarrage (src/instrumentation.ts) ;
-// Auth.js refuse aussi de signer une session sans lui.
+// Le secret vient de l'environnement, jamais du code (SEC-02) ; absent ou public, il est remplacé par un secret
+// aléatoire propre au processus (src/lib/auth-secret.ts).
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret: process.env.AUTH_SECRET,
+  secret: ensureAuthSecret(),
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',
@@ -17,26 +17,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Mot de passe', type: 'password' },
       },
-      async authorize(credentials) {
-        const email = typeof credentials?.email === 'string' ? credentials.email : null
-        const password =
-          typeof credentials?.password === 'string' ? credentials.password : null
-        if (!email || !password) return null
-
-        const result = await getPool().query<{
-          id: string
-          email: string
-          password_hash: string
-          role: 'employee' | 'manager' | 'hr_admin'
-        }>('SELECT id, email, password_hash, role FROM users WHERE email = $1', [email])
-        const user = result.rows[0]
-        if (!user) return null
-
-        const passwordMatches = await bcrypt.compare(password, user.password_hash)
-        if (!passwordMatches) return null
-
-        return { id: user.id, email: user.email, role: user.role }
-      },
+      // Vérification déléguée au module identity (comptes, mots de passe).
+      authorize: (credentials) => identity.verifyCredentials(credentials?.email, credentials?.password),
     }),
   ],
   callbacks: {
@@ -48,12 +30,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Le jeton est une photo prise à la connexion (SEC-10) : le rôle est relu en base à chaque requête, et un
       // compte supprimé perd sa session immédiatement.
       if (typeof token.id === 'string') {
-        const result = await getPool().query<{ role: 'employee' | 'manager' | 'hr_admin' }>(
-          'SELECT role FROM users WHERE id = $1',
-          [token.id]
-        )
-        if (!result.rows[0]) return null
-        token.role = result.rows[0].role
+        const role = await identity.currentRole(token.id)
+        if (!role) return null
+        token.role = role
       }
       return token
     },

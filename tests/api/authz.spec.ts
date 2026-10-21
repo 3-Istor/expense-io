@@ -11,7 +11,9 @@ import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { encode } from 'next-auth/jwt'
 import { expect, request as playwrightRequest, test, type APIRequestContext } from '@playwright/test'
+import { Pool, type PoolClient } from 'pg'
 import { closeDb, createCompany, createNote, createUser, db, login, type TestUser } from '../support/fixtures'
+import { TEST_ENV } from '../support/env'
 
 interface Company {
   hr: TestUser
@@ -161,6 +163,22 @@ test('T10 le RH ne voit rien d\'une autre entreprise', async () => {
   expect(res.status()).toBe(404)
 })
 
+test('T19 chaque décision garde sa trace : qui, quand', async () => {
+  const byManager = await createNote(A.employee.id)
+  const byHr = await createNote(A.manager2.id)
+  const before = new Date()
+  expect((await as.managerA.post(`/api/manager/expense-notes/${byManager}/approve`)).status()).toBe(200)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${byHr}/reject`)).status()).toBe(200)
+  const { rows } = await db().query(
+    'SELECT id, decided_by, decided_at FROM expense_notes WHERE id = ANY($1::uuid[])',
+    [[byManager, byHr]],
+  )
+  const trace = Object.fromEntries(rows.map((r) => [r.id, r]))
+  expect(trace[byManager].decided_by).toBe(A.manager.id)
+  expect(trace[byHr].decided_by).toBe(A.hr.id)
+  for (const id of [byManager, byHr]) expect(trace[id].decided_at.getTime()).toBeGreaterThanOrEqual(before.getTime() - 5000)
+})
+
 // ---------------------------------------------------------------- Failles connues (échecs attendus)
 
 test('T11 [SEC-03] un manager ne lit pas le reçu d\'une note hors de son équipe', async () => {
@@ -194,14 +212,21 @@ test('T13 [SEC-09] un corps JSON mal formé est refusé et ne détache pas le ma
   })
   const after = await db().query('SELECT manager_id FROM users WHERE id = $1', [employee.id])
   expect(after.rows[0].manager_id, 'le rattachement doit être intact').toBe(A.manager.id)
-  expect(res.status()).toBe(400)
+  // Contrat gelé (décision de Brian, 2026-10-21) : refus avec le 409 « manager invalide » déjà au contrat.
+  expect(res.status()).toBe(409)
 })
 
-test('T14 [SEC-01] le paramètre sort n\'accepte qu\'une liste blanche de tris', async () => {
-  // Tri booléen : la réponse dépend d'une sous-requête arbitraire, donc d'une donnée qu'on ne devrait pas lire.
+test('T14 [SEC-01] le paramètre sort n\'est jamais exécuté comme du SQL', async () => {
+  // Contrat gelé (décision de Brian, 2026-10-21) : un tri hors liste est ignoré (200, tri par défaut), pas refusé.
+  // Preuve que rien n'est exécuté : une division par zéro ferait échouer la requête SQL (500).
+  const crash = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent('(SELECT 1/0)')}`)
+  expect(crash.status()).toBe(200)
+  // Tri booléen sur une sous-requête : la réponse doit être exactement celle du tri par défaut.
   const injected = "(CASE WHEN (SELECT count(*) FROM users) > 0 THEN amount ELSE 0 END)"
   const res = await as.employeeA.get(`/api/expense-notes?sort=${encodeURIComponent(injected)}`)
-  expect(res.status()).toBe(400)
+  const byDefault = await as.employeeA.get('/api/expense-notes')
+  expect(res.status()).toBe(200)
+  expect(await ids(res)).toEqual(await ids(byDefault))
 })
 
 test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
@@ -209,7 +234,8 @@ test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', 
   const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
   expect(res.status()).toBe(500)
   const body = await res.json()
-  expect(body).not.toHaveProperty('stack')
+  // Contrat gelé (décision de Brian, 2026-10-21) : le champ `stack` reste, mais ne contient jamais la stacktrace.
+  expect(body.stack ?? '').toBe('')
   expect(JSON.stringify(body)).not.toContain('invalid input syntax')
 })
 
@@ -218,7 +244,8 @@ test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 50
   const res = await as.managerA.post('/api/manager/expense-notes/pas-un-uuid/approve')
   expect(res.status()).toBe(500)
   const body = await res.json()
-  expect(Object.keys(body).sort()).toEqual(['error', 'errorId'])
+  expect(Object.keys(body).sort()).toEqual(['error', 'errorId', 'stack'])
+  expect(body.stack).toBe('')
   expect(body.error).toBe('Erreur interne')
 })
 
@@ -237,10 +264,32 @@ test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux
   expect(results.every((successes) => successes === 1)).toBe(true)
 })
 
+// Connexion avec les identifiants de l'APPLICATION (DATABASE_URL), pas ceux des fixtures (administrateur).
+async function asApp<T>(run: (client: PoolClient) => Promise<T>): Promise<T> {
+  const pool = new Pool({ connectionString: TEST_ENV.DATABASE_URL, max: 1 })
+  const client = await pool.connect()
+  try {
+    return await run(client)
+  } finally {
+    client.release()
+    await pool.end()
+  }
+}
+
 test('T16 [SEC-05] l\'app ne se connecte pas avec un rôle qui ignore la RLS', async () => {
-  knownFlaw('SEC-05', 'la connexion se fait encore avec un superutilisateur : seules les transactions de withUserScope endossent expense_app (correctif complet : rôle de connexion dédié, à valider, voir QUESTIONS.md)')
-  const res = await db().query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user')
-  expect(res.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
+  const role = await asApp((c) => c.query('SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user'))
+  expect(role.rows[0]).toEqual({ rolsuper: false, rolbypassrls: false })
+})
+
+test('T16b [SEC-05] sans contexte utilisateur, la connexion de l\'app ne voit aucune note, même après RESET ROLE', async () => {
+  await createNote(A.employee.id)
+  const total = Number((await db().query('SELECT count(*) FROM expense_notes')).rows[0].count)
+  expect(total, 'contrôle : l\'administrateur voit des notes').toBeGreaterThan(0)
+  const seen = await asApp(async (c) => {
+    await c.query('RESET ROLE') // ce qu'une injection SQL tenterait pour sortir du rôle limité
+    return Number((await c.query('SELECT count(*) FROM expense_notes')).rows[0].count)
+  })
+  expect(seen).toBe(0)
 })
 
 test('T17 [SEC-05] chaque politique RLS des notes filtre aussi par entreprise', async () => {

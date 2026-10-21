@@ -13,7 +13,7 @@ install: ## Installe les dépendances npm
 
 env: ## Crée .env depuis .env.example si absent, génère AUTH_SECRET si besoin
 	@if [ ! -f .env ]; then cp .env.example .env; echo ".env créé depuis .env.example"; fi
-	@if ! grep -q '^AUTH_SECRET=.\{32,\}' .env; then \
+	@if ! grep -q '^AUTH_SECRET=.\{32,\}' .env || grep -q '^AUTH_SECRET=changeme' .env; then \
 		sed -i.bak '/^AUTH_SECRET=/d' .env && rm -f .env.bak; \
 		echo "AUTH_SECRET=$$(openssl rand -hex 32)" >> .env; echo "AUTH_SECRET généré dans .env"; fi
 

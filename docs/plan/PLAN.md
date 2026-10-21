@@ -43,10 +43,23 @@ Les 15 correctifs du document de vision, un commit chacun, chacun faisant passer
 Fiches d'audit au format : ID, titre, CWE, catégorie OWASP API Top 10, CVSS v4.0, preuve, correctif, statut.
 Politique de faux positifs appliquée (`docs/security/false-positives.md`).
 
-## Phase 3 — Architecture cible (agent seul)
+## Phase 3 — Architecture cible (agent seul, branche `phase-3/architecture`)
 
-Modules `expense-notes` et `identity`, machine à états, règles d'accès centrales, ports branchés, RFC 9457,
-contrat déclaré dans le code (ADR 0001), code mort supprimé, règles dependency-cruiser bloquantes, audit rejoué.
+Monolithe modulaire, hexagonale légère (`docs/vision.md`). Le contrat ne bouge pas, sauf ADR. Chaque tâche finit
+par les 67 tests d'API et la moulinette `pr` au vert.
+
+- [x] 3.1 Module `expense-notes` : domaine pur (note, machine à états, règles des valideurs), ports, cas d'usage,
+      adaptateurs (PostgreSQL, S3, OCR). Les 9 routes de notes deviennent minces (lire la requête, appeler le cas
+      d'usage, traduire le résultat). Critère : tests verts, `src/modules/expense-notes/domain` sans import technique.
+- [x] 3.2 Module `identity` : utilisateur, rôle, annuaire, rattachement de manager, appelant courant.
+      Critère : idem, les 3 routes RH utilisateurs et l'authentification passent par le module.
+- [x] 3.3 Trace des décisions : migration `decided_by`, `decided_at`, écrites par le cas d'usage de décision.
+      Critère : test qui lit la trace en base après une décision.
+- [x] 3.4 Code mort supprimé (ancienne façade `src/domain`, `src/ports`, `src/adapters`, `src/utils`) ; knip à 0 fichier
+      inutilisé, seuils resserrés. Règles dependency-cruiser des modules, S2 bloquant.
+- [-] 3.5 ~~Erreurs RFC 9457~~ : abandonnée, format `{error}` conservé (décision de Brian, risque sur la moulinette).
+- [x] 3.6 Contrat déclaré dans le code (ADR 0001) : schémas Zod, OpenAPI généré, la CI vérifie qu'il est à jour.
+- [x] 3.7 Audit « après » : `scripts/audit.sh docs/audit/apres`, comparaison avec « avant ».
 
 ## Phase 4 — Run, qualité et durabilité (agent seul)
 

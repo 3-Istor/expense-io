@@ -1,3 +1,3 @@
-import { decisionHandler } from '@/lib/approvals'
+import { decisionRoute } from '@/modules/expense-notes/http'
 
-export const POST = decisionHandler('hr', 'approved')
+export const POST = decisionRoute('hr', 'approved')

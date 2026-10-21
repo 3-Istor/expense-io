@@ -13,7 +13,6 @@ vi.mock('@/lib/db', () => ({
     }),
 }))
 vi.mock('@/lib/storage', () => ({
-  receiptKeyFor: (seq: number, ext: string) => `receipts/${seq}${ext}`,
   uploadReceipt: async () => {
     throw new Error('S3 indisponible')
   },

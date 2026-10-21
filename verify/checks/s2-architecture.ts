@@ -10,8 +10,8 @@ export const s2Architecture: Check = {
   title: "Règles d'architecture",
   risk: "Dérive : le domaine qui dépend de l'infrastructure, des cycles entre modules",
   levels: ['fast', 'pr', 'nightly'],
-  // Non bloquant jusqu'à la phase 3 (architecture cible), puis bloquant.
-  blocking: false,
+  // Bloquant depuis la phase 3 (tâche 3.4) : l'architecture cible est en place, toute régression arrête la PR.
+  blocking: true,
   async run() {
     const res = exec('npx', ['depcruise', 'src', '--config', '.dependency-cruiser.cjs', '--output-type', 'json'])
     let output: DepcruiseOutput

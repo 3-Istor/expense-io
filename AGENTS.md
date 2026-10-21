@@ -25,7 +25,8 @@ Ce fichier est une carte : il reste court. Le détail est dans `docs/`.
   ses droits : ne jamais supposer que l'UI ou une autre route a déjà filtré.
 - **Architecture cible** : monolithe modulaire, hexagonale légère (`docs/vision.md`).
   Le domaine n'importe ni `pg`, ni `next`, ni l'infrastructure.
-- **Secrets** : jamais dans le code, jamais lus par l'agent (`.env*` est interdit en lecture).
+- **Secrets** : jamais dans le code, jamais lus par l'agent (`.env` et ses variantes sont interdits en lecture ;
+  seul `.env.example`, qui ne contient que des valeurs de dev publiques, est lisible : décision de Brian, 2026-10-21).
 - **Tests** : ne jamais supprimer ni affaiblir un test pour le faire passer. Un test qui révèle une faille
   connue est marqué « échec attendu » avec la référence de la faille, jamais supprimé.
 - **Faux positifs** : ne jamais supprimer un constat d'outil sans raison, date d'expiration et preuve

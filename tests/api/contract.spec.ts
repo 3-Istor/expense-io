@@ -79,11 +79,12 @@ test.describe('GET /api/expense-notes?sort', () => {
     expect(amounts).toEqual([...amounts].sort((a, b) => a - b))
   })
 
-  test('400 : tri hors liste (ADR 0003)', async () => {
-    for (const sort of ['colonne_inexistante', 'amount; DROP TABLE users', '(SELECT 1)']) {
+  test('200 : tri hors liste ignoré, tri par défaut (contrat inchangé)', async () => {
+    const byDefault = ((await (await asEmployee.get('/api/expense-notes')).json()) as { id: string }[]).map((n) => n.id)
+    for (const sort of ['colonne_inexistante', 'amount; DROP TABLE users', '(SELECT 1/0)']) {
       const res = await asEmployee.get(`/api/expense-notes?sort=${encodeURIComponent(sort)}`)
-      expect(res.status(), sort).toBe(400)
-      expectError(await res.json())
+      expect(res.status(), sort).toBe(200)
+      expect(((await res.json()) as { id: string }[]).map((n) => n.id), sort).toEqual(byDefault)
     }
   })
 })
@@ -383,11 +384,11 @@ test.describe('PUT /api/hr/users/{id}/manager', () => {
     expect(await detached.json()).toMatchObject({ id: otherEmployee.id, managerId: null })
   })
 
-  test('400 : corps illisible ou managerId invalide (ADR 0002)', async () => {
+  test('409 : corps illisible ou managerId invalide, rien n\'est modifié (SEC-09, contrat inchangé)', async () => {
     const url = `/api/hr/users/${otherEmployee.id}/manager`
     for (const data of ['{ pas du json', { autre: 1 }, { managerId: 'pas-un-uuid' }, { managerId: 42 }]) {
       const res = await asHr.put(url, { headers: { 'content-type': 'application/json' }, data })
-      expect(res.status(), JSON.stringify(data)).toBe(400)
+      expect(res.status(), JSON.stringify(data)).toBe(409)
       expectError(await res.json())
     }
   })

@@ -10,15 +10,17 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CVSS v4.0** : 9.3 critique — `CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T18b (`tests/api/authz.spec.ts`) forge une session RH d'une autre entreprise avec le secret lu dans
   l'historique Git, et obtient l'annuaire (200). Semgrep `secret-en-dur` sur `src/lib/auth.ts:8`.
-- **Correctif** : `AUTH_SECRET` lu dans l'environnement ; `src/instrumentation.ts` signale au démarrage un secret
-  absent ou de moins de 32 caractères (`src/lib/auth-secret.ts`, test unitaire) ; `make env` en génère un aléatoire
-  dans `.env` ; les tests en génèrent un par exécution.
+- **Correctif** : `AUTH_SECRET` lu dans l'environnement, jamais dans le code (`src/lib/auth-secret.ts`, tests unitaires).
+  Décision de Brian (2026-10-21) : l'app doit démarrer sans configuration (moulinette des profs). Un secret absent,
+  ou égal à une valeur publique connue (l'ancien secret du dépôt, la valeur d'exemple de `.env.example`, repérés par
+  empreinte SHA-256), est remplacé par un secret aléatoire propre au processus, avec un avertissement. `make env` en
+  écrit un dans `.env`. Vérifié : app lancée sans `AUTH_SECRET`, connexion 302 puis liste 200.
 - **Reste à faire (humain)** : le secret publié reste dans l'historique Git pour toujours. Il ne protège plus rien
   puisqu'il n'est plus utilisé, mais tout environnement déployé avec lui doit changer de secret (les sessions
   existantes tombent). gitleaks le retrouvera dans l'historique (scan de nuit) : le marquer comme révoqué relève d'un
   humain (`false-positives.md`).
-- **Limite constatée** : en `next dev`, l'erreur de démarrage est journalisée mais le serveur continue ; Auth.js
-  refuse alors toute session. Comportement de `next start` à vérifier en phase 4 (Dockerfile).
+- **Limite** : sans `AUTH_SECRET` fixé, les sessions tombent à chaque redémarrage, et plusieurs instances n'auraient
+  pas le même secret. Sans effet pour la démo et la moulinette ; en production, fixer la variable.
 - **Statut** : corrigé, T18b vert sans marquage.
 
 ## SEC-07 — Stacktrace et détail SQL renvoyés au client ; erreurs qui échappent au catch
@@ -29,7 +31,8 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Preuve** : T14b (500 avec `stack` et « invalid input syntax for type uuid ») ; T14c, nouveau (500 au corps vide
   quand la route fait `return withUserScope(...)` sans `await`). Semgrep : `stacktrace-dans-la-reponse`,
   `promesse-renvoyee-sans-await-dans-try` ×7.
-- **Correctif** : `respondError` journalise l'erreur avec un identifiant et renvoie `{error: "Erreur interne", errorId}` ;
+- **Correctif** : `respondError` journalise l'erreur avec un identifiant et renvoie
+  `{error: "Erreur interne", errorId, stack: ""}` (`stack` gardé vide pour la forme du contrat) ;
   `return await withUserScope(...)` dans les 7 routes. Contrat : `stack` retiré des 500, comme annoncé dans
   `docs/contract.md` ; `errorId` ajouté (ajout de champ permis). Le format RFC 9457 reste à décider (ADR).
 - **Statut** : corrigé. T14b et T14c verts sans marquage ; Semgrep 16 → 8 constats, seuil du cliquet resserré à 8 ;
@@ -80,8 +83,9 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CWE** : CWE-20 (validation d'entrée incorrecte) · **API Top 10** : API8:2023
 - **CVSS v4.0** : 5.1 moyenne — `CVSS:4.0/AV:N/AC:L/AT:N/PR:H/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T13 (`manager_id` passé à `null` après un corps `{ pas du json`).
-- **Correctif** : corps validé strictement, 400 sinon (nouveau code : ADR 0002, statut proposé, à valider).
-- **Statut** : corrigé, T13 vert sans marquage, test de contrat 400 ajouté.
+- **Correctif** : corps validé strictement ; sinon 409 « Invalid manager », code déjà au contrat (l'ADR 0002, qui
+  proposait un 400, est rejeté : contrat gelé).
+- **Statut** : corrigé, T13 vert sans marquage, test de contrat ajouté.
 
 ## SEC-01 — Injection SQL par le paramètre `sort`
 
@@ -89,8 +93,9 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **CVSS v4.0** : 7.1 élevée — `CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:N/VC:H/VI:N/VA:N/SC:N/SI:N/SA:N`
 - **Preuve** : T14, tri booléen sur une sous-requête arbitraire accepté (200) : chaque réponse révèle un bit d'une
   donnée quelconque de la base (injection aveugle). Semgrep `sql-fragment-concatene`.
-- **Correctif** : liste fermée de tris, chacun lié à une requête constante ; autre valeur → 400 avant la base
-  (nouveau code : ADR 0003, statut proposé, à valider). Tests de contrat ajoutés : tri valide appliqué, tris refusés.
+- **Correctif** : liste fermée de tris, chacun lié à une requête constante ; toute autre valeur est ignorée (tri par
+  défaut, 200). L'ADR 0003, qui proposait un 400, est rejeté (contrat gelé). Tests : tri valide appliqué, tri hors liste
+  ignoré, `(SELECT 1/0)` injecté jamais exécuté.
 - **Statut** : corrigé, T14 vert sans marquage ; Semgrep 3 → 2.
 
 ## SEC-10 — Un rôle retiré en base reste actif tant que le jeton vit
@@ -109,14 +114,19 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   défense qui manque ; la gravité tient à ce que toute faille applicative devient une fuite inter-entreprises)
 - **Preuve** : T16 (rôle de connexion superutilisateur), T17 (8 politiques sans entreprise), T17b, nouveau : avec les
   anciennes politiques, le RH de B lit la note d'un manager de A sous un rôle soumis à la RLS (1 ligne au lieu de 0).
-- **Correctif, partie faite** : migration `1700000000002_rls-par-entreprise.sql` (réversible, testée up/down/up) :
-  rôle `expense_app` NOLOGIN, ni superuser ni BYPASSRLS, droits minimaux ; politiques qui comparent l'entreprise de
-  l'auteur à celle de l'appelant ; `withUserScope` endosse `expense_app` (`SET LOCAL ROLE`). Les 66 tests d'API
-  passent sous la RLS réelle.
-- **Reste à faire (décision humaine, voir QUESTIONS.md)** : se connecter avec un rôle dédié non superutilisateur
-  (mot de passe, donc secret et `.env`, interdits à l'agent) et passer sous `withUserScope` les requêtes restantes
-  (`getPool()` de la connexion Auth.js, de l'annuaire RH et de l'enregistrement du reçu).
-- **Statut** : partiellement corrigé. T17 et T17b verts ; T16 reste en échec attendu, avec un motif mis à jour.
+- **Correctif** :
+  1. migration `1700000000002` : rôle `expense_app` (ni superuser ni BYPASSRLS), politiques qui comparent l'entreprise,
+     `withUserScope` endosse ce rôle dans chaque transaction métier ;
+  2. migration `1700000000004` : compte de connexion `expense_app_login`, membre de `expense_app`, qui peut en plus
+     seulement lire et créer des comptes (connexion, inscription). L'app se connecte avec lui (`DATABASE_URL`),
+     l'administrateur ne sert plus qu'aux migrations et au seed (`DATABASE_ADMIN_URL`, `scripts/migrate.mjs`).
+     Mot de passe de développement public, comme celui de `docker-compose.yml` ; en production, le changer
+     (`ALTER ROLE`). Rétrocompatible : un ancien `.env` sans `DATABASE_ADMIN_URL` continue de marcher (connexion
+     administrateur, rôle limité endossé par transaction).
+- **Preuve** : T16 (compte de connexion ni superuser ni BYPASSRLS), T16b (sans contexte utilisateur et même après
+  `RESET ROLE`, la connexion de l'app voit 0 note ; avec l'ancienne connexion administrateur : 5 136), T17, T17b.
+  Les 69 tests d'API passent avec l'app connectée sous le compte limité.
+- **Statut** : corrigé, T16 vert sans marquage. Plus aucun test en échec attendu.
 
 ## SEC-12 — Note créée sans reçu si le stockage échoue
 

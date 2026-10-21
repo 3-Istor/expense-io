@@ -3,7 +3,9 @@ import { randomBytes } from 'node:crypto'
 // Environnement des tests d'API : valeurs de développement local, publiques (mêmes identifiants que
 // docker-compose.yml), jamais des secrets. Chaque variable peut être surchargée par l'environnement (CI).
 export const TEST_ENV = {
-  DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://expense:expense@localhost:5433/expense_io',
+  // L'app se connecte avec le compte limité (SEC-05) ; les fixtures écrivent avec le compte administrateur.
+  DATABASE_URL: process.env.DATABASE_URL ?? 'postgres://expense_app_login:expense_app@localhost:5433/expense_io',
+  DATABASE_ADMIN_URL: process.env.DATABASE_ADMIN_URL ?? 'postgres://expense:expense@localhost:5433/expense_io',
   S3_ENDPOINT: process.env.S3_ENDPOINT ?? 'http://localhost:4567',
   S3_REGION: process.env.S3_REGION ?? 'us-east-1',
   S3_BUCKET: process.env.S3_BUCKET ?? 'receipts',

@@ -24,6 +24,6 @@ if ! curl -s -o /dev/null http://localhost:4567/; then
 fi
 export DATABASE_URL=postgres://expense:expense@localhost:5433/expense_io S3_ENDPOINT=http://localhost:4567 \
   S3_ACCESS_KEY_ID=test S3_SECRET_ACCESS_KEY=test S3_REGION=us-east-1 S3_BUCKET=receipts
-npx node-pg-migrate up -m migrations > /dev/null
+node scripts/migrate.mjs up > /dev/null
 node scripts/ensure-bucket.mjs > /dev/null
 echo "Postgres :5433 et S3 :4567 prêts, migrations appliquées."
