@@ -12,7 +12,8 @@ const EXTENSION_BY_MIME: Record<string, string> = {
 export type ReceiptRefusal = 'type-not-allowed' | 'too-large'
 
 export function checkReceipt(receipt: { type: string; size: number }): ReceiptRefusal | null {
-  if (!(receipt.type in EXTENSION_BY_MIME)) return 'type-not-allowed'
+  // Object.hasOwn et non `in` : `in` accepterait toString ou constructor (prototype).
+  if (!Object.hasOwn(EXTENSION_BY_MIME, receipt.type)) return 'type-not-allowed'
   if (receipt.size > MAX_RECEIPT_BYTES) return 'too-large'
   return null
 }

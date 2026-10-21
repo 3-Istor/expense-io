@@ -5,8 +5,11 @@ import type { ExpenseNote } from '@/modules/expense-notes/domain/expense-note'
 import type { ExpenseNoteRepository } from '@/modules/expense-notes/ports'
 import { AppError } from '@/shared/app-error'
 
+// Identifiant réaliste : un id qui n'est pas un UUID est rejeté d'emblée (404) par les cas d'usage.
+const NOTE_ID = '6f1c2a9e-3b4d-4c5e-8f70-1a2b3c4d5e6f'
+
 const note = (over: Partial<ExpenseNote> = {}): ExpenseNote => ({
-  id: 'n1',
+  id: NOTE_ID,
   userId: 'employe',
   amount: 10,
   expenseDate: '2026-10-01',
@@ -38,24 +41,24 @@ const manager = { userId: 'manager', role: 'manager' as const }
 describe('décider d\'une note', () => {
   it('refuse un appelant qui n\'a pas le rôle attendu', async () => {
     const { useCases } = setup({})
-    expect(await kindOf(useCases.decide({ userId: 'e', role: 'employee' }, 'manager', 'n1', 'approved'))).toBe('denied')
-    expect(await kindOf(useCases.decide(manager, 'hr', 'n1', 'approved'))).toBe('denied')
+    expect(await kindOf(useCases.decide({ userId: 'e', role: 'employee' }, 'manager', NOTE_ID, 'approved'))).toBe('denied')
+    expect(await kindOf(useCases.decide(manager, 'hr', NOTE_ID, 'approved'))).toBe('denied')
   })
   it('404 hors périmètre, 409 si déjà décidée', async () => {
-    expect(await kindOf(setup({ findInScope: async () => null }).useCases.decide(manager, 'manager', 'n1', 'approved'))).toBe('not-found')
+    expect(await kindOf(setup({ findInScope: async () => null }).useCases.decide(manager, 'manager', NOTE_ID, 'approved'))).toBe('not-found')
     const decided = setup({ findInScope: async () => note({ status: 'approved' }) })
-    expect(await kindOf(decided.useCases.decide(manager, 'manager', 'n1', 'rejected'))).toBe('conflict')
+    expect(await kindOf(decided.useCases.decide(manager, 'manager', NOTE_ID, 'rejected'))).toBe('conflict')
   })
   it('409 si une autre requête a décidé entre la lecture et l\'écriture (SEC-08)', async () => {
     const { useCases } = setup({ findInScope: async () => note(), saveDecision: async () => null })
-    expect(await kindOf(useCases.decide(manager, 'manager', 'n1', 'approved'))).toBe('conflict')
+    expect(await kindOf(useCases.decide(manager, 'manager', NOTE_ID, 'approved'))).toBe('conflict')
   })
   it('renvoie la note décidée', async () => {
     const { useCases } = setup({
       findInScope: async () => note(),
       saveDecision: async (_c, _k, _id, decision) => note({ status: decision }),
     })
-    expect((await useCases.decide(manager, 'manager', 'n1', 'rejected')).status).toBe('rejected')
+    expect((await useCases.decide(manager, 'manager', NOTE_ID, 'rejected')).status).toBe('rejected')
   })
 })
 
@@ -93,13 +96,13 @@ describe('cas d\'usage expense-notes : lecture, reçus, OCR (tests de mutation)'
     expect(sorts).toEqual([{ column: 'amount', direction: 'DESC' }, { column: 'created_at', direction: 'DESC' }])
   })
   it('URL de son reçu : signée si la note est à soi, 404 sinon', async () => {
-    expect(await setup({ findOwn: async () => note() }).useCases.ownReceiptUrl(employee, 'n1')).toBe('https://s3/receipts/1.png')
-    expect(await kindOf(setup({ findOwn: async () => null }).useCases.ownReceiptUrl(employee, 'n1'))).toBe('not-found')
+    expect(await setup({ findOwn: async () => note() }).useCases.ownReceiptUrl(employee, NOTE_ID)).toBe('https://s3/receipts/1.png')
+    expect(await kindOf(setup({ findOwn: async () => null }).useCases.ownReceiptUrl(employee, NOTE_ID))).toBe('not-found')
   })
   it('URL d\'un reçu pour un valideur : dans son périmètre seulement', async () => {
     const inScope = setup({ findInScope: async () => note() })
-    expect(await inScope.useCases.approverReceiptUrl(manager, 'manager', 'n1')).toBe('https://s3/receipts/1.png')
-    expect(await kindOf(setup({ findInScope: async () => null }).useCases.approverReceiptUrl(manager, 'manager', 'n1'))).toBe('not-found')
+    expect(await inScope.useCases.approverReceiptUrl(manager, 'manager', NOTE_ID)).toBe('https://s3/receipts/1.png')
+    expect(await kindOf(setup({ findInScope: async () => null }).useCases.approverReceiptUrl(manager, 'manager', NOTE_ID))).toBe('not-found')
   })
   it('liste des notes en attente : passe le type de valideur au dépôt', async () => {
     const kinds: unknown[] = []
@@ -122,10 +125,22 @@ describe('cas d\'usage expense-notes : lecture, reçus, OCR (tests de mutation)'
   })
   it('décision : sa propre note est introuvable (404), messages exacts du contrat', async () => {
     const own = setup({ findInScope: async () => note({ userId: 'manager' }) })
-    expect(await kindOf(own.useCases.decide(manager, 'manager', 'n1', 'approved'))).toBe('not-found')
+    expect(await kindOf(own.useCases.decide(manager, 'manager', NOTE_ID, 'approved'))).toBe('not-found')
     const decided = setup({ findInScope: async () => note({ status: 'approved' }) })
-    expect(await message(decided.useCases.decide(manager, 'manager', 'n1', 'rejected'))).toBe('Already decided')
+    expect(await message(decided.useCases.decide(manager, 'manager', NOTE_ID, 'rejected'))).toBe('Already decided')
     const raced = setup({ findInScope: async () => note(), saveDecision: async () => null })
-    expect(await message(raced.useCases.decide(manager, 'manager', 'n1', 'approved'))).toBe('Already decided')
+    expect(await message(raced.useCases.decide(manager, 'manager', NOTE_ID, 'approved'))).toBe('Already decided')
+  })
+})
+
+describe('identifiant mal formé (trouvé par fuzzing : 500 avant)', () => {
+  it('404 sans interroger la base', async () => {
+    let queried = false
+    const spy = async () => ((queried = true), null)
+    const { useCases } = setup({ findOwn: spy, findInScope: spy })
+    expect(await kindOf(useCases.ownReceiptUrl({ userId: 'e' }, 'pas-un-uuid'))).toBe('not-found')
+    expect(await kindOf(useCases.approverReceiptUrl(manager, 'manager', "1' OR '1'='1"))).toBe('not-found')
+    expect(await kindOf(useCases.decide(manager, 'manager', '', 'approved'))).toBe('not-found')
+    expect(queried).toBe(false)
   })
 })

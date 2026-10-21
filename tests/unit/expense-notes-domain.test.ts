@@ -41,6 +41,9 @@ describe('saisie d\'une note', () => {
   it('n\'accepte que png, jpeg, webp et pdf de 10 Mo au plus', () => {
     expect(checkReceipt({ type: 'image/png', size: 10 * 1024 * 1024 })).toBeNull()
     expect(checkReceipt({ type: 'text/plain', size: 1 })).toBe('type-not-allowed')
+    // Noms hérités du prototype : refusés (même piège que le plafond par catégorie en répétition).
+    expect(checkReceipt({ type: 'toString', size: 1 })).toBe('type-not-allowed')
+    expect(checkReceipt({ type: 'constructor', size: 1 })).toBe('type-not-allowed')
     expect(checkReceipt({ type: 'application/pdf', size: 10 * 1024 * 1024 + 1 })).toBe('too-large')
     expect(receiptKeyFor(42, 'image/jpeg')).toBe('receipts/42.jpg')
   })
@@ -56,6 +59,21 @@ describe('tri de la liste (SEC-01)', () => {
     for (const sort of ['password_hash', 'amount; DROP TABLE users', '(SELECT 1)', 'amount ASC, id']) {
       expect(parseSort(sort)).toBeNull()
     }
+  })
+})
+
+describe('bornes de la base (trouvées par le fuzzing : 500 avant)', () => {
+  const ok = { amount: '12.5', expenseDate: '2026-10-01', description: 'Taxi' }
+  it('refuse une date qui n\'existe pas ou mal formée', () => {
+    for (const expenseDate of ['2026-13-45', '2026-02-30', '2026-1-01', '01/10/2026', '2026-10-01T00:00:00Z', '']) {
+      expect(validateNewNote({ ...ok, expenseDate }), expenseDate).toBeNull()
+    }
+    expect(validateNewNote({ ...ok, expenseDate: '2024-02-29' })?.expenseDate).toBe('2024-02-29') // bissextile
+  })
+  it('refuse un montant au-delà de la colonne numeric(10,2)', () => {
+    expect(validateNewNote({ ...ok, amount: '99999999.99' })?.amount).toBe(99_999_999.99)
+    expect(validateNewNote({ ...ok, amount: '100000000' })).toBeNull()
+    expect(validateNewNote({ ...ok, amount: '1e20' })).toBeNull()
   })
 })
 

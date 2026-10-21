@@ -13,6 +13,11 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
 - [ ] 2026-10-20 — Relecture des tests « échec attendu » (`tests/api/authz.spec.ts`, T11 à T18) : écrits en
       autonomie. Un test « échec attendu » décrit le comportement CORRECT et échoue tant que la faille existe ; si
       l'attendu est faux, le correctif le sera aussi. À parcourir une fois (10 min) avant de merger la phase 1.
+- [ ] 2026-10-21 — Montant laxiste, trouvé par le fuzzing (Schemathesis) : l'app lit le montant avec `parseFloat`
+      depuis l'origine, donc « 8* » est accepté et vaut 8, « 12abc » vaut 12, « 1.999 » est arrondi par la base.
+      Options : (a) garder tel quel ; (b) refuser tout montant qui n'est pas un décimal propre (400). (b) change un
+      succès en erreur pour ces entrées, donc touche le contrat : question pour les profs
+      (`questions-profs.md`, Q10). Option prudente retenue : (a), la spec décrit l'existant (pas de motif strict). Réversible.
 
 ## Fermées
 

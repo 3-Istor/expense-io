@@ -23,7 +23,8 @@
     "sonar": "sonar-scanner",
     "risk": "tsx verify/risk-cli.ts",
     "test:mutation": "stryker run",
-    "test:coverage:api": "scripts/coverage-api.sh"
+    "test:coverage:api": "scripts/coverage-api.sh",
+    "test:fuzz": "scripts/fuzz.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",

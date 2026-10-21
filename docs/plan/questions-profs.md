@@ -47,6 +47,11 @@ La clé du reçu est prévisible (`receipts/42.png`) : on devine celle des autre
 clé aléatoire, ce qui change la valeur du champ.
 *En attendant : format inchangé.*
 
+**Q10. Peut-on refuser un montant mal formé (« 8* », « 12abc ») ?**
+L'app d'origine lit le montant avec `parseFloat` : « 8* » est accepté et enregistré comme 8. Le refuser (400) est
+plus sûr mais transforme un succès en erreur pour ces entrées.
+*En attendant : comportement d'origine gardé, la spec le décrit tel quel.*
+
 ## Évaluation
 
 **Q8. Qu'attendent exactement les tests Sonar et « kube » ?**

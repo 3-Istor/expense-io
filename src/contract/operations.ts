@@ -69,8 +69,13 @@ registry.registerPath({
       content: {
         'multipart/form-data': {
           schema: z.object({
-            amount: z.string().openapi({ description: 'Nombre strictement positif' }),
-            expenseDate: z.string().openapi({ description: 'Date AAAA-MM-JJ' }),
+            // La spec décrit ce que l'app accepte déjà (validation du domaine) : précision, pas changement de contrat.
+            // Pas de motif strict : l'app lit le montant avec parseFloat depuis l'origine (« 8* » vaut 8). Le durcir
+            // changerait un succès en erreur : question au prof (docs/plan/QUESTIONS.md, montant laxiste).
+            amount: z
+              .string()
+              .openapi({ description: 'Nombre strictement positif, au plus 99 999 999,99', example: '42.50' }),
+            expenseDate: z.iso.date().openapi({ description: 'Date du calendrier, AAAA-MM-JJ', example: '2026-10-01' }),
             description: z.string().min(1),
             receipt: receipt.openapi({ description: 'png, jpeg, webp ou pdf, 10 Mo au plus' }),
           }),

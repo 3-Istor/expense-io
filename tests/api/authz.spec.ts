@@ -229,24 +229,33 @@ test('T14 [SEC-01] le paramètre sort n\'est jamais exécuté comme du SQL', asy
   expect(await ids(res)).toEqual(await ids(byDefault))
 })
 
-test('T14b [SEC-07] une erreur serveur n\'expose ni stacktrace ni détail SQL', async () => {
-  // Un identifiant qui n'est pas un UUID fait lever une erreur PostgreSQL, rattrapée par respondError.
-  const res = await as.employeeA.get('/api/expense-notes/pas-un-uuid/receipt-url')
-  expect(res.status()).toBe(500)
-  const body = await res.json()
-  // Contrat gelé (décision de Brian, 2026-10-21) : le champ `stack` reste, mais ne contient jamais la stacktrace.
-  expect(body.stack ?? '').toBe('')
-  expect(JSON.stringify(body)).not.toContain('invalid input syntax')
+test('T14b [SEC-07] une entrée qui faisait planter la base reçoit un 404 générique, sans détail interne', async () => {
+  // Avant : un id qui n'est pas un UUID levait une erreur PostgreSQL (500 avec stacktrace, puis 500 générique). Le
+  // fuzzing (Schemathesis) l'a montré : c'est une entrée invalide, pas une panne. Le 500 générique lui-même est testé
+  // dans tests/unit/http.test.ts, et le fuzzing vérifie qu'aucune requête du contrat n'en produit plus.
+  for (const [client, url] of [
+    [as.employeeA, '/api/expense-notes/pas-un-uuid/receipt-url'],
+    [as.managerA, '/api/manager/expense-notes/pas-un-uuid/receipt-url'],
+    [as.hrA, '/api/hr/expense-notes/pas-un-uuid/receipt-url'],
+  ] as const) {
+    const res = await client.get(url)
+    expect(res.status(), url).toBe(404)
+    const body = await res.json()
+    expect(Object.keys(body)).toEqual(['error'])
+    expect(JSON.stringify(body)).not.toMatch(/invalid input syntax|uuid|stack/i)
+  }
 })
 
-test('T14c [SEC-07] une erreur dans une route à transaction renvoie aussi un 500 JSON générique', async () => {
-  // Avant : `return withUserScope(...)` sans await laissait l'erreur échapper au catch (500 au corps vide).
-  const res = await as.managerA.post('/api/manager/expense-notes/pas-un-uuid/approve')
-  expect(res.status()).toBe(500)
-  const body = await res.json()
-  expect(Object.keys(body).sort()).toEqual(['error', 'errorId', 'stack'])
-  expect(body.stack).toBe('')
-  expect(body.error).toBe('Erreur interne')
+test('T14c [SEC-07] même chose pour les routes qui écrivent (décisions, rattachement)', async () => {
+  for (const [client, method, url] of [
+    [as.managerA, 'post', '/api/manager/expense-notes/pas-un-uuid/approve'],
+    [as.hrA, 'post', '/api/hr/expense-notes/pas-un-uuid/reject'],
+    [as.hrA, 'put', '/api/hr/users/pas-un-uuid/manager'],
+  ] as const) {
+    const res = await client[method](url, { data: { managerId: null } })
+    expect(res.status(), url).toBe(404)
+    expect(Object.keys(await res.json())).toEqual(['error'])
+  }
 })
 
 test('T15 [SEC-08] une note ne peut être décidée qu\'une fois, même par deux requêtes simultanées', async () => {

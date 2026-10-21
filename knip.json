@@ -3,6 +3,7 @@
   "entry": [
     ".claude/hooks/*.mjs",
     "vitest.unit.config.ts",
-    "scripts/coverage-report.mjs"
+    "scripts/coverage-report.mjs",
+    "scripts/session-cookie.mjs"
   ]
 }

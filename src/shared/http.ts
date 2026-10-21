@@ -2,7 +2,7 @@
 import { respondError } from '@/lib/errors'
 import { log } from '@/lib/logger'
 import type { ExpenseNoteJson } from '@/contract/schemas'
-import { AppError, type AppErrorKind } from './app-error'
+import { AppError, invalid, type AppErrorKind } from './app-error'
 
 /**
  * Code renvoyé à un appelant sans session ou sans le bon rôle. Le contrat actuel diffère selon les routes :
@@ -38,6 +38,15 @@ export async function handle(operation: string, deniedStatus: DeniedStatus, run:
     durationMs: Math.round(performance.now() - started),
   })
   return response
+}
+
+/** Formulaire multipart ; un corps illisible ou d'un autre type est une entrée invalide (400), pas une panne (500). */
+export async function readForm(request: Request): Promise<FormData> {
+  try {
+    return await request.formData()
+  } catch {
+    throw invalid()
+  }
 }
 
 /** Reçu lu dans un formulaire multipart, ou null si le champ n'est pas un fichier. */

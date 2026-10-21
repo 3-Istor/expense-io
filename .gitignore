@@ -53,3 +53,4 @@ next-env.d.ts
 # Tests de mutation
 /.stryker-tmp
 /reports
+/.schemathesis
