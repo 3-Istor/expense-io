@@ -6,6 +6,7 @@ import {
   ExpenseNote,
   InternalError,
   ManagerAssignment,
+  Problem,
   ReceiptSuggestion,
   ReceiptUrl,
   User,
@@ -24,13 +25,19 @@ const json = <T extends z.ZodType>(schema: T, description: string) => ({
   description,
   content: { 'application/json': { schema } },
 })
+// Une erreur a deux représentations (ADR 0005) : `{ error }` par défaut, RFC 9457 si le client envoie
+// `Accept: application/problem+json`.
+const failure = <T extends z.ZodType>(schema: T, description: string) => ({
+  description,
+  content: { 'application/json': { schema }, 'application/problem+json': { schema: Problem } },
+})
 const errors = {
-  400: json(ErrorBody, 'Champs invalides'),
-  401: json(ErrorBody, 'Pas de session, ou rôle insuffisant pour les routes manager'),
-  403: json(ErrorBody, 'Pas de session ou rôle autre que hr_admin'),
-  404: json(ErrorBody, "Introuvable ou hors du périmètre de l'appelant"),
-  409: json(ErrorBody, 'Note déjà décidée, ou manager invalide (y compris un corps illisible)'),
-  500: json(InternalError, 'Erreur inattendue'),
+  400: failure(ErrorBody, 'Champs invalides'),
+  401: failure(ErrorBody, 'Pas de session, ou rôle insuffisant pour les routes manager'),
+  403: failure(ErrorBody, 'Pas de session ou rôle autre que hr_admin'),
+  404: failure(ErrorBody, "Introuvable ou hors du périmètre de l'appelant"),
+  409: failure(ErrorBody, 'Note déjà décidée, ou manager invalide (y compris un corps illisible)'),
+  500: failure(InternalError, 'Erreur inattendue'),
 }
 const pick = <K extends keyof typeof errors>(...codes: K[]) => Object.fromEntries(codes.map((c) => [c, errors[c]]))
 

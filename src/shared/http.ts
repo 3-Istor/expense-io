@@ -1,8 +1,10 @@
 // Adaptateur HTTP commun aux routes : appelant courant, traduction des erreurs, formats JSON du contrat.
+import { headers } from 'next/headers'
 import { respondError } from '@/lib/errors'
 import { log } from '@/lib/logger'
 import type { ExpenseNoteJson } from '@/contract/schemas'
 import { AppError, invalid, type AppErrorKind } from './app-error'
+import { errorResponse, wantsProblem } from './problem'
 
 /**
  * Code renvoyé à un appelant sans session ou sans le bon rôle. Le contrat actuel diffère selon les routes :
@@ -10,9 +12,8 @@ import { AppError, invalid, type AppErrorKind } from './app-error'
  */
 export type DeniedStatus = 401 | 403
 
-// Format des erreurs : `{ error }` en application/json, conservé à l'identique. Le format RFC 9457
-// (application/problem+json) a été écarté volontairement : les tests cachés de la moulinette des profs vérifient
-// peut-être le format actuel (décision de Brian, 2026-10-20, docs/plan/QUESTIONS.md).
+// Format des erreurs (ADR 0005) : `{ error }` en application/json par défaut, à l'identique ; RFC 9457
+// (application/problem+json) quand le client le demande par `Accept`. Les clients existants ne voient aucune différence.
 const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 'not-found': 404, conflict: 409 }
 
 /**
@@ -25,11 +26,13 @@ export async function handle(operation: string, deniedStatus: DeniedStatus, run:
   try {
     response = await run()
   } catch (error) {
+    const problem = wantsProblem(await acceptHeader())
     if (error instanceof AppError) {
       const status = error.kind === 'denied' ? deniedStatus : STATUS[error.kind]
-      response = Response.json({ error: error.message }, { status })
+      const kind = error.kind === 'denied' ? (deniedStatus === 401 ? 'unauthenticated' : 'forbidden') : error.kind
+      response = errorResponse(status, kind, error.message, { problem })
     } else {
-      response = respondError(error)
+      response = respondError(error, problem)
     }
   }
   log(response.status >= 500 ? 'error' : 'info', 'requête API', {
@@ -38,6 +41,15 @@ export async function handle(operation: string, deniedStatus: DeniedStatus, run:
     durationMs: Math.round(performance.now() - started),
   })
   return response
+}
+
+/** En-tête Accept de la requête en cours ; null hors requête (tests unitaires, scripts). */
+async function acceptHeader(): Promise<string | null> {
+  try {
+    return (await headers()).get('accept')
+  } catch {
+    return null
+  }
 }
 
 /** Formulaire multipart ; un corps illisible ou d'un autre type est une entrée invalide (400), pas une panne (500). */

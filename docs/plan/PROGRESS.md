@@ -267,3 +267,9 @@ Synthèse : `docs/test-strategy.md`.
   (`docs/evidence/`, `scripts/evidence.sh`), skill `write-ticket`.
 - Hook Git `pre-commit` pour tous les clients (`make hooks`) ; vision sans Kubernetes.
 - Preuves : moulinette `pr` VERTE (S1 à S10), 93 tests unitaires.
+
+## 2026-10-26 — T-0003 : erreurs RFC 9457 négociées (branche `phase-6/erreurs-rfc-9457`, empilée sur 6.3)
+
+- RFC 9457 servie quand le client envoie `Accept: application/problem+json` ; format `{ error }` inchangé sinon (ADR 0005).
+- Contrat 1.1.0 : oasdiff classe le changement en ajout (43 `response-media-type-added`, 0 rupture).
+- Preuves : 226 tests d'API (dont 6 nouveaux), 97 unitaires, moulinette `pr` verte. Fusion après la réponse à A2.

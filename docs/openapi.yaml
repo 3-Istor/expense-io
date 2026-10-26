@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
     Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.
@@ -82,6 +82,41 @@ components:
       required:
         - error
       additionalProperties: false
+    Problem:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Identifiant stable du type de problème
+          example: urn:expense-io:problem:not-found
+        title:
+          type: string
+          description: Résumé lisible du type de problème
+        status:
+          type: integer
+          description: Égal au code HTTP de la réponse
+        detail:
+          type: string
+          description: Explication propre à cette occurrence
+        error:
+          type: string
+          description: Même texte que `detail`, gardé pour les clients du format historique
+        errorId:
+          type: string
+          format: uuid
+          description: "Erreur 500 : identifiant dans les journaux"
+        stack:
+          type: string
+          maxLength: 0
+          description: "Erreur 500 : toujours vide (SEC-07)"
+      required:
+        - type
+        - title
+        - status
+        - detail
+        - error
+      additionalProperties: false
+      description: Problem Details (RFC 9457), servi en application/problem+json sur demande.
     InternalError:
       type: object
       properties:
@@ -178,12 +213,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - notes
@@ -230,18 +271,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Pas de session, ou rôle insuffisant pour les routes manager
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/expense-notes/{id}/receipt-url:
     get:
       tags:
@@ -268,18 +318,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/expense-notes/receipt-suggestion:
     post:
       tags:
@@ -311,18 +370,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Pas de session, ou rôle insuffisant pour les routes manager
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/manager/expense-notes:
     get:
       tags:
@@ -344,12 +412,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/manager/expense-notes/{id}/approve:
     post:
       tags:
@@ -376,24 +450,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/manager/expense-notes/{id}/reject:
     post:
       tags:
@@ -420,24 +506,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/manager/expense-notes/{id}/receipt-url:
     get:
       tags:
@@ -464,18 +562,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/expense-notes:
     get:
       tags:
@@ -497,12 +604,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/expense-notes/{id}/approve:
     post:
       tags:
@@ -529,24 +642,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/expense-notes/{id}/reject:
     post:
       tags:
@@ -573,24 +698,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/expense-notes/{id}/receipt-url:
     get:
       tags:
@@ -617,18 +754,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/users:
     get:
       tags:
@@ -650,12 +796,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /api/hr/users/{id}/manager:
     put:
       tags:
@@ -696,22 +848,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
           description: Note déjà décidée, ou manager invalide (y compris un corps illisible)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "500":
           description: Erreur inattendue
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 webhooks: {}
