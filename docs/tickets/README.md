@@ -56,3 +56,4 @@ Ce qui a été appris en route.
 | [T-0009](T-0009-actions-node-24.md) | todo | 3 | Actions GitHub sur Node 24 |
 | [T-0010](T-0010-harden-runner-blocage.md) | todo | 3 | Bloquer le trafic sortant inconnu des runners |
 | [T-0011](T-0011-next-16-4-3.md) | done | 3 | Next.js 16.4.3 et chaîne d'approvisionnement |
+| [T-0012](T-0012-analyse-image-bloquante.md) | todo | 3 | Analyse de l'image bloquante sur ce qui se corrige |
