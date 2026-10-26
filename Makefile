@@ -3,14 +3,18 @@ SHELL := /bin/bash
 
 COMPOSE := docker compose
 
-.PHONY: help install env up down restart logs migrate ensure-bucket seed dev build start lint typecheck clean sonar-up sonar
+.PHONY: help hooks install env up down restart logs migrate ensure-bucket seed dev build start lint typecheck clean sonar-up sonar
 
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
+hooks: ## Active le hook Git qui refuse un commit si la moulinette rapide est rouge (tous les clients)
+	git config core.hooksPath .githooks
+
 install: ## Installe les dépendances npm (lockfile, scripts d'installation coupés) et les outils de la moulinette
 	npm ci
 	bash scripts/install-tools.sh "$$HOME/.local/bin"
+	git config core.hooksPath .githooks
 
 env: ## Crée .env depuis .env.example si absent, génère AUTH_SECRET si besoin
 	@if [ ! -f .env ]; then cp .env.example .env; echo ".env créé depuis .env.example"; fi

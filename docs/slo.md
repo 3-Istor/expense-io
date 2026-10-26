@@ -46,5 +46,5 @@ jq -s '[.[] | select(.msg == "requête API" and .operation != "suggestFromReceip
 ## Limites assumées
 
 - Pas de mesure de bout en bout côté navigateur, et pas de traçage distribué (monolithe, choix assumé).
-- Le comptage repose sur les journaux de l'app : une panne complète (aucune ligne) se détecte par les sondes
-  Kubernetes (`/login`) et doit compter comme indisponibilité dans l'outil de supervision.
+- Le comptage repose sur les journaux de l'app : une panne complète (aucune ligne) se détecte par la sonde
+  du conteneur (`HEALTHCHECK` sur `/login`) et doit compter comme indisponibilité dans l'outil de supervision.

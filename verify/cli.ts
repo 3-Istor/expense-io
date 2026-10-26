@@ -11,9 +11,10 @@ import { s6Sast } from './checks/s6-sast'
 import { s7Deploy } from './checks/s7-deploy'
 import { s8Risk } from './checks/s8-risk'
 import { s9SupplyChain } from './checks/s9-supply-chain'
+import { s10AgentDocs } from './checks/s10-agent-docs'
 import type { Check, CheckResult, Level } from './types'
 
-const CHECKS: Check[] = [s1TypesLint, s2Architecture, s3Secrets, s4DeadDup, s5Contract, s6Sast, s7Deploy, s8Risk, s9SupplyChain]
+const CHECKS: Check[] = [s1TypesLint, s2Architecture, s3Secrets, s4DeadDup, s5Contract, s6Sast, s7Deploy, s8Risk, s9SupplyChain, s10AgentDocs]
 const ICON: Record<CheckResult['status'], string> = { pass: 'OK', fail: 'ÉCHEC', warn: 'ATTENTION', skip: 'NON EXÉCUTÉ' }
 
 function parseArgs(argv: string[]): { level: Level; record: boolean } {
