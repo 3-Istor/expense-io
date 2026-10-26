@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Hook Git (tous les clients : humain, Claude Code, Codex, Cursor…) : pas de commit si la moulinette rapide est rouge.
+# Installé par `make hooks` (git config core.hooksPath .githooks). Claude Code lance en plus le niveau pr
+# (.claude/hooks/guard-commit.mjs). Contourner (--no-verify) se voit : la CI rejoue tout.
+set -euo pipefail
+if ! npm run -s verify -- --level fast > /dev/null 2>&1; then
+  echo "Commit refusé : la moulinette (niveau fast) est ROUGE." >&2
+  cat verify-summary.md >&2 2>/dev/null || true
+  exit 1
+fi

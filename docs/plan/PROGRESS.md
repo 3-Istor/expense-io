@@ -256,3 +256,14 @@ Synthèse : `docs/test-strategy.md`.
 - Contrat publié en 1.0.0 (`src/contract/version.ts`). Skill `contract-change` ; `add-feature` y renvoie.
 - Preuve : six scénarios rejoués contre S5 (ajout sans version, sans changelog, rupture en mineure, rupture sans ADR :
   refusés ; ajout en mineure, rupture en majeure avec ADR : acceptés).
+
+## 2026-10-26 — Phase 6.3 : harnais « IA-ready » (branche `phase-6/harnais-ia-ready`, empilée sur 6.2)
+
+- `AGENTS.md` réécrit en carte (93 lignes) : boucle de vérification, carte des modules, skills ; plus d'instruction
+  périmée. `docs/harness.md` : chaque pièce reliée à sa source (Böckeler, OpenAI, Anthropic, Stack, Backlog.md).
+- S10 : les guides de l'agent sont confrontés au dépôt (chemins, scripts npm, cibles make, skills, « à venir ») ;
+  format des tickets ; un ticket « done » exige des critères cochés et une preuve.
+- Tickets dans le dépôt (`docs/tickets/`, 11 tickets issus de l'audit et de la revue), preuves
+  (`docs/evidence/`, `scripts/evidence.sh`), skill `write-ticket`.
+- Hook Git `pre-commit` pour tous les clients (`make hooks`) ; vision sans Kubernetes.
+- Preuves : moulinette `pr` VERTE (S1 à S10), 93 tests unitaires.
