@@ -74,7 +74,7 @@ jobs:
         run: npm run verify -- --level nightly
       - name: Tests de mutation (Stryker, seuil 95 %)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
-        run: npm run test:mutation
+        run: scripts/ci-run.sh Mutation npm run test:mutation
       # Le contrat fuzzé contre le build de production, un passage par rôle (scripts/fuzz.sh).
       - name: Fuzzing du contrat (Schemathesis)
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
@@ -82,7 +82,7 @@ jobs:
           npm run build
           AUTH_TRUST_HOST=true npm run start > /tmp/app.log 2>&1 &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/login && break; sleep 2; done
-          npm run test:fuzz -- 30
+          scripts/ci-run.sh Fuzzing npm run test:fuzz -- 30
       - name: Secrets dans tout l'historique Git (informatif, SEC-02 y restera)
         if: ${{ !cancelled() }}
         continue-on-error: true
