@@ -1,0 +1,44 @@
+# SonarQube en CI, sans compte en ligne : la même instance Community et le même script que sur le poste
+# (scripts/sonar.sh). Le quality gate maison (0 bug, 0 vulnérabilité, 0 code smell, notes A, duplication ≤ 5 %) bloque.
+name: sonar
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      sonarqube:
+        image: sonarqube:community
+        env:
+          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+        ports: ['9000:9000']
+    steps:
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # un test unitaire lit le commit d'origine 265924b (SEC-02)
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Dépendances (scripts d'installation coupés, .npmrc)
+        run: npm ci
+      - name: Analyse et quality gate
+        run: scripts/ci-run.sh Sonar scripts/sonar.sh

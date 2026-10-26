@@ -1,0 +1,32 @@
+{
+  "$comment": "Politique de la chaîne d'approvisionnement, lue par verify/risk.ts, verify/checks/s9-supply-chain.ts et vérifiée contre renovate.json (tests/unit/supply-chain.test.ts). Modifier ce fichier = niveau de risque 3.",
+  "critical": [
+    "next",
+    "react",
+    "react-dom",
+    "next-auth",
+    "pg",
+    "bcryptjs",
+    "zod",
+    "@aws-sdk/client-s3",
+    "@aws-sdk/s3-request-presigner",
+    "tesseract.js",
+    "node-pg-migrate"
+  ],
+  "criticalWhy": {
+    "next": "framework HTTP : routes, Server Actions, middleware",
+    "react": "rendu ; même cycle de version que next",
+    "react-dom": "rendu ; même cycle de version que next",
+    "next-auth": "sessions et authentification",
+    "pg": "accès base, contexte RLS",
+    "bcryptjs": "hachage des mots de passe",
+    "zod": "validation de toutes les entrées et source du contrat OpenAPI",
+    "@aws-sdk/client-s3": "stockage des reçus",
+    "@aws-sdk/s3-request-presigner": "URL signées des reçus",
+    "tesseract.js": "traite des fichiers envoyés par les utilisateurs",
+    "node-pg-migrate": "applique les migrations, dont les politiques RLS"
+  },
+  "registry": "https://registry.npmjs.org/",
+  "minimumReleaseAgeDays": 7,
+  "auditLevel": "high"
+}

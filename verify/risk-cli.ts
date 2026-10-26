@@ -1,6 +1,7 @@
 // `npm run risk [-- --base <ref>] [--json]` : niveau de risque du changement courant (commits + fichiers modifiés)
 // par rapport à la base (origin/main par défaut).
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { classify, type ChangedFile } from './risk'
 
 // Sortie coupée par `| head` : arrêt propre au lieu d'une exception EPIPE (friction relevée en répétition).
@@ -36,7 +37,15 @@ const files: ChangedFile[] = [
   ...untracked.map((path) => ({ path, status: 'A' as const, added: [] })),
 ]
 
-const report = classify(files)
+// Les outils de dev (actuels ou retirés par ce changement) pèsent moins qu'une dépendance d'exécution.
+const devOf = (json: string) => Object.keys((JSON.parse(json) as { devDependencies?: object }).devDependencies ?? {})
+let devDependencies = devOf(readFileSync('package.json', 'utf8'))
+try {
+  devDependencies = [...devDependencies, ...devOf(git('show', `${mergeBase}:package.json`))]
+} catch {
+  // package.json absent de la base : seule la version courante compte.
+}
+const report = classify(files, { devDependencies })
 if (args.includes('--json')) {
   console.log(JSON.stringify({ base, files: files.length, ...report }, null, 2))
 } else {

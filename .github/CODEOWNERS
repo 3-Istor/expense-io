@@ -1,0 +1,20 @@
+# Chemins de niveau de risque 3 (AGENTS.md) : une PR qui les touche demande la revue d'un propriétaire.
+# Avec la protection de main (« Require review from Code Owners »), l'approbation d'un agent ne suffit jamais.
+# À compléter avec un deuxième membre de l'équipe : deux humains au niveau 3 (docs/workflow.md).
+/.github/                 @TheGostsniperfr
+/verify/                  @TheGostsniperfr
+/.claude/                 @TheGostsniperfr
+/.githooks/               @TheGostsniperfr
+/AGENTS.md                @TheGostsniperfr
+/CLAUDE.md                @TheGostsniperfr
+/renovate.json            @TheGostsniperfr
+/.npmrc                   @TheGostsniperfr
+/SECURITY.md              @TheGostsniperfr
+/scripts/install-tools.sh @TheGostsniperfr
+/migrations/              @TheGostsniperfr
+/src/lib/auth*            @TheGostsniperfr
+/src/lib/db.ts            @TheGostsniperfr
+/src/app/actions/auth.ts  @TheGostsniperfr
+/src/modules/identity/    @TheGostsniperfr
+/src/modules/expense-notes/domain/approvers.ts @TheGostsniperfr
+/docs/security/false-positives.md @TheGostsniperfr

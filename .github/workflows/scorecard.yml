@@ -1,0 +1,41 @@
+# OpenSSF Scorecard : note publique (0 à 10) des pratiques de sécurité du dépôt, recalculée chaque semaine.
+# Mesure, dans le temps, ce que docs/security/supply-chain.md promet (épinglage, permissions, revue, mises à jour…).
+name: scorecard
+
+on:
+  branch_protection_rule:
+  schedule:
+    - cron: '41 3 * * 1' # lundi 3 h 41 UTC
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      security-events: write # résultats dans l'onglet Security (code scanning)
+      id-token: write # publication de la note sur scorecard.dev
+    steps:
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: scorecard
+          path: results.sarif
+          retention-days: 30
+      - uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          sarif_file: results.sarif

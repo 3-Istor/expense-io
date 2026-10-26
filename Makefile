@@ -8,8 +8,9 @@ COMPOSE := docker compose
 help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-install: ## Installe les dépendances npm
-	npm install
+install: ## Installe les dépendances npm (lockfile, scripts d'installation coupés) et les outils de la moulinette
+	npm ci
+	bash scripts/install-tools.sh "$$HOME/.local/bin"
 
 env: ## Crée .env depuis .env.example si absent, génère AUTH_SECRET si besoin
 	@if [ ! -f .env ]; then cp .env.example .env; echo ".env créé depuis .env.example"; fi
@@ -66,6 +67,5 @@ clean: ## Arrête Docker et supprime les volumes — efface les données locales
 sonar-up: ## Démarre SonarQube en local (sans compte), sur http://localhost:9000
 	$(COMPOSE) --profile sonar up -d sonarqube
 
-sonar: ## Analyse le projet avec le SonarQube local (SONAR_TOKEN requis, voir docs/sonar.md)
-	npm run test:coverage
-	npm run sonar -- -Dsonar.host.url=http://localhost:9000 -Dsonar.token=$$SONAR_TOKEN
+sonar: ## Analyse SonarQube locale : démarre SonarQube si besoin, crée le jeton, échoue si le quality gate échoue
+	scripts/sonar.sh

@@ -19,7 +19,7 @@ describe('niveau de risque (AGENTS.md)', () => {
     expect(level({ path: 'src/app/api/finance/route.ts', status: 'A' })).toBe(2)
     expect(level(m('src/app/api/expense-notes/route.ts'))).toBe(1) // route existante modifiée
     expect(level(m('migrations/1700000000005_x.sql', ['ALTER TABLE expense_notes ADD COLUMN x int;']))).toBe(2)
-    expect(level(m('package.json'))).toBe(2)
+    expect(level(m('package-lock.json'))).toBe(2) // lockfile seul : on ne voit pas ce qui change
     expect(level(m('src/modules/expense-notes/index.ts'), m('src/modules/identity/index.ts'))).toBe(2)
   })
   it('3 : authentification, isolation, accès, RLS, secrets, CI, moulinette, harnais', () => {
@@ -47,5 +47,30 @@ describe('niveau de risque (AGENTS.md)', () => {
     expect(report.level).toBe(3)
     expect(report.checkpoint).toMatch(/valide le plan/)
     expect(report.reasons[0]).toMatchObject({ level: 3, file: 'src/lib/auth.ts' })
+  })
+
+  describe('dépendances : semver ne suffit pas, la criticité compte', () => {
+    const pkg = (...lines: string[]) => m('package.json', lines)
+    const ctx = { devDependencies: ['vitest', '@stryker-mutator/core'] }
+    it('3 : un simple patch d\'un paquet critique', () => {
+      expect(classify([pkg('    "next-auth": "^5.0.0-beta.33",')], ctx).level).toBe(3)
+      expect(classify([pkg('    "next": "16.4.3",')], ctx).level).toBe(3)
+      expect(classify([pkg('    "pg": "^8.23.1",')], ctx).level).toBe(3)
+    })
+    it('2 : une dépendance d\'exécution ordinaire', () => {
+      expect(classify([pkg('    "geist": "^1.8.2",')], ctx).level).toBe(2)
+    })
+    it('1 : un outil de dev seulement, même en version majeure', () => {
+      expect(classify([pkg('    "vitest": "^5.0.5",')], ctx).level).toBe(1)
+    })
+    it('2 : une ligne de package.json qui n\'est pas une dépendance, ou un retrait', () => {
+      expect(classify([pkg('  "overrides": {')], ctx).level).toBe(2)
+      expect(classify([pkg()], ctx).level).toBe(2)
+    })
+    it('3 : la politique des dépendances elle-même', () => {
+      for (const p of ['renovate.json', '.npmrc', '.github/CODEOWNERS', 'verify/supply-chain.json', '.githooks/pre-commit']) {
+        expect(level(m(p)), p).toBe(3)
+      }
+    })
   })
 })
