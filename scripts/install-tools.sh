@@ -13,6 +13,8 @@ GITLEAKS_VERSION=8.28.0
 GITLEAKS_SHA256=a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb
 OSV_SCANNER_VERSION=2.2.3
 OSV_SCANNER_SHA256=8cdb138b36cdb9c99c455cafb32a1c83e1823448dc00e1c8ab9afe474a5e93f0
+OASDIFF_VERSION=1.34.1
+OASDIFF_SHA256=75775f65b0adebd26a8e013af51a799342dfdc6262d89efa9e3b7bdf89657d90
 # Outils Python : versions exactes (PyPI).
 PY_TOOLS=("semgrep==1.181.0" "hadolint-py==2.15.1.2" "zizmor==1.31.1" "schemathesis==4.32.0")
 
@@ -36,8 +38,14 @@ if [[ "$(osv-scanner --version 2>/dev/null || true)" != *"$OSV_SCANNER_VERSION"*
   install -m 0755 "$tmp/osv-scanner" "$BIN_DIR/osv-scanner"
 fi
 
+if [[ "$(oasdiff --version 2>/dev/null || true)" != *"$OASDIFF_VERSION"* ]]; then
+  fetch "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz" \
+    "$tmp/oasdiff.tgz" "$OASDIFF_SHA256"
+  tar -xzf "$tmp/oasdiff.tgz" -C "$tmp" oasdiff && install -m 0755 "$tmp/oasdiff" "$BIN_DIR/oasdiff"
+fi
+
 pip install --quiet --disable-pip-version-check "${PY_TOOLS[@]}" 2>/dev/null \
   || pip install --quiet --disable-pip-version-check --break-system-packages "${PY_TOOLS[@]}"
 
 osv_version="$(osv-scanner --version)"
-echo "gitleaks $(gitleaks version) · ${osv_version%%$'\n'*} · semgrep $(semgrep --version) · $(hadolint --version) · $(zizmor --version) · $(schemathesis --version)"
+echo "gitleaks $(gitleaks version) · $(oasdiff --version) · ${osv_version%%$'\n'*} · semgrep $(semgrep --version) · $(hadolint --version) · $(zizmor --version) · $(schemathesis --version)"

@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 0.2.0
+  version: 1.0.0
   description: |
     Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
     Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.

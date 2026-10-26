@@ -23,6 +23,8 @@ description: Ajouter ou modifier une fonctionnalité d'Expense.io (live coding c
 - **Niveau 2 (contrat, nouvel endpoint, migration)** : écrire d'abord le diff du contrat dans `src/contract/` puis
   `npm run contract:generate`, montrer le diff de `docs/openapi.yaml`, et **attendre la validation humaine** avant le code.
   Le contrat existant est gelé : on ajoute, on ne change jamais un code, un champ ou une valeur d'enum existants.
+  Tout changement de `src/contract/` suit le skill **`contract-change`** (type semver, version, changelog, ADR si
+  rupture) : S5 le vérifie avec oasdiff contre `main`.
 - **Niveau 3 (auth, isolation, accès, RLS, CI, moulinette, harnais)** : écrire le plan en 5 lignes maximum et
   **attendre la validation humaine**.
 
