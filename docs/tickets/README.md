@@ -47,7 +47,7 @@ Ce qui a été appris en route.
 | --- | --- | --- | --- |
 | [T-0001](T-0001-cle-de-recu-previsible.md) | blocked | 2 | SEC-13 : clé de reçu prévisible |
 | [T-0002](T-0002-inscription-par-domaine.md) | blocked | 3 | SEC-15 : inscription par domaine email |
-| [T-0003](T-0003-erreurs-rfc-9457.md) | doing | 2 | Erreurs au format RFC 9457 |
+| [T-0003](T-0003-erreurs-rfc-9457.md) | doing | 2 | Erreurs au format RFC 9457 (fusionné ; confirmation A2) |
 | [T-0004](T-0004-differentiel-app-origine.md) | todo | 1 | Différentiel avec l'app d'origine |
 | [T-0005](T-0005-reglages-github.md) | todo | 3 | Réglages GitHub (protection de main, alertes) |
 | [T-0006](T-0006-validation-finance.md) | todo | 3 | Validation finance (deux variantes prêtes) |
@@ -57,3 +57,4 @@ Ce qui a été appris en route.
 | [T-0010](T-0010-harden-runner-blocage.md) | todo | 3 | Bloquer le trafic sortant inconnu des runners |
 | [T-0011](T-0011-next-16-4-3.md) | done | 3 | Next.js 16.4.3 et chaîne d'approvisionnement |
 | [T-0012](T-0012-analyse-image-bloquante.md) | todo | 3 | Analyse de l'image bloquante sur ce qui se corrige |
+| [T-0013](T-0013-index-mesures.md) | todo | 2 | Index SQL décidés par la mesure |
