@@ -168,13 +168,14 @@ jobs:
       - name: Construction de l'image
         run: docker build -t expense-io:ci .
       # Vulnérabilités du système de l'image (paquets Debian) et nomenclature des dépendances livrées.
-      - name: Analyse de l'image (OSV-Scanner) et SBOM
+      - name: Nomenclature des dépendances livrées (SBOM CycloneDX)
+        run: npm sbom --omit dev --sbom-format cyclonedx > sbom.cdx.json
+      - name: Analyse de l'image (OSV-Scanner)
         run: |
           bash scripts/install-tools.sh "$RUNNER_TEMP/bin"
           export PATH="$RUNNER_TEMP/bin:$PATH"
           docker save expense-io:ci -o image.tar
-          osv-scanner scan image --archive image.tar
-          npm sbom --omit dev --sbom-format cyclonedx > sbom.cdx.json
+          scripts/ci-run.sh "Image (OSV)" osv-scanner scan image --archive image.tar
       - name: Migrations depuis l'image (compte administrateur)
         run: docker run --rm --network host -e DATABASE_URL="$DATABASE_ADMIN_URL" expense-io:ci node scripts/migrate.mjs up
       - name: Démarrage du conteneur (compte limité, sans AUTH_SECRET)
@@ -211,7 +212,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      # Exige le « dependency graph » (Settings → Security) : bloquant dès qu'un administrateur l'a activé.
       - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        continue-on-error: ${{ vars.DEPENDENCY_GRAPH_ENABLED != 'true' }}
         with:
           fail-on-severity: high
           comment-summary-in-pr: never

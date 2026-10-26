@@ -43,6 +43,13 @@ donc avec deux axes : le type de version et la criticité du paquet.
 Les paquets critiques et leur raison sont dans `verify/supply-chain.json`. La même liste pilote Renovate
 (`renovate.json`) et le niveau de risque de l'agent (`verify/risk.ts`) : un test vérifie qu'elles sont identiques.
 
+## Exceptions tracées
+
+| Date | Paquet | Écart | Raison | Revue |
+| --- | --- | --- | --- | --- |
+| 2026-10-26 | `next` 16.4.3 | Adopté 3 jours après publication | Correctif de 11 avis, dont un déni de service qui nous touche : un correctif de sécurité passe avant la quarantaine | — |
+| 2026-10-26 | `@stryker-mutator/*` 10.1.1 | Adopté 3 jours après publication | La 10.0 ne mute plus sous Vitest 5 (score 9 % au lieu de 100 % sur `limits.ts`) ; outil de dev, jamais en production | 2026-11-02 |
+
 ## À faire une fois dans les réglages GitHub (administrateur du dépôt)
 
 Ces réglages ne vivent pas dans le code ; Scorecard signale ceux qui manquent.
@@ -50,7 +57,8 @@ Ces réglages ne vivent pas dans le code ; Scorecard signale ceux qui manquent.
 - [ ] **Settings → Branches → main** : PR obligatoire, checks `verify`, `image` et `dependency-review` obligatoires,
       revue des Code Owners, pas de push forcé.
 - [ ] **Settings → General** : « Allow auto-merge » (utilisé par Renovate pour les mises à jour sans risque).
-- [ ] **Settings → Security** : Dependabot alerts, secret scanning et push protection, private vulnerability reporting.
+- [ ] **Settings → Security** : dependency graph, Dependabot alerts, secret scanning et push protection, private
+      vulnerability reporting. Puis la variable de dépôt `DEPENDENCY_GRAPH_ENABLED=true` rend la dependency review bloquante.
 - [ ] Ajouter un deuxième propriétaire dans `.github/CODEOWNERS` (deux humains au niveau 3).
 - [ ] Vérifier que l'app Renovate a accès au dépôt et que le tableau de bord des dépendances s'ouvre.
 

@@ -40,4 +40,4 @@ jobs:
       - name: Dépendances (scripts d'installation coupés, .npmrc)
         run: npm ci
       - name: Analyse et quality gate
-        run: scripts/sonar.sh
+        run: scripts/ci-run.sh Sonar scripts/sonar.sh
