@@ -19,13 +19,14 @@ FACTORY_PASSWORD=admin
 
 status() { curl -s "$HOST/api/system/status" | sed -n 's/.*"status":"\([A-Z_]*\)".*/\1/p'; }
 
-if [ "$(status)" != "UP" ]; then
+# Une instance qui répond déjà (même en démarrage, comme le conteneur de service en CI) : on l'attend ; sinon on la lance.
+if [ -z "$(status)" ]; then
   command -v docker >/dev/null || { echo "SonarQube injoignable sur $HOST et Docker absent." >&2; exit 2; }
   docker compose --profile sonar up -d sonarqube
-  echo "Démarrage de SonarQube (1 à 3 minutes au premier lancement)…"
-  for _ in $(seq 1 120); do [ "$(status)" = "UP" ] && break; sleep 3; done
-  [ "$(status)" = "UP" ] || { echo "SonarQube n'a pas démarré." >&2; exit 2; }
 fi
+echo "Attente de SonarQube (1 à 3 minutes au premier lancement)…"
+for _ in $(seq 1 120); do [ "$(status)" = "UP" ] && break; sleep 3; done
+[ "$(status)" = "UP" ] || { echo "SonarQube n'a pas démarré (statut : $(status))." >&2; exit 2; }
 
 # Premier lancement : le compte admin/admin doit changer de mot de passe avant toute autre action.
 api() { curl -sf -u "admin:$ADMIN_PASSWORD" -X POST "$HOST/api/$1" "${@:2}"; }
