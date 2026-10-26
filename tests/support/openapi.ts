@@ -44,7 +44,9 @@ async function checkAgainstSpec(method: string, res: APIResponse): Promise<void>
   let ref = `openapi#/${pointer('paths', route.template, method.toLowerCase(), 'responses', status)}`
   const declared = operation.responses[status] as { $ref?: string }
   if (declared.$ref) ref = `openapi${declared.$ref}`
-  const validate = ajv.getSchema(`${ref}/content/application~1json/schema`)
+  // Deux représentations possibles d'une erreur (ADR 0005) : on valide celle que le serveur a réellement servie.
+  const mediaType = (res.headers()['content-type'] ?? '').startsWith('application/problem+json') ? 'application~1problem+json' : 'application~1json'
+  const validate = ajv.getSchema(`${ref}/content/${mediaType}/schema`)
   if (!validate) return // réponse documentée sans corps JSON
   const body = await res.json()
   const valid = validate(body)

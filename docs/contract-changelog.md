@@ -11,6 +11,11 @@ compare le contrat à `main` avec oasdiff et refuse une version qui ne suit pas 
 
 Un tag `contract-vX.Y.Z` est posé automatiquement à la fusion dans `main` (`.github/workflows/contract-tag.yml`).
 
+## 1.1.0 — 2026-10-26
+
+Ajout : les erreurs existent aussi au format RFC 9457 (`application/problem+json`), servi quand le client l'envoie
+dans `Accept`. Sans cet en-tête, rien ne change (`{ error }` en `application/json`). Décision : ADR 0005.
+
 ## 1.0.0 — 2026-10-26
 
 Publication du contrat comme engagement. Les 14 opérations, leurs champs et leurs codes de succès sont ceux de l'app
