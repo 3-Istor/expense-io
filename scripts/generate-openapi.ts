@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi'
 import { stringify } from 'yaml'
 import { registry } from '../src/contract/operations'
+import { CONTRACT_VERSION } from '../src/contract/version'
 
 const TARGET = 'docs/openapi.yaml'
 
@@ -12,7 +13,7 @@ const document = new OpenApiGeneratorV31(registry.definitions).generateDocument(
   openapi: '3.1.0',
   info: {
     title: 'Expense.io API',
-    version: '0.2.0',
+    version: CONTRACT_VERSION,
     description:
       'Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.\n' +
       'Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.\n' +

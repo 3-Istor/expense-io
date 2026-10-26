@@ -248,3 +248,11 @@ Synthèse : `docs/test-strategy.md`.
 - Preuves : moulinette `pr` VERTE, 81 tests unitaires, 220 tests d'API sur Next 16.4.3, build de production,
   mutation 97,28 % (Stryker 10 génère 404 mutants au lieu de 368).
 - Pour un humain (réglages GitHub) : `docs/security/supply-chain.md`, section « À faire une fois ».
+
+## 2026-10-26 — Phase 6.2 : semver du contrat (branche `phase-6/contrat-semver`, empilée sur 6.1)
+
+- S5 compare la spec à `main` avec oasdiff : rupture → majeure + ADR **accepté** cité ; ajout → mineure ; texte → patch ;
+  une section par version dans `docs/contract-changelog.md` ; tag `contract-vX.Y.Z` posé à la fusion.
+- Contrat publié en 1.0.0 (`src/contract/version.ts`). Skill `contract-change` ; `add-feature` y renvoie.
+- Preuve : six scénarios rejoués contre S5 (ajout sans version, sans changelog, rupture en mineure, rupture sans ADR :
+  refusés ; ajout en mineure, rupture en majeure avec ADR : acceptés).
