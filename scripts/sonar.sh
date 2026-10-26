@@ -52,7 +52,7 @@ TOKEN="$(api user_tokens/generate --data-urlencode "name=$TOKEN_NAME" --data-url
   | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')"
 trap 'api user_tokens/revoke --data-urlencode "name=$TOKEN_NAME" >/dev/null 2>&1 || true' EXIT
 
-npm run -s test:coverage >/dev/null
+npx vitest run --coverage src tests/unit >/dev/null  # tests sans base : même résultat en local et en CI
 
 # --network host : le scanner joint SonarQube sur la machine ; le jeton passe par l'environnement, jamais en argument.
 docker run --rm --network host -e SONAR_HOST_URL="$HOST" -e SONAR_TOKEN="$TOKEN" \
