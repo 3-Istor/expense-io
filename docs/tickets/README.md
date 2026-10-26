@@ -45,12 +45,12 @@ Ce qui a été appris en route.
 
 | Ticket | Statut | Risque | Sujet |
 | --- | --- | --- | --- |
-| [T-0001](T-0001-cle-de-recu-previsible.md) | blocked | 2 | SEC-13 : clé de reçu prévisible |
+| [T-0001](T-0001-cle-de-recu-previsible.md) | todo | 2 | SEC-13 : clé de reçu prévisible (débloqué, coaching) |
 | [T-0002](T-0002-inscription-par-domaine.md) | blocked | 3 | SEC-15 : inscription par domaine email |
 | [T-0003](T-0003-erreurs-rfc-9457.md) | doing | 2 | Erreurs au format RFC 9457 (fusionné ; confirmation A2) |
 | [T-0004](T-0004-differentiel-app-origine.md) | todo | 1 | Différentiel avec l'app d'origine |
 | [T-0005](T-0005-reglages-github.md) | todo | 3 | Réglages GitHub (protection de main, alertes) |
-| [T-0006](T-0006-validation-finance.md) | todo | 3 | Validation finance (deux variantes prêtes) |
+| [T-0006](T-0006-validation-finance.md) | todo | 3 | Validation finance (variante A en mineure après T-0016) |
 | [T-0007](T-0007-ocr-asynchrone.md) | todo | 2 | OCR asynchrone, si le volume l'exige |
 | [T-0008](T-0008-montant-mal-forme.md) | blocked | 2 | Refuser un montant mal formé (Q10) |
 | [T-0009](T-0009-actions-node-24.md) | todo | 3 | Actions GitHub sur Node 24 |
@@ -58,3 +58,6 @@ Ce qui a été appris en route.
 | [T-0011](T-0011-next-16-4-3.md) | done | 3 | Next.js 16.4.3 et chaîne d'approvisionnement |
 | [T-0012](T-0012-analyse-image-bloquante.md) | todo | 3 | Analyse de l'image bloquante sur ce qui se corrige |
 | [T-0013](T-0013-index-mesures.md) | todo | 2 | Index SQL décidés par la mesure |
+| [T-0014](T-0014-notes-sans-valideur.md) | todo | 3 | Notes d'un utilisateur sans manager routées vers le RH |
+| [T-0015](T-0015-observabilite-metier.md) | todo | 1 | Observabilité métier et identifiant de requête |
+| [T-0016](T-0016-enum-ajout-mineure.md) | todo | 3 | S5 : ajout de valeur d'enum = mineure |
