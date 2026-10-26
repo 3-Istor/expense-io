@@ -1,5 +1,8 @@
-# CI de chaque PR : la moulinette au niveau pr, les tests unitaires et d'API sur une vraie base.
-# Permissions minimales, actions épinglées par SHA (Renovate les met à jour), aucun secret requis.
+# CI de chaque PR : la moulinette au niveau pr, les tests unitaires et d'API sur une vraie base, puis l'image.
+# Elle rejoue ce que l'agent a déjà lancé en local avant de commiter (hook) : la CI confirme, elle ne découvre pas.
+# Chaîne d'approvisionnement (docs/security/supply-chain.md) : permissions minimales, actions épinglées par SHA
+# (un tag peut être déplacé, cas Trivy de mars 2026), aucun identifiant persisté, scripts d'installation coupés
+# (.npmrc), outils installés avec empreinte vérifiée, trafic sortant du runner journalisé.
 name: ci
 
 on:
@@ -26,9 +29,6 @@ env:
   S3_BUCKET: receipts
   S3_ACCESS_KEY_ID: test
   S3_SECRET_ACCESS_KEY: test
-  GITLEAKS_VERSION: 8.28.0
-  SEMGREP_VERSION: 1.181.0
-  OSV_SCANNER_VERSION: 2.2.3
 
 jobs:
   verify:
@@ -52,8 +52,12 @@ jobs:
         options: >-
           --health-cmd "curl -sf http://localhost:4566/_localstack/health" --health-interval 5s --health-timeout 5s --health-retries 20
     steps:
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit # journalise chaque connexion sortante ; passer en « block » une fois la liste connue
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          persist-credentials: false
           fetch-depth: 0 # le test T18b lit le commit d'origine 265924b
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -63,16 +67,18 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Outils de contrôle (gitleaks, Semgrep, hadolint)
+      - name: Outils de contrôle, versions et empreintes épinglées
         run: |
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
-            | sudo tar -xz -C /usr/local/bin gitleaks
-          pip install "semgrep==${SEMGREP_VERSION}" "hadolint-py==2.15.1.2"
-          gitleaks version && semgrep --version && hadolint --version
+          bash scripts/install-tools.sh "$RUNNER_TEMP/bin"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
 
+      # Scripts d'installation coupés par .npmrc (ignore-scripts=true) : un paquet piégé ne s'exécute pas à l'install.
       - name: Dépendances
         id: deps
         run: npm ci
+      # Signatures du registre et attestations de provenance des paquets installés.
+      - name: Signatures des paquets
+        run: npm audit signatures
       - name: Base et stockage de test
         run: |
           node scripts/migrate.mjs up
@@ -105,13 +111,6 @@ jobs:
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
         run: npm run test:api
 
-      # Informatif tant que les dépendances vulnérables connues ne sont pas montées (Renovate, label risque-3).
-      - name: Dépendances vulnérables (OSV-Scanner)
-        if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
-        continue-on-error: true
-        run: |
-          curl -sSfL -o osv-scanner "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
-          chmod +x osv-scanner && ./osv-scanner scan source --lockfile package-lock.json
       # Informatif : règles publiques du registre Semgrep, en plus des règles maison (bloquantes via S6).
       - name: Semgrep, règles du registre
         if: ${{ !cancelled() && steps.deps.outcome == 'success' }}
@@ -151,18 +150,31 @@ jobs:
         options: >-
           --health-cmd "curl -sf http://localhost:4566/_localstack/health" --health-interval 5s --health-timeout 5s --health-retries 20
     steps:
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit # journalise chaque connexion sortante ; passer en « block » une fois la liste connue
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - name: Dépendances (scripts d'installation coupés, .npmrc)
+        run: npm ci
       - name: Lint du Dockerfile (hadolint)
         run: docker run --rm -i hadolint/hadolint:v2.12.0 < Dockerfile
       - name: Construction de l'image
         run: docker build -t expense-io:ci .
+      # Vulnérabilités du système de l'image (paquets Debian) et nomenclature des dépendances livrées.
+      - name: Analyse de l'image (OSV-Scanner) et SBOM
+        run: |
+          bash scripts/install-tools.sh "$RUNNER_TEMP/bin"
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+          docker save expense-io:ci -o image.tar
+          osv-scanner scan image --archive image.tar
+          npm sbom --omit dev --sbom-format cyclonedx > sbom.cdx.json
       - name: Migrations depuis l'image (compte administrateur)
         run: docker run --rm --network host -e DATABASE_URL="$DATABASE_ADMIN_URL" expense-io:ci node scripts/migrate.mjs up
       - name: Démarrage du conteneur (compte limité, sans AUTH_SECRET)
@@ -180,3 +192,26 @@ jobs:
       - name: Journaux du conteneur
         if: always()
         run: docker logs app 2>&1 | tail -50
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: sbom
+          path: sbom.cdx.json
+          retention-days: 30
+
+  # Une PR qui ajoute une dépendance vulnérable (élevée ou critique) est bloquée avant même la revue.
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit # journalise chaque connexion sortante ; passer en « block » une fois la liste connue
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never

@@ -233,3 +233,18 @@ Synthèse : `docs/test-strategy.md`.
 - Schemathesis (`npm run test:fuzz`, 3 rôles) : 2 386 requêtes, 0 échec, après correction de 5 causes de 500 et d'un
   contournement de `checkReceipt` ; exceptions FP-FUZZ-01 à 04 ; question Q10 (montant lu avec `parseFloat`).
 - Reste : comparaison différentielle avec l'app d'origine (suite de contrat de la phase 1 rejouée), PR.
+
+## 2026-10-26 — Phase 6.1 : sécurité dans la durée (branche `phase-6/securite-durable`)
+
+- Next.js 16.3.5 → 16.4.3 (11 avis, dont le déni de service sur les Server Actions), Vitest 3 → 5 et Stryker 9 → 10
+  (RCE dans tinypool), scanner Sonar npm retiré (node-forge sans correctif), `qs` forcé en 6.16.1 : **0 vulnérabilité**.
+- `.npmrc` : scripts d'installation coupés, quarantaine de 7 jours ; Renovate aligné (quarantaine, auto-merge selon
+  le type ET la criticité, paquets critiques en niveau 3) ; `verify/supply-chain.json` source unique, test de cohérence.
+- S9 « chaîne d'approvisionnement » : lockfile (registre, sha512), npm audit et OSV (paquets malveillants), zizmor.
+- CI : outils installés avec empreinte vérifiée, `npm audit signatures`, dependency review, analyse de l'image et SBOM,
+  harden-runner, plus d'identifiants persistés ; nightly réparée (services, seed, fuzzing) ; Scorecard ; Sonar en CI
+  et en local en une commande (`make sonar`), quality gate maison.
+- `verify/risk.ts` : un patch d'un paquet critique = niveau 3 ; un outil de dev = niveau 1.
+- Preuves : moulinette `pr` VERTE, 81 tests unitaires, 220 tests d'API sur Next 16.4.3, build de production,
+  mutation 97,28 % (Stryker 10 génère 404 mutants au lieu de 368).
+- Pour un humain (réglages GitHub) : `docs/security/supply-chain.md`, section « À faire une fois ».

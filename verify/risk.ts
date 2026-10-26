@@ -2,6 +2,8 @@
 // Pas de jugement de l'agent : des règles écrites, testées (tests/unit/risk.test.ts), que l'humain peut relire.
 // Usage : `npm run risk` (diff contre origin/main) ou `npm run risk -- --base <ref>`.
 
+import supplyChain from './supply-chain.json'
+
 export type RiskLevel = 0 | 1 | 2 | 3
 
 export interface ChangedFile {
@@ -55,7 +57,9 @@ const RULES: Rule[] = [
   { level: 3, reason: 'secrets ou configuration sensible', match: path(/(^|\/)\.env(\.|$)|^\.gitleaksignore$|^docs\/security\/false-positives\.md$/) },
   { level: 3, reason: 'CI', match: path(/^\.github\//) },
   { level: 3, reason: 'moulinette ou ses règles', match: path(/^(verify\/|\.semgrep\/|\.dependency-cruiser\.cjs$|\.spectral\.yaml$|redocly\.yaml$)/) },
-  { level: 3, reason: "harnais de l'agent", match: path(/^(\.claude\/|AGENTS\.md$|CLAUDE\.md$)/) },
+  { level: 3, reason: "harnais de l'agent", match: path(/^(\.claude\/|AGENTS\.md$|CLAUDE\.md$|\.githooks\/)/) },
+  // Chaîne d'approvisionnement : qui met à jour quoi, avec quel délai, quels scripts d'installation tournent.
+  { level: 3, reason: "politique des dépendances (Renovate, npm, propriétaires)", match: path(/^(renovate\.json|\.npmrc|\.github\/CODEOWNERS|SECURITY\.md)$/) },
   { level: 3, reason: 'test supprimé', match: (f) => f.status === 'D' && /(^tests\/|\.test\.ts$|\.spec\.ts$)/.test(f.path) },
   // Appel réel en début d'instruction (pas une chaîne de caractères qui cite le mot).
   { level: 3, reason: 'test affaibli (fail, skip, only)', match: (f) => /^tests\//.test(f.path) && adds(/^\s*(test|it|describe)\.(fail|skip|fixme|only)\(|^\s*knownFlaw\(/)(f) },
@@ -64,7 +68,9 @@ const RULES: Rule[] = [
   { level: 2, reason: "contrat d'API", match: path(/^(src\/contract\/|docs\/openapi\.yaml$|docs\/contract\.md$)/) },
   { level: 2, reason: 'nouvel endpoint', match: (f) => f.status === 'A' && /^src\/app\/api\/.+\/route\.ts$/.test(f.path) },
   { level: 2, reason: 'migration de base', match: path(/^migrations\//) },
-  { level: 2, reason: 'dépendances ou image de production', match: path(/^(package\.json|package-lock\.json|Dockerfile|docker-compose\.yml)$/) },
+  { level: 2, reason: 'image de production ou services', match: path(/^(Dockerfile|docker-compose\.yml)$/) },
+  // Lockfile seul (maintenance) : on ne voit pas ce qui change sans le lire. package.json est classé à part (classifyPackageJson).
+  { level: 2, reason: 'lockfile des dépendances', match: path(/^package-lock\.json$/) },
 
   // Niveau 1 : code de l'application ou tests, sans les déclencheurs ci-dessus.
   { level: 1, reason: "code de l'application", match: path(/^(src|scripts)\/.+\.(ts|tsx|mjs|js)$/) },
@@ -74,9 +80,40 @@ const RULES: Rule[] = [
   { level: 0, reason: 'documentation ou style', match: path(/\.(md|css)$|^docs\//) },
 ]
 
-export function classify(files: ChangedFile[]): RiskReport {
+/** Ce que le classement doit savoir du dépôt pour juger un changement de package.json. */
+export interface RiskContext {
+  /** Noms des devDependencies actuelles (outils de dev : lint, tests, analyse). */
+  devDependencies?: string[]
+}
+
+// Semver dit ce que le changement casse pour le client ; la criticité dit ce qu'il coûte s'il est faux.
+// Un patch d'un paquet critique (auth, accès base, validation) vaut donc un niveau 3, comme dans renovate.json.
+const DEP_LINE = /^\s*"(@?[a-z0-9][\w.-]*(?:\/[\w.-]+)?)"\s*:\s*"[^"]*"\s*,?\s*$/i
+const NOT_A_DEPENDENCY = new Set(['name', 'version', 'type', 'license', 'description', 'main', 'module'])
+
+function classifyPackageJson(file: ChangedFile, context: RiskContext): RiskReport['reasons'] {
+  const critical = new Set(supplyChain.critical)
+  const dev = new Set(context.devDependencies ?? [])
+  const reasons: RiskReport['reasons'] = []
+  const names = (file.added ?? []).map((line) => DEP_LINE.exec(line)?.[1]).filter((n): n is string => !!n && !NOT_A_DEPENDENCY.has(n))
+  const unknownLines = (file.added ?? []).filter((line) => line.trim() && !DEP_LINE.test(line) && !/^[\s{}[\],]*$/.test(line))
+  for (const name of names) {
+    if (critical.has(name)) reasons.push({ level: 3, file: file.path, reason: `dépendance critique (${name}), quel que soit le type de version` })
+    else if (dev.has(name)) reasons.push({ level: 1, file: file.path, reason: `outil de dev seulement (${name})` })
+    else reasons.push({ level: 2, file: file.path, reason: `dépendance d'exécution ou script (${name})` })
+  }
+  // Ligne qu'on ne sait pas lire (scripts multi-lignes, overrides…), ou diff inconnu : on reste prudent.
+  if (unknownLines.length > 0 || names.length === 0) reasons.push({ level: 2, file: file.path, reason: 'package.json hors dépendances connues' })
+  return reasons
+}
+
+export function classify(files: ChangedFile[], context: RiskContext = {}): RiskReport {
   const reasons: RiskReport['reasons'] = []
   for (const file of files) {
+    if (file.path === 'package.json') {
+      reasons.push(...classifyPackageJson(file, context))
+      continue
+    }
     const matched = RULES.filter((rule) => rule.match(file))
     // Un fichier qu'aucune règle ne connaît est traité en niveau 1 : on peut monter, jamais descendre.
     if (matched.length === 0) reasons.push({ level: 1, file: file.path, reason: 'fichier hors des règles connues' })

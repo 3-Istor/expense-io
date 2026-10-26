@@ -1,35 +1,78 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":semanticCommits"],
+  "description": "Politique des mises à jour : docs/security/supply-chain.md. Liste des paquets critiques identique à verify/supply-chain.json (vérifié par tests/unit/supply-chain.test.ts).",
+  "extends": ["config:best-practices", ":semanticCommits", ":dependencyDashboard"],
   "timezone": "Europe/Paris",
   "schedule": ["before 6am on monday"],
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "automergeType": "pr",
+  "platformAutomerge": true,
+  "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true,
-    "labels": ["security"],
+    "labels": ["dependencies", "security"],
     "schedule": ["at any time"]
   },
   "lockFileMaintenance": {
     "enabled": true,
-    "schedule": ["before 6am on the first day of the month"]
+    "schedule": ["before 6am on the first day of the month"],
+    "automerge": false
   },
   "packageRules": [
     {
-      "description": "Mises à jour mineures et correctifs groupés : une PR par semaine",
+      "description": "Outils de dev, mineure ou patch : fusion automatique si la CI est verte et la version a 7 jours (risque 1).",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "outils de dev",
+      "automerge": true,
+      "addLabels": ["risque-1"]
+    },
+    {
+      "description": "Dépendances d'exécution ordinaires, mineure ou patch : fusion automatique si la CI est verte et la version a 7 jours (risque 2).",
+      "matchDepTypes": ["dependencies"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "dépendances mineures"
+      "automerge": true,
+      "addLabels": ["risque-2"]
     },
     {
-      "description": "Images Docker et actions GitHub épinglées, mises à jour à part",
+      "description": "Toute version majeure : un humain relit les notes de version (risque 2 au moins).",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["risque-2"]
+    },
+    {
+      "description": "Images Docker et actions GitHub : épinglées par empreinte ; une action touche la CI, donc risque 3, jamais automatique.",
       "matchManagers": ["docker-compose", "dockerfile", "github-actions"],
-      "groupName": "infrastructure"
+      "groupName": "infrastructure",
+      "automerge": false,
+      "addLabels": ["risque-3"]
     },
     {
-      "description": "Next.js, React et Auth.js : une PR dédiée, niveau de risque 3",
-      "matchPackageNames": ["next", "react", "react-dom", "next-auth", "eslint-config-next"],
+      "description": "Paquets critiques (auth, accès base, validation, stockage, OCR) : même un patch passe par un humain (risque 3). Doit rester la dernière règle : chez Renovate, la plus basse l'emporte.",
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "next-auth",
+        "pg",
+        "bcryptjs",
+        "zod",
+        "@aws-sdk/client-s3",
+        "@aws-sdk/s3-request-presigner",
+        "tesseract.js",
+        "node-pg-migrate"
+      ],
+      "automerge": false,
+      "addLabels": ["risque-3"]
+    },
+    {
+      "description": "Next.js et ses compagnons vont ensemble (une seule PR, toujours risque 3).",
+      "matchPackageNames": ["next", "eslint-config-next", "react", "react-dom"],
       "groupName": "framework",
-      "labels": ["dependencies", "risque-3"]
+      "automerge": false
     }
   ]
 }
