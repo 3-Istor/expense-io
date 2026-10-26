@@ -54,7 +54,7 @@ plus sûr mais transforme un succès en erreur pour ces entrées.
 
 ## Évaluation
 
-**Q8. Qu'attendent exactement les tests Sonar et « kube » ?**
-→ Un quality gate SonarQube à passer ? Des manifestes Kubernetes ? Un déploiement réel ?
+**Q8. Qu'attendent exactement les tests Sonar ?**
+→ Un quality gate SonarQube à passer, sur tout le code ou le nouveau code ? Le nôtre : 0 bug, 0 vulnérabilité, 0 code smell, notes A.
 
 **Q9. Live coding : sur notre machine ? Et quelle est la date de la soutenance ?**

@@ -48,6 +48,20 @@ export const InternalError = z
   })
   .openapi('InternalError', { description: 'Message générique ; le détail reste dans les journaux du serveur (SEC-07).' })
 
+// RFC 9457 (ADR 0005) : servi quand le client envoie `Accept: application/problem+json`. `error` est gardé en membre
+// d'extension ; pour une erreur 500, `errorId` et `stack` (vide) aussi.
+export const Problem = z
+  .strictObject({
+    type: z.string().openapi({ description: 'Identifiant stable du type de problème', example: 'urn:expense-io:problem:not-found' }),
+    title: z.string().openapi({ description: 'Résumé lisible du type de problème' }),
+    status: z.number().int().openapi({ description: 'Égal au code HTTP de la réponse' }),
+    detail: z.string().openapi({ description: 'Explication propre à cette occurrence' }),
+    error: z.string().openapi({ description: 'Même texte que `detail`, gardé pour les clients du format historique' }),
+    errorId: z.uuid().optional().openapi({ description: "Erreur 500 : identifiant dans les journaux" }),
+    stack: z.string().max(0).optional().openapi({ description: 'Erreur 500 : toujours vide (SEC-07)' }),
+  })
+  .openapi('Problem', { description: 'Problem Details (RFC 9457), servi en application/problem+json sur demande.' })
+
 export const ManagerAssignment = z.object({ managerId: z.uuid().nullable() })
 
 export type ExpenseNoteJson = z.infer<typeof ExpenseNote>

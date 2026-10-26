@@ -89,6 +89,11 @@ export const s9SupplyChain: Check = {
       }
     }
 
+    // 3 bis. La quarantaine de .npmrc n'est appliquée que par npm 11.10+ ; un npm plus ancien l'ignore en silence.
+    const npmVersion = exec('npm', ['--version']).stdout.trim()
+    const [major, minor] = npmVersion.split('.').map(Number)
+    if (!(major > 11 || (major === 11 && minor >= 10))) notes.push(`npm ${npmVersion} n'applique pas la quarantaine (npm 11.10+ requis)`)
+
     // 4. Paquets à scripts d'installation : ils ne tournent pas (.npmrc ignore-scripts), on les compte pour la revue.
     metrics.packagesWithInstallScripts = Object.values(lock.packages ?? {}).filter((p) => p.hasInstallScript).length
 

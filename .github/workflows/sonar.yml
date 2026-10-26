@@ -38,6 +38,8 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: npm de packageManager (quarantaine de .npmrc appliquée)
+        run: npm install -g "$(node -p "require('./package.json').packageManager")"
       - name: Dépendances (scripts d'installation coupés, .npmrc)
         run: npm ci
       - name: Analyse et quality gate

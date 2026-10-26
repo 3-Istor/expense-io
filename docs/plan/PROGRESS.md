@@ -248,3 +248,28 @@ Synthèse : `docs/test-strategy.md`.
 - Preuves : moulinette `pr` VERTE, 81 tests unitaires, 220 tests d'API sur Next 16.4.3, build de production,
   mutation 97,28 % (Stryker 10 génère 404 mutants au lieu de 368).
 - Pour un humain (réglages GitHub) : `docs/security/supply-chain.md`, section « À faire une fois ».
+
+## 2026-10-26 — Phase 6.2 : semver du contrat (branche `phase-6/contrat-semver`, empilée sur 6.1)
+
+- S5 compare la spec à `main` avec oasdiff : rupture → majeure + ADR **accepté** cité ; ajout → mineure ; texte → patch ;
+  une section par version dans `docs/contract-changelog.md` ; tag `contract-vX.Y.Z` posé à la fusion.
+- Contrat publié en 1.0.0 (`src/contract/version.ts`). Skill `contract-change` ; `add-feature` y renvoie.
+- Preuve : six scénarios rejoués contre S5 (ajout sans version, sans changelog, rupture en mineure, rupture sans ADR :
+  refusés ; ajout en mineure, rupture en majeure avec ADR : acceptés).
+
+## 2026-10-26 — Phase 6.3 : harnais « IA-ready » (branche `phase-6/harnais-ia-ready`, empilée sur 6.2)
+
+- `AGENTS.md` réécrit en carte (93 lignes) : boucle de vérification, carte des modules, skills ; plus d'instruction
+  périmée. `docs/harness.md` : chaque pièce reliée à sa source (Böckeler, OpenAI, Anthropic, Stack, Backlog.md).
+- S10 : les guides de l'agent sont confrontés au dépôt (chemins, scripts npm, cibles make, skills, « à venir ») ;
+  format des tickets ; un ticket « done » exige des critères cochés et une preuve.
+- Tickets dans le dépôt (`docs/tickets/`, 11 tickets issus de l'audit et de la revue), preuves
+  (`docs/evidence/`, `scripts/evidence.sh`), skill `write-ticket`.
+- Hook Git `pre-commit` pour tous les clients (`make hooks`) ; vision sans Kubernetes.
+- Preuves : moulinette `pr` VERTE (S1 à S10), 93 tests unitaires.
+
+## 2026-10-26 — T-0003 : erreurs RFC 9457 négociées (branche `phase-6/erreurs-rfc-9457`, empilée sur 6.3)
+
+- RFC 9457 servie quand le client envoie `Accept: application/problem+json` ; format `{ error }` inchangé sinon (ADR 0005).
+- Contrat 1.1.0 : oasdiff classe le changement en ajout (43 `response-media-type-added`, 0 rupture).
+- Preuves : 226 tests d'API (dont 6 nouveaux), 97 unitaires, moulinette `pr` verte. Fusion après la réponse à A2.
