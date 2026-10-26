@@ -45,14 +45,26 @@ export function checkVersion(before: string, after: string, kind: ChangeKind): V
   return { ok: true, reason: `${kind} : ${before} → ${after}` }
 }
 
-/** Le changelog du contrat doit avoir une section pour la nouvelle version ; une rupture doit citer son ADR. */
-export function checkChangelog(changelog: string, version: string, kind: ChangeKind): VersionVerdict {
+/**
+ * Le changelog du contrat doit avoir une section pour la nouvelle version ; une rupture doit citer un ADR qui existe et
+ * qu'un humain a accepté (un ADR « proposé » par l'agent ne suffit pas). `adrStatus` renvoie la ligne de statut d'un ADR.
+ */
+export function checkChangelog(
+  changelog: string,
+  version: string,
+  kind: ChangeKind,
+  adrStatus: (id: string) => string | undefined = () => undefined,
+): VersionVerdict {
   const heading = new RegExp(`^## ${version.replaceAll('.', '\\.')}\\b.*$`, 'm')
   const match = heading.exec(changelog)
   if (!match) return { ok: false, reason: `docs/contract-changelog.md n'a pas de section « ## ${version} »` }
   const section = changelog.slice(match.index).split(/\n## /)[0]
-  if (kind === 'breaking' && !/ADR \d{4}/.test(section)) {
-    return { ok: false, reason: `la section ${version} doit citer l'ADR qui autorise la rupture (« ADR 00xx »)` }
+  if (kind === 'breaking') {
+    const ids = [...section.matchAll(/ADR (\d{4})/g)].map((m) => m[1])
+    if (ids.length === 0) return { ok: false, reason: `la section ${version} doit citer l'ADR qui autorise la rupture (« ADR 00xx »)` }
+    if (!ids.some((id) => /accepté/i.test(adrStatus(id) ?? ''))) {
+      return { ok: false, reason: `rupture : l'ADR ${ids.join(', ')} doit exister et être accepté par un humain` }
+    }
   }
   return { ok: true, reason: `changelog ${version} présent` }
 }

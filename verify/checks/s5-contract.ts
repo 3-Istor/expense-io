@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { parse } from 'yaml'
@@ -35,7 +35,11 @@ function compatibility(): { ok: boolean; skipped?: string; summary: string; deta
     const version = checkVersion(before, after, kind)
     if (!version.ok) return { ok: false, summary: version.reason, details: changes }
     if (before !== after) {
-      const log = checkChangelog(existsSync(CHANGELOG) ? readFileSync(CHANGELOG, 'utf8') : '', after, kind)
+      const adrStatus = (id: string) => {
+        const file = readdirSync('docs/adr').find((f) => f.startsWith(`${id}-`))
+        return file ? readFileSync(path.join('docs/adr', file), 'utf8').split('\n').find((l) => /statut/i.test(l)) : undefined
+      }
+      const log = checkChangelog(existsSync(CHANGELOG) ? readFileSync(CHANGELOG, 'utf8') : '', after, kind, adrStatus)
       if (!log.ok) return { ok: false, summary: log.reason, details: changes }
     }
     const ruptures = changes.filter((c) => c.level >= 2).map((c) => c.text)

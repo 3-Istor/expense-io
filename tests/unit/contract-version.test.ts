@@ -32,7 +32,10 @@ describe('semver du contrat', () => {
   it('le changelog a une section par version, et une rupture cite son ADR', () => {
     const log = '# Changelog\n\n## 2.0.0 — 2026-11-02\n\nStatut ajouté (ADR 0005).\n\n## 1.1.0 — 2026-10-30\n\nChamp ajouté.\n'
     expect(checkChangelog(log, '1.1.0', 'additive').ok).toBe(true)
-    expect(checkChangelog(log, '2.0.0', 'breaking').ok).toBe(true)
+    const status = (id: string) => ({ '0005': '- Statut : accepté (2026-11-01)', '0006': '- Statut : proposé' })[id]
+    expect(checkChangelog(log, '2.0.0', 'breaking', status).ok).toBe(true)
+    expect(checkChangelog(log.replace('0005', '0006'), '2.0.0', 'breaking', status).ok).toBe(false) // proposé par l'agent
+    expect(checkChangelog(log.replace('0005', '0009'), '2.0.0', 'breaking', status).ok).toBe(false) // inexistant
     expect(checkChangelog(log.replace('ADR 0005', 'ADR à venir'), '2.0.0', 'breaking').ok).toBe(false)
     expect(checkChangelog(log, '1.2.0', 'additive').ok).toBe(false)
   })
