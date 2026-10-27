@@ -20,7 +20,9 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
 ## Fermées
 
 - [x] 2026-10-26 — Employé sans manager (T08) : réponse du coaching, « c'est du fonctionnel, pas du contrat ».
-      Ticket T-0014.
+      Ticket T-0014. 2026-10-27, Brian : « un root est un mec sans manager », tous rôles confondus (RH compris, validé
+      par un autre RH de l'entreprise, jamais par lui-même). Un RH seul dans son entreprise : sa note reste en attente
+      (option prudente, visible dans `npm run metrics:business`), pas d'auto-validation.
 
 - [x] 2026-10-21 — Couverture du contrat en dernier test (pour lancer un seul test en live coding) : gardée (Brian).
 
