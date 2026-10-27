@@ -5,8 +5,6 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
 
 ## Ouvertes
 
-- [ ] 2026-10-20 — Employé sans manager (T08) : ses notes ne sont proposées à personne. Question posée aux profs
-      (`questions-profs.md`, Q5). En attendant : comportement actuel figé par T08. Réversible.
 - [ ] 2026-10-20 — Numérotation T01–T18 : seules T07 et T11–T18 viennent du doc de vision ; T01–T06 et T08–T10 ont
       été reconstruites (`docs/audit/avant/authz.md`). À rapprocher de la restitution de la task A (question interne
       à l'équipe). Réversible (renommer des tests).
@@ -20,6 +18,9 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       (`questions-profs.md`, Q10). Option prudente retenue : (a), la spec décrit l'existant (pas de motif strict). Réversible.
 
 ## Fermées
+
+- [x] 2026-10-26 — Employé sans manager (T08) : réponse du coaching, « c'est du fonctionnel, pas du contrat ».
+      Ticket T-0014.
 
 - [x] 2026-10-21 — Couverture du contrat en dernier test (pour lancer un seul test en live coding) : gardée (Brian).
 

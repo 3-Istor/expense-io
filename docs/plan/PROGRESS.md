@@ -273,3 +273,10 @@ Synthèse : `docs/test-strategy.md`.
 - RFC 9457 servie quand le client envoie `Accept: application/problem+json` ; format `{ error }` inchangé sinon (ADR 0005).
 - Contrat 1.1.0 : oasdiff classe le changement en ajout (43 `response-media-type-added`, 0 rupture).
 - Preuves : 226 tests d'API (dont 6 nouveaux), 97 unitaires, moulinette `pr` verte. Fusion après la réponse à A2.
+
+## 2026-10-26 — Plan issu du coaching (branche `phase-6/plan-coaching`)
+
+- Réponses du coaching reportées dans `docs/plan/questions-profs.md` (barème, secret, contrat, Q5, Q6, Q7, revue).
+- T-0001 débloqué ; nouveaux tickets T-0014 (notes sans valideur), T-0015 (observabilité métier), T-0016 (enum = mineure).
+- Ordre : T-0016 puis T-0001 (mardi), T-0014 puis T-0015 (mercredi), répétition de T-0006 variante A et gel (jeudi).
+- Échéance : clonage du dépôt le 30/10 à 11h42 ; tout doit être sur `main` jeudi soir.

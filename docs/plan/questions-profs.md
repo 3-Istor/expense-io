@@ -58,3 +58,21 @@ plus sûr mais transforme un succès en erreur pour ces entrées.
 → Un quality gate SonarQube à passer, sur tout le code ou le nouveau code ? Le nôtre : 0 bug, 0 vulnérabilité, 0 code smell, notes A.
 
 **Q9. Live coding : sur notre machine ? Et quelle est la date de la soutenance ?**
+
+## Réponses du coaching du 2026-10-26
+
+Source : enregistrement de la séance (11 min), deux transcriptions recoupées. Les mots exacts sont incertains par
+endroits ; seules les réponses entendues clairement sont reportées ici.
+
+| Question | Réponse entendue | Conséquence |
+| --- | --- | --- |
+| Barème | « 16 points sur la soutenance, 4 sur la partie technique, juste pour voir si vous n'avez pas tout pété. » Grille écrite (cours, p. 87) : audit 5, présentation 3, questions 4, co-conception IA 3, technique 5. | La soutenance pèse le plus ; la partie technique vérifie que les tests E2E de l'API passent toujours. |
+| Tests des profs | E2E sur l'API et son contrat uniquement, pas d'interface graphique. | Le contrat reste la priorité absolue. |
+| Q1 (secret) | Le secret de connexion est dans un `.env` : « je pense que c'est OK, on laisse comme ça ». | Rien à changer. |
+| Q2, Q3 (codes 401/403/400) | « On ne casse pas les contrats, c'est ce que je vous ai demandé. » Les deux codes sont au contrat. | Codes gardés à l'identique ; correction prévue en 2.0.0 seulement. |
+| Q5 (utilisateur sans manager) | « Ça, c'est du fonctionnel, pas du contrat. » | T-0014 : notes routées vers le RH. |
+| Q6 (valeur d'enum) | « Ajouter dans un enum, c'est une mineure ; enlever, c'est une majeure. » | T-0016 (S5), puis T-0006 variante A en mineure. |
+| Q7 (clé S3) | Pas obligé de casser le contrat : coexistence possible (« deux adaptateurs pour les deux versions de l'API »). | T-0001 : UUID pour les nouvelles clés, anciennes lisibles. |
+| Revue technique | Une personne au clavier, les autres répondent ; « ce que vous avez mis en place pour l'IA dans votre codebase ». | Préparer un parcours du harnais (`AGENTS.md`, moulinette, risque, relecteur). |
+| Monitoring | Pas de versions d'outils ; quelle stack, comment elle s'interface, pourquoi ; métriques techniques et métier. | T-0015 et une slide d'observabilité. |
+| Échéance | Clonage du dépôt le 30/10 à 11h42 (cours, p. 142) : après, plus rien ne compte pour la partie technique. | Tout sur `main` avant jeudi soir. |
