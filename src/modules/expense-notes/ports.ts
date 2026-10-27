@@ -27,3 +27,12 @@ export interface ReceiptStorage {
 export interface ReceiptReader {
   suggest(receipt: { data: Buffer; mimeType: string }): Promise<{ amount?: number; expenseDate?: string }>
 }
+
+/**
+ * Événements métier (cours 4 : les métriques HTTP disent que l'API répond, les événements métier disent que la note
+ * avance). Aucune donnée personnelle : ni identifiant de personne, ni montant, ni description.
+ */
+export interface NoteEvents {
+  submitted(): void
+  decided(event: { decision: Decision; approver: ApproverKind; delaySeconds: number }): void
+}

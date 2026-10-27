@@ -29,7 +29,8 @@
     "risk": "tsx verify/risk-cli.ts",
     "test:mutation": "stryker run",
     "test:coverage:api": "scripts/coverage-api.sh",
-    "test:fuzz": "scripts/fuzz.sh"
+    "test:fuzz": "scripts/fuzz.sh",
+    "metrics:business": "node scripts/business-metrics.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1131.0",

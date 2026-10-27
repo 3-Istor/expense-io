@@ -1,7 +1,8 @@
 // Adaptateur HTTP commun aux routes : appelant courant, traduction des erreurs, formats JSON du contrat.
+import { randomUUID } from 'node:crypto'
 import { headers } from 'next/headers'
 import { respondError } from '@/lib/errors'
-import { log } from '@/lib/logger'
+import { log, withRequestId } from '@/lib/logger'
 import type { ExpenseNoteJson } from '@/contract/schemas'
 import { AppError, invalid, type AppErrorKind } from './app-error'
 import { errorResponse, wantsProblem } from './problem'
@@ -21,12 +22,16 @@ const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 
  * durée). Ces lignes sont la source des SLI de docs/slo.md (aucun endpoint de métriques : contrat gelé).
  */
 export async function handle(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
+  return withRequestId(requestIdFrom(await requestHeader('x-request-id')), () => handleInContext(operation, deniedStatus, run))
+}
+
+async function handleInContext(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
   const started = performance.now()
   let response: Response
   try {
     response = await run()
   } catch (error) {
-    const problem = wantsProblem(await acceptHeader())
+    const problem = wantsProblem(await requestHeader('accept'))
     if (error instanceof AppError) {
       const status = error.kind === 'denied' ? deniedStatus : STATUS[error.kind]
       const kind = error.kind === 'denied' ? (deniedStatus === 401 ? 'unauthenticated' : 'forbidden') : error.kind
@@ -43,13 +48,23 @@ export async function handle(operation: string, deniedStatus: DeniedStatus, run:
   return response
 }
 
-/** En-tête Accept de la requête en cours ; null hors requête (tests unitaires, scripts). */
-async function acceptHeader(): Promise<string | null> {
+/** En-tête de la requête en cours ; null hors requête (tests unitaires, scripts). */
+async function requestHeader(name: string): Promise<string | null> {
   try {
-    return (await headers()).get('accept')
+    return (await headers()).get(name)
   } catch {
     return null
   }
+}
+
+const REQUEST_ID = /^[A-Za-z0-9._-]{1,128}$/
+
+/**
+ * Identifiant de corrélation : celui de l'appelant (en-tête `x-request-id`, posé par un proxy ou un client) s'il a une
+ * forme sûre, sinon un nouveau. Il n'est écrit que dans les journaux : aucune réponse ne change (contrat gelé).
+ */
+export function requestIdFrom(header: string | null): string {
+  return header && REQUEST_ID.test(header) ? header : randomUUID()
 }
 
 /** Formulaire multipart ; un corps illisible ou d'un autre type est une entrée invalide (400), pas une panne (500). */

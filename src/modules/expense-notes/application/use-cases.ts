@@ -5,13 +5,19 @@ import { approverKind, type ApproverKind, type Role } from '../domain/approvers'
 import { checkDecision, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
 import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor } from '../domain/receipt'
 import { parseSort } from '../domain/sort'
-import type { Caller, ExpenseNoteRepository, ReceiptReader, ReceiptStorage } from '../ports'
+import type { Caller, ExpenseNoteRepository, NoteEvents, ReceiptReader, ReceiptStorage } from '../ports'
 
 export interface Deps {
   notes: ExpenseNoteRepository
   storage: ReceiptStorage
   reader: ReceiptReader
+  /** Facultatif : sans adaptateur, aucun événement n'est émis (tests, scripts). */
+  events?: NoteEvents
+  /** Horloge injectable pour mesurer le délai de décision sans dépendre de l'heure réelle dans les tests. */
+  now?: () => Date
 }
+
+const NO_EVENTS: NoteEvents = { submitted: () => {}, decided: () => {} }
 
 export interface ReceiptFile {
   type: string
@@ -29,7 +35,7 @@ const RECEIPT_MESSAGES = {
   'too-large': 'Fichier trop volumineux',
 } as const
 
-export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
+export function expenseNoteUseCases({ notes, storage, reader, events = NO_EVENTS, now = () => new Date() }: Deps) {
   function asApprover(actor: Actor, expected: ApproverKind): ApproverKind {
     const kind = approverKind(actor.role, expected)
     if (!kind) throw denied()
@@ -64,7 +70,9 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
       const receiptSeq = await notes.reserveReceiptSeq(caller)
       const receiptKey = receiptKeyFor(receiptSeq, input.receipt.type)
       await storage.upload(receiptKey, await input.receipt.bytes(), input.receipt.type)
-      return notes.insert(caller, { ...fields, receiptKey, receiptSeq })
+      const created = await notes.insert(caller, { ...fields, receiptKey, receiptSeq })
+      events.submitted()
+      return created
     },
 
     async ownReceiptUrl(caller: Caller, noteId: string): Promise<string> {
@@ -93,6 +101,8 @@ export function expenseNoteUseCases({ notes, storage, reader }: Deps) {
       if (refusal === 'already-decided') throw conflict('Already decided')
       const saved = await notes.saveDecision(actor, kind, noteId, decision)
       if (!saved) throw conflict('Already decided') // décidée entre-temps par une autre requête (SEC-08)
+      const delaySeconds = Math.max(0, Math.round((now().getTime() - note.createdAt.getTime()) / 1000))
+      events.decided({ decision, approver: kind, delaySeconds })
       return saved
     },
 
