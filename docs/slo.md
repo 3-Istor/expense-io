@@ -10,7 +10,7 @@ Aucun endpoint de métriques (contrat d'API gelé). Chaque appel d'API écrit un
 (`src/shared/http.ts`) :
 
 ```json
-{"time":"2026-10-21T03:12:29.086Z","level":"info","msg":"requête API","operation":"listMyExpenseNotes","status":200,"durationMs":11}
+{"time":"2026-10-21T03:12:29.086Z","level":"info","msg":"requête API","requestId":"3f0c…","operation":"listMyExpenseNotes","status":200,"durationMs":11}
 ```
 
 `operation` reprend l'`operationId` du contrat (`docs/openapi.yaml`). Un collecteur de journaux (Loki, CloudWatch…)
@@ -26,6 +26,23 @@ suffit pour calculer les SLI.
 | Suggestion par OCR | p95 de `durationMs` pour `suggestFromReceipt` | **< 15 s** | borné par le délai de l'OCR (SEC-11) |
 
 Les erreurs 4xx (refus, entrée invalide) ne consomment pas le budget : ce sont des réponses correctes du service.
+
+## SLI métier (T-0015)
+
+Les SLI ci-dessus disent que l'API répond ; ils ne disent pas qu'une note avance. Exemple réel trouvé à l'audit : la
+note d'un employé sans manager était acceptée (201, aucune erreur) puis restait en attente pour toujours (T-0014).
+
+| SLI | Mesure | SLO | Source |
+| --- | --- | --- | --- |
+| Décision dans les délais | notes décidées en 5 jours ou moins ÷ notes **soumises** (fenêtre de 28 jours, notes de plus de 5 jours) | **90 %** (proposé, à valider par le produit) | base, `npm run metrics:business` |
+| Plus vieille note en attente | âge de la plus ancienne note `pending`, par entreprise | alerte au-delà de 10 jours | base, `npm run metrics:business` |
+
+Le dénominateur est le nombre de notes soumises, pas décidées : une note perdue fait baisser le SLI au lieu de
+disparaître du calcul (cours 4, « Un SLI métier »). Les événements `note.submitted` et `note.decided` (délai en
+secondes) sont aussi écrits dans les journaux, pour suivre la même chose dans un collecteur.
+
+Chaque ligne de journal écrite pendant un appel d'API porte un `requestId` (repris de l'en-tête `x-request-id` s'il est
+sûr, généré sinon) : on retrouve toutes les lignes d'une requête, erreur comprise, avec un seul filtre.
 
 ## Calcul (exemple avec jq sur un fichier de journaux)
 

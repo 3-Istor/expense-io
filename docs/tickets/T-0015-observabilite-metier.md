@@ -1,7 +1,7 @@
 ---
 id: T-0015
 title: Observabilité métier et identifiant de requête
-status: todo
+status: done
 risk: 1
 source: prof
 created: 2026-10-26
@@ -17,14 +17,14 @@ même requête. Le contrat est gelé : pas de route `/metrics`, tout passe par l
 
 ## Critères d'acceptation
 
-- [ ] `handle()` attribue un `requestId` à chaque appel (repris de l'en-tête `x-request-id` s'il est fourni, sinon
+- [x] `handle()` attribue un `requestId` à chaque appel (repris de l'en-tête `x-request-id` s'il est fourni, sinon
       généré) et l'écrit dans chaque ligne de journal de la requête, erreurs comprises (`errorId` relié au `requestId`).
-- [ ] Événements métier journalisés par les cas d'usage : `note soumise`, `note décidée` (décision, type de valideur,
+- [x] Événements métier journalisés par les cas d'usage : `note soumise`, `note décidée` (décision, type de valideur,
       délai depuis la soumission en secondes). Aucun identifiant de personne en clair dans les journaux.
-- [ ] `npm run metrics:business` lit la base et affiche : notes en attente par entreprise, ancienneté de la plus
+- [x] `npm run metrics:business` lit la base et affiche : notes en attente par entreprise, ancienneté de la plus
       vieille, part des notes décidées en moins de 5 jours sur 28 jours.
-- [ ] `docs/slo.md` gagne un SLI métier (notes décidées en moins de 5 jours ÷ notes soumises) avec son SLO.
-- [ ] Contrat inchangé (oasdiff : aucun changement) ; tests unitaires des événements.
+- [x] `docs/slo.md` gagne un SLI métier (notes décidées en moins de 5 jours ÷ notes soumises) avec son SLO.
+- [x] Contrat inchangé (oasdiff : aucun changement) ; tests unitaires des événements.
 
 ## Plan
 
@@ -34,6 +34,10 @@ même requête. Le contrat est gelé : pas de route `/metrics`, tout passe par l
 4. `docs/slo.md` : section « SLI métier ».
 
 ## Notes
+
+Livré le 2026-10-27 (commit 062751f). Les événements passent par un port `NoteEvents` (cas d'usage sans dépendance
+technique, règle S2) ; l'adaptateur `infrastructure/log-note-events.ts` écrit les lignes. SLO du SLI métier proposé à
+90 %, à valider par le produit. Preuve : `docs/evidence/T-0015/`.
 
 Dénominateur du SLI = notes **soumises**, pas décidées (piège du cours 4, slide « Un SLI métier ») : une note bloquée
 sans valideur (T-0014) doit faire baisser le SLI, pas disparaître du calcul.

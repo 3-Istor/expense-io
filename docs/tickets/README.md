@@ -59,5 +59,5 @@ Ce qui a été appris en route.
 | [T-0012](T-0012-analyse-image-bloquante.md) | todo | 3 | Analyse de l'image bloquante sur ce qui se corrige |
 | [T-0013](T-0013-index-mesures.md) | todo | 2 | Index SQL décidés par la mesure |
 | [T-0014](T-0014-notes-sans-valideur.md) | todo | 3 | Notes d'un utilisateur sans manager routées vers le RH |
-| [T-0015](T-0015-observabilite-metier.md) | todo | 1 | Observabilité métier et identifiant de requête |
+| [T-0015](T-0015-observabilite-metier.md) | done | 1 | Observabilité métier et identifiant de requête |
 | [T-0016](T-0016-enum-ajout-mineure.md) | todo | 3 | S5 : ajout de valeur d'enum = mineure |
