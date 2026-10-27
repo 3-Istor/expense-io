@@ -1,7 +1,7 @@
 ---
 id: T-0001
 title: "SEC-13 : rendre la clé de reçu imprévisible"
-status: doing
+status: done
 risk: 2
 source: audit
 created: 2026-10-26
@@ -40,4 +40,7 @@ la clé de stockage sont séparées : c'est la coexistence suggérée par le coa
 ## Notes
 
 Livré le 2026-10-27. Un UUID réduit la devinabilité ; il ne remplace pas le contrôle d'accès, qui reste la vraie
-protection (SEC-03). Preuve : `docs/evidence/T-0001/`.
+protection (SEC-03). Preuve : `docs/evidence/T-0001/`. Relecture de sécurité (contexte neuf) : rien de bloquant ;
+suites ouvertes en T-0017 (anciens reçus) et T-0018 (droits par colonne). Corrigé dans la foulée : le `requestId`
+est toujours généré par le serveur (l'en-tête client va dans `clientRequestId`), et `metrics:business` exige le compte
+administrateur.

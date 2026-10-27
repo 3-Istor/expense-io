@@ -11,7 +11,12 @@ const DAY = 86_400
 const DECISION_SLO_DAYS = 5
 const WINDOW_DAYS = 28
 
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL })
+if (!process.env.DATABASE_ADMIN_URL) {
+  // Le compte de l'app est soumis à la RLS : sans contexte d'utilisateur, il verrait des chiffres vides, faux en silence.
+  console.error('DATABASE_ADMIN_URL manquant : ce script lit toutes les entreprises avec le compte administrateur.')
+  process.exit(2)
+}
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_ADMIN_URL })
 try {
   const pending = await pool.query(`
     SELECT c.name AS company, count(*)::int AS pending,
