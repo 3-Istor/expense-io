@@ -25,7 +25,7 @@ code dupliqué et la façade inutilisée ; la duplication baisse en valeur absol
 ## Ce qui reste ouvert
 
 - ~~SEC-05~~ : corrigé le 2026-10-21 (compte de connexion limité, T16 et T16b).
-- **SEC-13** : clé S3 prévisible. Attend la réponse des profs sur `receiptKey`.
+- **SEC-13** : clé S3 prévisible. Corrigée le 2026-10-27 (T-0001) : fichier sous une clé opaque, `receiptKey` inchangé.
 - **SEC-15** : inscription par domaine sans vérification. Gardée pour la démo (ADR 0004).
 - **Dépendances** : `next` 16.3.5 (critique, `next/og` non utilisé), `sharp`, `source-map-js`. Montée de niveau 3
   proposée par Renovate une fois l'app installée.

@@ -45,7 +45,7 @@ Ce qui a été appris en route.
 
 | Ticket | Statut | Risque | Sujet |
 | --- | --- | --- | --- |
-| [T-0001](T-0001-cle-de-recu-previsible.md) | todo | 2 | SEC-13 : clé de reçu prévisible (débloqué, coaching) |
+| [T-0001](T-0001-cle-de-recu-previsible.md) | doing | 2 | SEC-13 : clé de reçu prévisible (clé de stockage opaque) |
 | [T-0002](T-0002-inscription-par-domaine.md) | blocked | 3 | SEC-15 : inscription par domaine email |
 | [T-0003](T-0003-erreurs-rfc-9457.md) | doing | 2 | Erreurs au format RFC 9457 (fusionné ; confirmation A2) |
 | [T-0004](T-0004-differentiel-app-origine.md) | todo | 1 | Différentiel avec l'app d'origine |

@@ -14,7 +14,7 @@ export const ExpenseNote = z
     amount: z.number().positive(),
     expenseDate: z.iso.date(),
     description: z.string(),
-    receiptKey: z.string().openapi({ description: 'Clé de stockage du reçu (prévisible : faille SEC-13)' }),
+    receiptKey: z.string().openapi({ description: 'Référence du reçu, au format d’origine ; le fichier est stocké sous une clé opaque (SEC-13)' }),
     status: ExpenseNoteStatus,
     createdAt: z.iso.datetime(),
   })

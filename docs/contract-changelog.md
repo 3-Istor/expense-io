@@ -11,6 +11,12 @@ compare le contrat à `main` avec oasdiff et refuse une version qui ne suit pas 
 
 Un tag `contract-vX.Y.Z` est posé automatiquement à la fusion dans `main` (`.github/workflows/contract-tag.yml`).
 
+## 1.1.1 — 2026-10-27
+
+Texte seulement : la description de `receiptKey` ne parle plus de faille. Le champ ne change ni de type ni de format
+(`receipts/<n>.<ext>`) : c'est la référence promise aux clients. Le fichier, lui, est désormais stocké sous une clé
+opaque (UUID) que l'API n'expose pas (SEC-13, T-0001) ; les notes existantes gardent leur fichier où il est.
+
 ## 1.1.0 — 2026-10-26
 
 Ajout : les erreurs existent aussi au format RFC 9457 (`application/problem+json`), servi quand le client l'envoie

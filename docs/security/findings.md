@@ -135,8 +135,8 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
 - **Preuve** : `tests/unit/create-note-storage-failure.test.ts` : stockage en panne, la note était quand même insérée
   (`INSERT` exécuté, puis 500), donc une note en attente sans reçu, puis jamais complétée.
 - **Correctif** : numéro de reçu réservé (`nextval`), reçu stocké, puis note insérée avec sa clé, sous `withUserScope`.
-  L'`UPDATE` hors contexte utilisateur disparaît (Semgrep 2 → 1). Format de clé inchangé : la clé opaque (SEC-13)
-  attend la réponse des profs sur `receiptKey`.
+  L'`UPDATE` hors contexte utilisateur disparaît (Semgrep 2 → 1). Format de `receiptKey` inchangé ; le fichier est
+  stocké sous une clé opaque depuis SEC-13.
 - **Statut** : corrigé ; test unitaire vert (rouge sur l'ancien code), 66 tests d'API verts.
 
 ## SEC-06 — Auto-validation interdite explicitement (défense en profondeur)
@@ -158,6 +158,17 @@ SEC-NN = correctif n° NN du document de vision. Constats d'origine : `docs/audi
   worker, au plus 2 OCR simultanés, les suivants attendent (`src/lib/limits.ts`, tests unitaires). Un OCR qui dépasse
   le délai renvoie une suggestion vide, comme une erreur d'OCR aujourd'hui.
 - **Statut** : corrigé ; test de contrat « reçu de plus de 10 Mo » (rouge sur l'ancien code) et 3 tests unitaires verts.
+
+## SEC-13 — Clé de stockage du reçu prévisible
+
+- **CWE** : CWE-340 (identifiants prévisibles) · **API Top 10** : API3:2023 (exposition d'une propriété d'objet)
+- **CVSS v4.0** : non noté seul : le reçu reste protégé par le contrôle d'accès (SEC-03) et une URL signée de 5 minutes.
+- **Preuve** : le fichier était stocké sous `receipts/<compteur>.<ext>`, la valeur de `receiptKey` : le volume se lit
+  et la clé d'une autre note se devine. Gravité réelle si le bucket devient public ou si une signature fuit.
+- **Correctif** (T-0001, coaching du 2026-10-26 : « pas obligé de casser le contrat ») : le fichier est stocké sous une
+  clé opaque `receipts/<uuid v4>.<ext>` (colonne `storage_key`, migration 0005) ; `receiptKey` garde son format
+  d'origine dans l'API, donc aucun client ne voit de différence. Les notes existantes gardent leur fichier.
+- **Statut** : corrigé ; 2 tests unitaires et 3 tests d'API (`tests/api/receipt-key.spec.ts`).
 
 ## SEC-15 — Inscription par domaine email sans vérification
 

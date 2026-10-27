@@ -3,7 +3,7 @@ import { conflict, denied, invalid, notFound } from '@/shared/app-error'
 import { isUuid } from '@/shared/ids'
 import { approverKind, type ApproverKind, type Role } from '../domain/approvers'
 import { checkDecision, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
-import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor } from '../domain/receipt'
+import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor, storageKeyFor, storedAt } from '../domain/receipt'
 import { parseSort } from '../domain/sort'
 import type { Caller, ExpenseNoteRepository, NoteEvents, ReceiptReader, ReceiptStorage } from '../ports'
 
@@ -15,6 +15,8 @@ export interface Deps {
   events?: NoteEvents
   /** Horloge injectable pour mesurer le délai de décision sans dépendre de l'heure réelle dans les tests. */
   now?: () => Date
+  /** Identifiant opaque des clés de stockage (SEC-13) ; UUID v4 par défaut. */
+  newId?: () => string
 }
 
 const NO_EVENTS: NoteEvents = { submitted: () => {}, decided: () => {} }
@@ -35,7 +37,14 @@ const RECEIPT_MESSAGES = {
   'too-large': 'Fichier trop volumineux',
 } as const
 
-export function expenseNoteUseCases({ notes, storage, reader, events = NO_EVENTS, now = () => new Date() }: Deps) {
+export function expenseNoteUseCases({
+  notes,
+  storage,
+  reader,
+  events = NO_EVENTS,
+  now = () => new Date(),
+  newId = () => crypto.randomUUID(),
+}: Deps) {
   function asApprover(actor: Actor, expected: ApproverKind): ApproverKind {
     const kind = approverKind(actor.role, expected)
     if (!kind) throw denied()
@@ -69,8 +78,9 @@ export function expenseNoteUseCases({ notes, storage, reader, events = NO_EVENTS
       if (refusal) throw invalid(RECEIPT_MESSAGES[refusal])
       const receiptSeq = await notes.reserveReceiptSeq(caller)
       const receiptKey = receiptKeyFor(receiptSeq, input.receipt.type)
-      await storage.upload(receiptKey, await input.receipt.bytes(), input.receipt.type)
-      const created = await notes.insert(caller, { ...fields, receiptKey, receiptSeq })
+      const storageKey = storageKeyFor(newId(), input.receipt.type)
+      await storage.upload(storageKey, await input.receipt.bytes(), input.receipt.type)
+      const created = await notes.insert(caller, { ...fields, receiptKey, receiptSeq, storageKey })
       events.submitted()
       return created
     },
@@ -79,7 +89,7 @@ export function expenseNoteUseCases({ notes, storage, reader, events = NO_EVENTS
       if (!isUuid(noteId)) throw notFound()
       const note = await notes.findOwn(caller, noteId)
       if (!note) throw notFound()
-      return storage.signedUrl(note.receiptKey)
+      return storage.signedUrl(storedAt(note))
     },
 
     /** OCR borné en taille ici, en durée et en concurrence dans l'adaptateur (SEC-11). */
@@ -108,7 +118,7 @@ export function expenseNoteUseCases({ notes, storage, reader, events = NO_EVENTS
 
     async approverReceiptUrl(actor: Actor, expected: ApproverKind, noteId: string): Promise<string> {
       const { note } = await findForApprover(actor, expected, noteId)
-      return storage.signedUrl(note.receiptKey)
+      return storage.signedUrl(storedAt(note))
     },
   }
 }

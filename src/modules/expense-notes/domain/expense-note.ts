@@ -10,6 +10,8 @@ export interface ExpenseNote {
   expenseDate: string // AAAA-MM-JJ
   description: string
   receiptKey: string
+  /** Clé opaque du fichier dans le stockage (SEC-13) ; absente pour les notes créées avant. Jamais exposée par l'API. */
+  storageKey?: string | null
   status: ExpenseNoteStatus
   createdAt: Date
 }
