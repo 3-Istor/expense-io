@@ -17,10 +17,17 @@ Un humain répond sous la question et coche la case. Questions pour les profs : 
       succès en erreur pour ces entrées, donc touche le contrat : question pour les profs
       (`questions-profs.md`, Q10). Option prudente retenue : (a), la spec décrit l'existant (pas de motif strict). Réversible.
 
+- [ ] 2026-10-27 — T-0020 : un RH peut détacher un employé de son manager puis valider sa note (vu en relecture de
+      T-0014). Options : (a) 409 si l'employé a une note en attente ; (b) tracer chaque changement de rattachement ;
+      (c) figer le valideur à la soumission. Option prudente retenue en attendant : rien changé, ticket ouvert ; (b)
+      proposé. Question pour Brian.
+
 ## Fermées
 
 - [x] 2026-10-26 — Employé sans manager (T08) : réponse du coaching, « c'est du fonctionnel, pas du contrat ».
-      Ticket T-0014.
+      Ticket T-0014. 2026-10-27, Brian : « un root est un mec sans manager », tous rôles confondus (RH compris, validé
+      par un autre RH de l'entreprise, jamais par lui-même). Un RH seul dans son entreprise : sa note reste en attente
+      (option prudente, visible dans `npm run metrics:business`), pas d'auto-validation.
 
 - [x] 2026-10-21 — Couverture du contrat en dernier test (pour lancer un seul test en live coding) : gardée (Brian).
 

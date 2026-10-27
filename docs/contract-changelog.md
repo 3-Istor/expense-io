@@ -5,11 +5,19 @@ compare le contrat à `main` avec oasdiff et refuse une version qui ne suit pas 
 
 | Changement (détecté par oasdiff) | Version | Exige |
 | --- | --- | --- |
-| Rupture : champ ou route retiré, code changé, valeur d'enum renommée, champ rendu obligatoire | majeure | ADR accepté par un humain, cité ici ; plan de dépréciation (`Deprecation`, `Sunset`) |
-| Ajout compatible : route, champ de réponse ou paramètre facultatif | mineure | section ici |
+| Rupture : champ ou route retiré, code changé, valeur d'enum retirée ou renommée, champ rendu obligatoire | majeure | ADR accepté par un humain, cité ici ; plan de dépréciation (`Deprecation`, `Sunset`) |
+| Ajout compatible : route, champ de réponse, paramètre facultatif, valeur ajoutée à un enum de réponse (ADR 0006) | mineure | section ici |
 | Texte seulement (descriptions, exemples) | patch | section ici |
 
 Un tag `contract-vX.Y.Z` est posé automatiquement à la fusion dans `main` (`.github/workflows/contract-tag.yml`).
+
+## 1.1.2 — 2026-10-27
+
+Texte seulement : les descriptions des routes RH disent « auteurs sans manager de l'entreprise » au lieu de « managers
+racine ». Comportement (T-0014, règle fonctionnelle validée au coaching) : le RH voit et décide désormais les notes de
+tout auteur sans manager de son entreprise, employé, manager ou autre RH, jamais les siennes. Aucune route, aucun champ,
+aucun code HTTP ne change ; l'`operationId` `listRootManagerPendingNotes` garde son nom. Pour un client RH : la liste
+peut contenir plus de notes qu'avant ; une note qu'il recevait déjà y reste.
 
 ## 1.1.1 — 2026-10-27
 

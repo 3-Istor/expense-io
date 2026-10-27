@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 1.1.1
+  version: 1.1.2
   description: |
     Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
     Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.
@@ -588,7 +588,7 @@ paths:
       tags:
         - hr
       operationId: listRootManagerPendingNotes
-      summary: Notes en attente des managers racine de l'entreprise
+      summary: Notes en attente des auteurs sans manager de l'entreprise (employés, managers racine, autres RH), jamais les siennes
       responses:
         "200":
           description: Notes en attente, plus anciennes d'abord
@@ -621,7 +621,7 @@ paths:
       tags:
         - hr
       operationId: hrApproveNote
-      summary: Approuve la note d'un manager racine
+      summary: Approuve la note d'un auteur sans manager
       parameters:
         - schema:
             type: string
@@ -677,7 +677,7 @@ paths:
       tags:
         - hr
       operationId: hrRejectNote
-      summary: Rejette la note d'un manager racine
+      summary: Rejette la note d'un auteur sans manager
       parameters:
         - schema:
             type: string
@@ -733,7 +733,7 @@ paths:
       tags:
         - hr
       operationId: hrGetReceiptUrl
-      summary: URL signée du reçu d'une note d'un manager racine
+      summary: URL signée du reçu d'une note d'un auteur sans manager
       parameters:
         - schema:
             type: string

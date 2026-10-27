@@ -295,3 +295,10 @@ Synthèse : `docs/test-strategy.md`.
   script de métriques réservé à l'administrateur).
 - Preuves : moulinette `pr` VERTE, 107 tests unitaires, 229 tests d'API.
 
+
+## 2026-10-27 — T-0016 et T-0014
+
+- T-0016 (PR #19, fusionnée) : S5 classe l'ajout de valeur d'enum de réponse en mineure, le retrait en majeure
+  (ADR 0006) ; T-0019 ouvert (cas « became-enum »).
+- T-0014 : le RH valide la note de tout auteur sans manager de son entreprise (employé, manager, autre RH), jamais la
+  sienne ; domaine `mayDecide`, périmètre SQL et RLS (migration 0006) alignés ; contrat 1.1.2 (texte).
