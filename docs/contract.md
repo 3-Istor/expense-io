@@ -32,5 +32,9 @@ Formats :
 
 Connexion : Auth.js (`/api/auth/*`) et server actions de `src/app/actions/auth.ts` — à garder tels quels.
 
-Règle : ajouter un champ ou durcir une validation est permis. Retirer un champ, changer un code HTTP ou une valeur
-d'enum exige un ADR validé par un humain (niveau de risque 2 au minimum).
+Règle : ajouter un champ ou durcir une validation est permis. Retirer un champ, changer un code HTTP ou retirer une
+valeur d'enum exige un ADR validé par un humain (niveau de risque 2 au minimum).
+
+Valeurs d'enum (ADR 0006) : ajouter une valeur à un enum de réponse (`status`, `role`) est un ajout, version mineure ;
+un client doit tolérer une valeur qu'il ne connaît pas (la traiter comme « autre », pas planter). La nouvelle valeur est
+annoncée dans `docs/contract-changelog.md`. Retirer ou renommer une valeur est une rupture : version majeure et ADR.

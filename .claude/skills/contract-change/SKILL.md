@@ -15,7 +15,7 @@ Une API publiée est une « one-way door » (cours 3). Ce skill s'applique dès 
 | Retirer ou renommer un champ, une route, une valeur d'enum | `status: paid` au lieu de `approved` | rupture | majeure + ADR |
 | Rendre obligatoire un champ facultatif, durcir une entrée acceptée | `reason` exigé au rejet | rupture | majeure + ADR |
 | Changer un code HTTP existant, un `Content-Type` | 409 → 400 | rupture | majeure + ADR |
-| Ajouter une valeur à un enum **de réponse** | `status: finance_pending` | rupture pour les clients qui font un `switch` exhaustif : la traiter comme telle | majeure + ADR |
+| Ajouter une valeur à un enum **de réponse** | `status: finance_pending` | ajout (ADR 0006, règle des profs) : S5 le classe ainsi ; prévenir dans le changelog les clients qui font un `switch` exhaustif | mineure |
 | Ajouter une route, un champ de réponse ou un paramètre facultatif | `rejectionReason?` | ajout | mineure |
 | Descriptions, exemples | texte d'une opération | patch | patch |
 
