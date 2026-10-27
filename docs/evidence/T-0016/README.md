@@ -18,7 +18,13 @@ exactement l'inverse de la règle des profs.
 ## Tests
 
 - `tests/unit/contract-version.test.ts` : 2 scénarios ajoutés (ajout → mineure, y compris `mediatype` ; un ajout
-  mêlé à une autre rupture reste une rupture ; retrait côté réponse et côté requête → rupture).
+  mêlé à une autre rupture reste une rupture ; retrait côté réponse, `property` et `mediatype`, et côté requête → rupture).
 - Unitaires :       Tests  109 passed (109)
 - Moulinette `pr` : voir `verify-summary.md` au moment du commit (S5 « contrat inchangé » : la politique ne change
   pas la version actuelle).
+
+## Relecture en contexte neuf (security-reviewer)
+
+Rien de bloquant. Trois constats faibles : le résumé de S5 listait les ruptures selon le niveau brut d'oasdiff
+(corrigé : il passe par `policyLevel`) ; le retrait `mediatype` n'était pas testé (test ajouté) ;
+`response-*-became-enum` reste « info », comportement antérieur hors périmètre (ticket T-0019).

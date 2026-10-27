@@ -27,6 +27,7 @@ describe('semver du contrat', () => {
     expect(changeKind([requestRemoved], true)).toBe('breaking')
     // oasdiff classe le retrait côté réponse en info : notre politique le remonte en rupture
     expect(changeKind([removed], true)).toBe('breaking')
+    expect(changeKind([{ ...removed, id: 'response-mediatype-enum-value-removed' }], true)).toBe('breaking')
   })
   it('une rupture exige une version majeure', () => {
     expect(checkVersion('1.0.0', '1.1.0', 'breaking').ok).toBe(false)

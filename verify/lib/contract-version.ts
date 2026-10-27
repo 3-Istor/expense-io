@@ -34,7 +34,7 @@ const BREAKING_BY_POLICY: ReadonlySet<string> = new Set([
 ])
 
 /** Niveau retenu par notre politique : celui d'oasdiff, sauf les deux listes ci-dessus. */
-function policyLevel(change: OasdiffChange): number {
+export function policyLevel(change: OasdiffChange): number {
   if (ADDITIVE_BY_POLICY.has(change.id)) return 1
   if (BREAKING_BY_POLICY.has(change.id)) return 3
   return change.level

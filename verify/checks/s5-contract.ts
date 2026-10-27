@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { parse } from 'yaml'
-import { changeKind, checkChangelog, checkVersion, type OasdiffChange } from '../lib/contract-version'
+import { changeKind, checkChangelog, policyLevel, checkVersion, type OasdiffChange } from '../lib/contract-version'
 import { exec } from '../lib/exec'
 import type { Check, CheckResult } from '../types'
 
@@ -42,7 +42,7 @@ function compatibility(): { ok: boolean; skipped?: string; summary: string; deta
       const log = checkChangelog(existsSync(CHANGELOG) ? readFileSync(CHANGELOG, 'utf8') : '', after, kind, adrStatus)
       if (!log.ok) return { ok: false, summary: log.reason, details: changes }
     }
-    const ruptures = changes.filter((c) => c.level >= 2).map((c) => c.text)
+    const ruptures = changes.filter((c) => policyLevel(c) >= 2).map((c) => c.text)
     const note = ruptures.length ? ` ; ruptures : ${ruptures.slice(0, 2).join(' ; ')}` : ''
     return { ok: true, summary: `${version.reason}${note}`, details: { kind, before, after, changes } }
   } finally {
