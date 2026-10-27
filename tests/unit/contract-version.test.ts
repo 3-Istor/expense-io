@@ -14,6 +14,21 @@ describe('semver du contrat', () => {
     expect(changeKind([], true)).toBe('patch')
     expect(changeKind([], false)).toBe('unchanged')
   })
+  it('ajouter une valeur à un enum de réponse est un ajout mineur (ADR 0006)', () => {
+    const added = { id: 'response-property-enum-value-added', text: 'valeur ajoutée', level: 3, operation: 'GET', path: '/api/expense-notes' }
+    expect(changeKind([added], true)).toBe('additive')
+    expect(changeKind([{ ...added, id: 'response-mediatype-enum-value-added' }], true)).toBe('additive')
+    expect(checkVersion('1.1.0', '1.2.0', changeKind([added], true)).ok).toBe(true)
+    expect(changeKind([added, error], true)).toBe('breaking') // la politique n'efface pas une autre rupture
+  })
+  it('retirer une valeur d\'enum reste une rupture', () => {
+    const removed = { id: 'response-property-enum-value-removed', text: 'valeur retirée', level: 1 }
+    const requestRemoved = { id: 'request-property-enum-value-removed', text: 'valeur retirée', level: 3 }
+    expect(changeKind([requestRemoved], true)).toBe('breaking')
+    // oasdiff classe le retrait côté réponse en info : notre politique le remonte en rupture
+    expect(changeKind([removed], true)).toBe('breaking')
+    expect(changeKind([{ ...removed, id: 'response-mediatype-enum-value-removed' }], true)).toBe('breaking')
+  })
   it('une rupture exige une version majeure', () => {
     expect(checkVersion('1.0.0', '1.1.0', 'breaking').ok).toBe(false)
     expect(checkVersion('1.0.0', '2.0.0', 'breaking').ok).toBe(true)

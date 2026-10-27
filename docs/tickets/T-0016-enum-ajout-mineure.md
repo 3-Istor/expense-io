@@ -1,7 +1,7 @@
 ---
 id: T-0016
 title: "S5 : l'ajout d'une valeur d'enum en réponse est une mineure"
-status: todo
+status: done
 risk: 3
 source: prof
 created: 2026-10-26
@@ -18,11 +18,11 @@ contre enlever dans un enum, c'est une majeure ». La règle de S5 doit suivre l
 
 ## Critères d'acceptation
 
-- [ ] `verify/lib/contract-version.ts` : l'ajout d'une valeur d'enum dans une réponse est classé « ajout »
+- [x] `verify/lib/contract-version.ts` : l'ajout d'une valeur d'enum dans une réponse est classé « ajout »
       (mineure) ; le retrait reste une rupture ; tout autre avertissement d'oasdiff reste une rupture.
-- [ ] Deux scénarios ajoutés à `tests/unit/contract-version.test.ts` (ajout de valeur → mineure ; retrait → majeure).
-- [ ] ADR 0006 « Ajout de valeur d'enum = mineure », statut proposé, accepté par Brian avant fusion.
-- [ ] `docs/contract.md` et le skill `contract-change` mentionnent la règle.
+- [x] Deux scénarios ajoutés à `tests/unit/contract-version.test.ts` (ajout de valeur → mineure ; retrait → majeure).
+- [x] ADR 0006 « Ajout de valeur d'enum = mineure », accepté par Brian le 2026-10-27.
+- [x] `docs/contract.md` et le skill `contract-change` mentionnent la règle.
 
 ## Plan
 
@@ -33,3 +33,10 @@ Niveau 3 (`verify/`) : plan validé par Brian, relecteur en contexte neuf.
 
 Le risque d'un client strict (`switch` exhaustif) est réel : il est documenté dans l'ADR et dans le changelog de la
 version qui ajoute la valeur, comme le recommande la loi de Hyrum.
+
+## Clôture (2026-10-27)
+
+Identifiants oasdiff observés en ajoutant puis retirant `paid` dans `ExpenseNoteStatus` :
+`response-property-enum-value-added` (oasdiff : erreur, 8 opérations) et `response-property-enum-value-removed`
+(oasdiff : info). La politique ramène le premier à « ajout » et remonte le second à « rupture » (le coaching le dit,
+et l'agent peut monter un niveau, jamais descendre sans décision humaine : ADR 0006). Preuve : `docs/evidence/T-0016/`.
