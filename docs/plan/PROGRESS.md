@@ -280,3 +280,9 @@ Synthèse : `docs/test-strategy.md`.
 - T-0001 débloqué ; nouveaux tickets T-0014 (notes sans valideur), T-0015 (observabilité métier), T-0016 (enum = mineure).
 - Ordre : T-0016 puis T-0001 (mardi), T-0014 puis T-0015 (mercredi), répétition de T-0006 variante A et gel (jeudi).
 - Échéance : clonage du dépôt le 30/10 à 11h42 ; tout doit être sur `main` jeudi soir.
+
+## 2026-10-27 — T-0015 : observabilité métier (branche `ticket/T-0015-observabilite-metier`)
+
+- Port `NoteEvents` (« note soumise », « note décidée » avec délai), adaptateur de journaux, `requestId` sur chaque ligne
+  d'une requête, `npm run metrics:business` (notes en attente par entreprise, SLI métier), section SLI métier de `docs/slo.md`.
+- Preuves : moulinette `pr` VERTE, 105 tests unitaires (8 nouveaux), 226 tests d'API, contrat inchangé (oasdiff).
