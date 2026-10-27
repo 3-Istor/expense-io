@@ -3,7 +3,7 @@ id: T-0019
 title: "S5 : restreindre une réponse à un enum (became-enum) reste une mineure"
 status: todo
 risk: 3
-source: agent
+source: review
 created: 2026-10-27
 links: [T-0016, "ADR 0006"]
 ---
