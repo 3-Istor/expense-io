@@ -12,7 +12,7 @@ export interface ExpenseNoteRepository {
   listOwn(caller: Caller, sort: Sort): Promise<ExpenseNote[]>
   findOwn(caller: Caller, noteId: string): Promise<ExpenseNote | null>
   reserveReceiptSeq(caller: Caller): Promise<number>
-  insert(caller: Caller, note: NewExpenseNote & { receiptKey: string; receiptSeq: number }): Promise<ExpenseNote>
+  insert(caller: Caller, note: NewExpenseNote & { receiptKey: string; receiptSeq: number; storageKey: string }): Promise<ExpenseNote>
   listPendingInScope(caller: Caller, kind: ApproverKind): Promise<ExpenseNote[]>
   findInScope(caller: Caller, kind: ApproverKind, noteId: string): Promise<ExpenseNote | null>
   /** Écrit la décision seulement si la note est encore en attente (atomique, SEC-08) ; null sinon. */

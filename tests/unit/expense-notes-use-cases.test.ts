@@ -73,8 +73,30 @@ describe('créer une note', () => {
       insert: async (_c, n) => (order.push(`insère ${n.receiptKey}`), note({ receiptKey: n.receiptKey })),
     })
     await useCases.create({ userId: 'employe' }, input)
-    expect(uploads).toEqual(['receipts/7.png'])
-    expect(order).toEqual(['réserve', 'insère receipts/7.png'])
+    expect(uploads).toHaveLength(1)
+    expect(order).toEqual(['réserve', 'insère receipts/7.png']) // receiptKey : format du contrat, inchangé
+  })
+  it('stocke le fichier sous une clé opaque, différente de receiptKey et d\'une note à l\'autre (SEC-13)', async () => {
+    const inserted: { receiptKey: string; storageKey: string }[] = []
+    let seq = 7
+    const { useCases, uploads } = setup({
+      reserveReceiptSeq: async () => seq++,
+      insert: async (_c, n) => (inserted.push(n), note({ receiptKey: n.receiptKey, storageKey: n.storageKey })),
+    })
+    await useCases.create({ userId: 'employe' }, input)
+    await useCases.create({ userId: 'employe' }, input)
+    for (const key of uploads) expect(key).toMatch(/^receipts\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/)
+    expect(uploads[0]).not.toBe(uploads[1])
+    expect(inserted.map((n) => n.storageKey)).toEqual(uploads) // le fichier est là où la note dit qu'il est
+    expect(inserted.map((n) => n.receiptKey)).toEqual(['receipts/7.png', 'receipts/8.png'])
+  })
+  it('URL signée : clé opaque si la note en a une, receiptKey sinon (notes d\'avant SEC-13)', async () => {
+    const recent = setup({ findOwn: async () => note({ storageKey: 'receipts/opaque.png' }) })
+    expect(await recent.useCases.ownReceiptUrl({ userId: 'employe' }, NOTE_ID)).toBe('https://s3/receipts/opaque.png')
+    const old = setup({ findOwn: async () => note({ storageKey: null }) })
+    expect(await old.useCases.ownReceiptUrl({ userId: 'employe' }, NOTE_ID)).toBe('https://s3/receipts/1.png')
+    const approver = setup({ findInScope: async () => note({ storageKey: 'receipts/opaque.png' }) })
+    expect(await approver.useCases.approverReceiptUrl(manager, 'manager', NOTE_ID)).toBe('https://s3/receipts/opaque.png')
   })
   it('refuse une saisie invalide avant tout stockage', async () => {
     const { useCases, uploads } = setup({})

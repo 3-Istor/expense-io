@@ -22,10 +22,16 @@ const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 
  * durée). Ces lignes sont la source des SLI de docs/slo.md (aucun endpoint de métriques : contrat gelé).
  */
 export async function handle(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
-  return withRequestId(requestIdFrom(await requestHeader('x-request-id')), () => handleInContext(operation, deniedStatus, run))
+  const clientRequestId = clientRequestIdFrom(await requestHeader('x-request-id'))
+  return withRequestId(randomUUID(), () => handleInContext(operation, deniedStatus, run, clientRequestId))
 }
 
-async function handleInContext(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
+async function handleInContext(
+  operation: string,
+  deniedStatus: DeniedStatus,
+  run: () => Promise<Response>,
+  clientRequestId: string | null,
+): Promise<Response> {
   const started = performance.now()
   let response: Response
   try {
@@ -44,6 +50,7 @@ async function handleInContext(operation: string, deniedStatus: DeniedStatus, ru
     operation,
     status: response.status,
     durationMs: Math.round(performance.now() - started),
+    ...(clientRequestId ? { clientRequestId } : {}),
   })
   return response
 }
@@ -60,11 +67,12 @@ async function requestHeader(name: string): Promise<string | null> {
 const REQUEST_ID = /^[A-Za-z0-9._-]{1,128}$/
 
 /**
- * Identifiant de corrélation : celui de l'appelant (en-tête `x-request-id`, posé par un proxy ou un client) s'il a une
- * forme sûre, sinon un nouveau. Il n'est écrit que dans les journaux : aucune réponse ne change (contrat gelé).
+ * Identifiant fourni par l'appelant (en-tête `x-request-id`), gardé seulement s'il a une forme sûre. Il est journalisé
+ * à part (`clientRequestId`) : le `requestId` est toujours généré par le serveur, pour qu'un client ne puisse pas
+ * réutiliser celui d'une autre requête et brouiller la corrélation. Aucune réponse ne change (contrat gelé).
  */
-export function requestIdFrom(header: string | null): string {
-  return header && REQUEST_ID.test(header) ? header : randomUUID()
+export function clientRequestIdFrom(header: string | null): string | null {
+  return header && REQUEST_ID.test(header) ? header : null
 }
 
 /** Formulaire multipart ; un corps illisible ou d'un autre type est une entrée invalide (400), pas une panne (500). */

@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 1.1.0
+  version: 1.1.1
   description: |
     Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
     Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.
@@ -52,7 +52,7 @@ components:
           type: string
         receiptKey:
           type: string
-          description: "Clé de stockage du reçu (prévisible : faille SEC-13)"
+          description: Référence du reçu, au format d’origine ; le fichier est stocké sous une clé opaque (SEC-13)
         status:
           $ref: "#/components/schemas/ExpenseNoteStatus"
         createdAt:

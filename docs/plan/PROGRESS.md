@@ -286,3 +286,12 @@ Synthèse : `docs/test-strategy.md`.
 - Port `NoteEvents` (« note soumise », « note décidée » avec délai), adaptateur de journaux, `requestId` sur chaque ligne
   d'une requête, `npm run metrics:business` (notes en attente par entreprise, SLI métier), section SLI métier de `docs/slo.md`.
 - Preuves : moulinette `pr` VERTE, 105 tests unitaires (8 nouveaux), 226 tests d'API, contrat inchangé (oasdiff).
+
+## 2026-10-27 — T-0001 : clé de stockage opaque (branche `ticket/T-0001-cle-de-recu`, empilée sur T-0015)
+
+- Fichiers sous `receipts/<uuid>.<ext>` (colonne `storage_key`, migration 0005) ; `receiptKey` garde son format dans
+  l'API (le test de caractérisation reste inchangé) ; contrat 1.1.1 (description seulement).
+- Relecture de sécurité : rien de bloquant ; T-0017 et T-0018 ouverts ; deux corrections faites (requestId serveur,
+  script de métriques réservé à l'administrateur).
+- Preuves : moulinette `pr` VERTE, 107 tests unitaires, 229 tests d'API.
+

@@ -6,7 +6,7 @@ import { expenseNoteUseCases } from '@/modules/expense-notes/application/use-cas
 import type { ExpenseNote } from '@/modules/expense-notes/domain/expense-note'
 import { logNoteEvents } from '@/modules/expense-notes/infrastructure/log-note-events'
 import type { ExpenseNoteRepository, NoteEvents } from '@/modules/expense-notes/ports'
-import { handle, requestIdFrom } from '@/shared/http'
+import { clientRequestIdFrom, handle } from '@/shared/http'
 
 const NOTE_ID = '6f1c2a9e-3b4d-4c5e-8f70-1a2b3c4d5e6f'
 const created = new Date('2026-10-20T10:00:00Z')
@@ -80,10 +80,10 @@ describe('identifiant de requête (T-0015)', () => {
     expect(outside).not.toHaveProperty('requestId')
     spy.mockRestore()
   })
-  it('reprend un en-tête sûr, en génère un sinon', () => {
-    expect(requestIdFrom('abc-123_x.y')).toBe('abc-123_x.y')
+  it('garde l\'identifiant du client seulement s\'il est sûr (journalisé à part, jamais comme requestId)', () => {
+    expect(clientRequestIdFrom('abc-123_x.y')).toBe('abc-123_x.y')
     for (const unsafe of [null, '', 'a b', 'x'.repeat(129), '"><script>']) {
-      expect(requestIdFrom(unsafe)).toMatch(/^[0-9a-f-]{36}$/)
+      expect(clientRequestIdFrom(unsafe)).toBeNull()
     }
   })
   it('handle() : la ligne d\'API et celle de l\'erreur 500 partagent le même requestId, la réponse ne change pas', async () => {

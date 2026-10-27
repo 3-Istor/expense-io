@@ -41,8 +41,9 @@ Le dénominateur est le nombre de notes soumises, pas décidées : une note perd
 disparaître du calcul (cours 4, « Un SLI métier »). Les événements `note.submitted` et `note.decided` (délai en
 secondes) sont aussi écrits dans les journaux, pour suivre la même chose dans un collecteur.
 
-Chaque ligne de journal écrite pendant un appel d'API porte un `requestId` (repris de l'en-tête `x-request-id` s'il est
-sûr, généré sinon) : on retrouve toutes les lignes d'une requête, erreur comprise, avec un seul filtre.
+Chaque ligne de journal écrite pendant un appel d'API porte un `requestId` généré par le serveur : on retrouve toutes
+les lignes d'une requête, erreur comprise, avec un seul filtre. L'en-tête `x-request-id` d'un appelant, s'il est sûr,
+est journalisé à part (`clientRequestId`).
 
 ## Calcul (exemple avec jq sur un fichier de journaux)
 
