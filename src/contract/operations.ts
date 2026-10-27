@@ -117,7 +117,7 @@ registry.registerPath({
 
 for (const kind of ['manager', 'hr'] as const) {
   const denied = kind === 'manager' ? 401 : 403
-  const who = kind === 'manager' ? 'des subordonnés directs' : "des managers racine de l'entreprise"
+  const who = kind === 'manager' ? 'des subordonnés directs' : "des auteurs sans manager de l'entreprise (employés, managers racine, autres RH), jamais les siennes"
   const tag = kind
   const prefix = kind === 'manager' ? 'manager' : 'hr'
 
@@ -137,7 +137,7 @@ for (const kind of ['manager', 'hr'] as const) {
       tags: [tag],
       operationId: `${prefix}${action === 'approve' ? 'Approve' : 'Reject'}Note`,
       summary: `${action === 'approve' ? 'Approuve' : 'Rejette'} la note ${
-        kind === 'manager' ? "d'un subordonné" : "d'un manager racine"
+        kind === 'manager' ? "d'un subordonné" : "d'un auteur sans manager"
       }`,
       request: { params: noteId },
       responses: { 200: json(ExpenseNote, 'Note mise à jour'), ...pick(denied, 404, 409, 500) },
@@ -149,7 +149,7 @@ for (const kind of ['manager', 'hr'] as const) {
     path: `/api/${kind}/expense-notes/{id}/receipt-url`,
     tags: [tag],
     operationId: `${prefix}GetReceiptUrl`,
-    summary: `URL signée du reçu d'une note ${kind === 'manager' ? "d'un subordonné" : "d'un manager racine"}`,
+    summary: `URL signée du reçu d'une note ${kind === 'manager' ? "d'un subordonné" : "d'un auteur sans manager"}`,
     request: { params: noteId },
     responses: { 200: json(ReceiptUrl, 'URL signée, valable 5 minutes'), ...pick(denied, 404, 500) },
   })

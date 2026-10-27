@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { approverKind } from '@/modules/expense-notes/domain/approvers'
+import { approverKind, mayDecide } from '@/modules/expense-notes/domain/approvers'
 import { checkDecision, validateNewNote } from '@/modules/expense-notes/domain/expense-note'
 import { checkReceipt, receiptKeyFor } from '@/modules/expense-notes/domain/receipt'
 import { parseSort } from '@/modules/expense-notes/domain/sort'
@@ -28,6 +28,30 @@ describe('valideurs', () => {
     expect(approverKind('employee', 'manager')).toBeNull()
     expect(approverKind('hr_admin', 'manager')).toBeNull()
     expect(approverKind('manager', 'hr')).toBeNull()
+  })
+})
+
+describe('qui valide une note (T-0014)', () => {
+  const A = 'entreprise-a'
+  const boss = { id: 'boss', companyId: A, managerId: null, role: 'manager' as const }
+  const hr = { id: 'rh', companyId: A, managerId: null, role: 'hr_admin' as const }
+  const hr2 = { id: 'rh2', companyId: A, managerId: null, role: 'hr_admin' as const }
+  const hrB = { id: 'rh-b', companyId: 'entreprise-b', managerId: null, role: 'hr_admin' as const }
+  it('un auteur avec manager : seul son manager direct valide, pas le RH', () => {
+    const employee = { id: 'emp', companyId: A, managerId: 'boss' }
+    expect(mayDecide(boss, employee)).toBe(true)
+    expect(mayDecide(hr, employee)).toBe(false)
+  })
+  it('un auteur sans manager, quel que soit son rôle : un RH de son entreprise valide', () => {
+    const orphan = { id: 'orphelin', companyId: A, managerId: null }
+    expect(mayDecide(hr, orphan)).toBe(true) // employé sans manager
+    expect(mayDecide(hr, boss)).toBe(true) // manager racine
+    expect(mayDecide(hr2, hr)).toBe(true) // un RH par un autre RH
+    expect(mayDecide(boss, orphan)).toBe(false) // un manager ne remplace pas le RH
+  })
+  it('jamais soi-même, jamais une autre entreprise', () => {
+    expect(mayDecide(hr, hr)).toBe(false)
+    expect(mayDecide(hrB, boss)).toBe(false)
   })
 })
 

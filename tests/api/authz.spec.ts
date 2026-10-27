@@ -1,7 +1,7 @@
 // Matrice d'autorisations (tâche 1.4) : deux entreprises, et les règles métier du cours.
 // - tout le monde crée et consulte SES notes ;
 // - un manager ne décide que des notes de ses subordonnés directs ;
-// - le RH décide des notes des managers racine (sans manager) de SON entreprise, jamais des siennes ;
+// - le RH décide des notes de tout auteur sans manager de SON entreprise (T-0014), jamais des siennes ;
 // - rien ne traverse la frontière entre entreprises.
 //
 // Les scénarios qui révèlent une faille sont marqués `test.fail` avec la référence SEC-NN (= correctif n° NN du
@@ -134,15 +134,36 @@ test('T07 personne ne valide sa propre note (manager, RH)', async () => {
   expect((await as.managerA.post(`/api/manager/expense-notes/${managerNote}/approve`)).status()).toBe(404)
   const hrNote = await createNote(A.hr.id)
   expect((await as.hrA.post(`/api/hr/expense-notes/${hrNote}/approve`)).status()).toBe(404)
-  // Le RH ne valide pas non plus la note d'un autre RH : seules les notes des managers racine lui reviennent.
-  const hr2Note = await createNote(A.hr2.id)
-  expect((await as.hrA.post(`/api/hr/expense-notes/${hr2Note}/approve`)).status()).toBe(404)
+  // Le RH ne voit ni ne décide sa propre note, même sans manager au-dessus de lui (T-0014).
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).not.toContain(hrNote)
 })
 
-test('T08 la note d\'un employé sans manager n\'est proposée à personne (comportement actuel, voir QUESTIONS.md)', async () => {
+test('T08 la note d\'un employé sans manager revient au RH de son entreprise (T-0014)', async () => {
   const id = await createNote(A.orphan.id)
-  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).not.toContain(id)
   expect(await ids(await as.managerA.get('/api/manager/expense-notes'))).not.toContain(id)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).toContain(id)
+  expect((await as.hrA.get(`/api/hr/expense-notes/${id}/receipt-url`)).status()).toBe(200)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${id}/approve`)).status()).toBe(200)
+  // Un autre RH de l'entreprise peut aussi la voir ; une fois décidée, elle sort des listes.
+  expect(await ids(await as.hr2A.get('/api/hr/expense-notes'))).not.toContain(id)
+})
+
+test('T08b la note d\'un RH sans RH au-dessus est validée par un autre RH, jamais par lui-même (T-0014)', async () => {
+  const hr2Note = await createNote(A.hr2.id)
+  expect(await ids(await as.hr2A.get('/api/hr/expense-notes'))).not.toContain(hr2Note)
+  expect((await as.hr2A.post(`/api/hr/expense-notes/${hr2Note}/approve`)).status()).toBe(404)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).toContain(hr2Note)
+  expect((await as.hrA.post(`/api/hr/expense-notes/${hr2Note}/reject`)).status()).toBe(200)
+})
+
+test('T08c le RH d\'une autre entreprise ne voit pas les auteurs sans manager de A (T-0014)', async () => {
+  const orphanNote = await createNote(A.orphan.id)
+  const hrNote = await createNote(A.hr2.id)
+  for (const id of [orphanNote, hrNote]) {
+    expect(await ids(await as.hrB.get('/api/hr/expense-notes'))).not.toContain(id)
+    expect((await as.hrB.get(`/api/hr/expense-notes/${id}/receipt-url`)).status()).toBe(404)
+    expect((await as.hrB.post(`/api/hr/expense-notes/${id}/approve`)).status()).toBe(404)
+  }
 })
 
 test('T09 le RH voit et décide des notes des managers racine de son entreprise', async () => {

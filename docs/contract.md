@@ -17,7 +17,7 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 | `POST /api/manager/expense-notes/{id}/approve` | `manager` | — | 200, la note | 401, 404, 409 |
 | `POST /api/manager/expense-notes/{id}/reject` | `manager` | — | 200, la note | 401, 404, 409 |
 | `GET /api/manager/expense-notes/{id}/receipt-url` | `manager` | — | 200 `{url}` | 401, 404 |
-| `GET /api/hr/expense-notes` | `hr_admin` | — | 200, notes en attente des managers racine | 403 |
+| `GET /api/hr/expense-notes` | `hr_admin` | — | 200, notes en attente des auteurs sans manager de l'entreprise (T-0014) | 403 |
 | `POST /api/hr/expense-notes/{id}/approve` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `POST /api/hr/expense-notes/{id}/reject` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `GET /api/hr/expense-notes/{id}/receipt-url` | `hr_admin` | — | 200 `{url}` | 403, 404 |

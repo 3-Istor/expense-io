@@ -91,7 +91,7 @@ const ROUTES: Route[] = [
     isolation: async (body, actor) => {
       const ids = (body as { userId: string }[]).map((n) => n.userId)
       const rootOfA = [w.users['son manager'].id, w.users['autre manager'].id]
-      if (actor === 'RH') expect(ids.every((id) => rootOfA.includes(id)), 'managers racine de son entreprise').toBe(true)
+      if (actor === 'RH') expect(ids.every((id) => rootOfA.includes(id)), 'auteurs sans manager de son entreprise').toBe(true)
       else expect(ids.some((id) => rootOfA.includes(id)), 'rien de l\'autre entreprise').toBe(false)
     },
   },

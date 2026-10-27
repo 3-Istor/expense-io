@@ -30,11 +30,12 @@ const LIST_OWN_BY_SORT = new Map<string, string>(
   ),
 )
 
-// Périmètre des valideurs ($1 = appelant) : subordonnés directs pour un manager, managers racine de son entreprise
-// pour un RH ; jamais ses propres notes (SEC-06).
+// Périmètre des valideurs ($1 = appelant), traduction SQL de `mayDecide` (domain/approvers.ts) : subordonnés directs
+// pour un manager ; pour un RH, tout auteur sans manager de son entreprise (T-0014), quel que soit son rôle ; jamais
+// ses propres notes (SEC-06).
 const SCOPE: Record<ApproverKind, string> = {
   manager: 'u.manager_id = $1 AND en.user_id <> $1',
-  hr: `u.role = 'manager' AND u.manager_id IS NULL AND en.user_id <> $1
+  hr: `u.manager_id IS NULL AND en.user_id <> $1
        AND u.company_id = (SELECT company_id FROM users WHERE id = $1)`,
 }
 const PENDING_IN_SCOPE: Record<ApproverKind, string> = {
