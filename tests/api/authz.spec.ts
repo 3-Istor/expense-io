@@ -156,6 +156,15 @@ test('T08b la note d\'un RH sans RH au-dessus est validée par un autre RH, jama
   expect((await as.hrA.post(`/api/hr/expense-notes/${hr2Note}/reject`)).status()).toBe(200)
 })
 
+test('T08d la note d\'un employé qui a un manager reste à son manager : le RH n\'y accède pas (T-0014)', async () => {
+  const id = await createNote(A.employee.id)
+  expect(await ids(await as.hrA.get('/api/hr/expense-notes'))).not.toContain(id)
+  expect((await as.hrA.get(`/api/hr/expense-notes/${id}/receipt-url`)).status()).toBe(404)
+  for (const action of ['approve', 'reject']) {
+    expect((await as.hrA.post(`/api/hr/expense-notes/${id}/${action}`)).status()).toBe(404)
+  }
+})
+
 test('T08c le RH d\'une autre entreprise ne voit pas les auteurs sans manager de A (T-0014)', async () => {
   const orphanNote = await createNote(A.orphan.id)
   const hrNote = await createNote(A.hr2.id)

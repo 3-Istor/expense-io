@@ -52,6 +52,9 @@ describe('qui valide une note (T-0014)', () => {
   it('jamais soi-même, jamais une autre entreprise', () => {
     expect(mayDecide(hr, hr)).toBe(false)
     expect(mayDecide(hrB, boss)).toBe(false)
+    // un manager d'une autre entreprise, même désigné comme manager de l'auteur, ne valide pas (comme la RLS)
+    const managerB = { id: 'boss-b', companyId: 'entreprise-b', managerId: null, role: 'manager' as const }
+    expect(mayDecide(managerB, { id: 'emp', companyId: A, managerId: 'boss-b' })).toBe(false)
   })
 })
 

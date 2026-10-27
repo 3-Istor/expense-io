@@ -24,7 +24,7 @@ export interface Person {
  * métrique métier (T-0015), plutôt qu'une auto-validation.
  */
 export function mayDecide(approver: Person & { role: Role }, author: Person): boolean {
-  if (approver.id === author.id) return false
+  if (approver.id === author.id || approver.companyId !== author.companyId) return false
   if (author.managerId !== null) return approver.id === author.managerId
-  return approver.role === 'hr_admin' && approver.companyId === author.companyId
+  return approver.role === 'hr_admin'
 }
