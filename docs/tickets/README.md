@@ -63,5 +63,6 @@ Ce qui a été appris en route.
 | [T-0016](T-0016-enum-ajout-mineure.md) | done | 3 | S5 : ajout de valeur d'enum = mineure |
 | [T-0019](T-0019-enum-devenu-enum.md) | todo | 3 | S5 : « became-enum » en réponse, mineure ou rupture |
 | [T-0020](T-0020-detacher-pour-valider.md) | todo | 3 | RH : détacher un employé pour valider sa note |
+| [T-0021](T-0021-metriques-red-use.md) | done | 2 | Métriques Prometheus : RED, USE et métier sur /metrics |
 | [T-0017](T-0017-migrer-anciens-recus.md) | todo | 2 | Déplacer les anciens reçus sous une clé opaque |
 | [T-0018](T-0018-droits-de-mise-a-jour-par-colonne.md) | todo | 3 | UPDATE du rôle applicatif limité aux colonnes de décision |

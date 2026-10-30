@@ -14,11 +14,14 @@ export async function withTimeout<T>(promise: Promise<T>, ms: number, onTimeout?
   }
 }
 
-/** Limite le nombre de tâches simultanées ; les suivantes attendent leur tour. */
+/**
+ * Limite le nombre de tâches simultanées ; les suivantes attendent leur tour. `stats()` donne l'occupation et l'attente
+ * (méthode USE : utilisation, saturation), lues par /metrics.
+ */
 export function createLimiter(max: number) {
   let running = 0
   const waiting: (() => void)[] = []
-  return async function limit<T>(task: () => Promise<T>): Promise<T> {
+  const limit = async function limit<T>(task: () => Promise<T>): Promise<T> {
     if (running >= max) await new Promise<void>((resolve) => waiting.push(resolve))
     running++
     try {
@@ -28,4 +31,5 @@ export function createLimiter(max: number) {
       waiting.shift()?.()
     }
   }
+  return Object.assign(limit, { stats: () => ({ running, waiting: waiting.length, max }) })
 }
