@@ -84,3 +84,18 @@ test('T-0020 l’historique est lisible et inscriptible par un RH de la même en
   expect(await history(employee.id)).toHaveLength(0)
   await asApp(hrA.id, async (q) => expect(q('UPDATE manager_changes SET changed_by = $1', [hrA.id])).rejects.toThrow())
 })
+
+test('T-0023 un manager ne peut pas être rattaché à lui-même, même avec son UUID en majuscules', async ({ baseURL }) => {
+  const a = await createCompany()
+  const hr = await createUser(a, 'CasseRh', 'hr_admin')
+  const m = await createUser(a, 'CasseManager', 'manager')
+  const asHr = await login(baseURL!, hr)
+  for (const target of [m.id, m.id.toUpperCase()]) {
+    const res = await asHr.put(`/api/hr/users/${target}/manager`, { data: { managerId: m.id.toUpperCase() } })
+    expect(res.status(), target).toBe(409)
+  }
+  const row = await db().query('SELECT manager_id FROM users WHERE id = $1', [m.id])
+  expect(row.rows[0].manager_id).toBeNull()
+  expect(await history(m.id)).toHaveLength(0)
+  await asHr.dispose()
+})
