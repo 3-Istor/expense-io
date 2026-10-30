@@ -62,7 +62,9 @@ SRE Book (latence, trafic, erreurs, saturation).
 
 Labels bornés : `operationId` du contrat, code HTTP, décision, type de valideur. Jamais d'identifiant d'utilisateur, de
 note ou d'entreprise (cardinalité, et aucune donnée de client dans les métriques). Compteurs en mémoire, par instance.
-Accès : ouvert sans `METRICS_TOKEN` (réseau interne, démo) ; avec `METRICS_TOKEN`, `Authorization: Bearer <jeton>`.
+Accès : avec `METRICS_TOKEN`, `Authorization: Bearer <jeton>` ; sans jeton, ouvert en développement et en test, fermé
+(401) en production. Les compteurs additionnent l'activité de toutes les entreprises : ils ne doivent pas être lisibles
+depuis Internet.
 
 Requêtes PromQL de référence :
 

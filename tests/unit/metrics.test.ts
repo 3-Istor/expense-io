@@ -52,10 +52,16 @@ describe('métriques Prometheus', () => {
 })
 
 describe('accès à /metrics', () => {
-  it('ouvert sans jeton configuré, protégé sinon', () => {
-    expect(scrapeAllowed(null, undefined)).toBe(true)
-    expect(scrapeAllowed(null, 's3cret-de-test')).toBe(false)
-    expect(scrapeAllowed('Bearer autre', 's3cret-de-test')).toBe(false)
-    expect(scrapeAllowed('Bearer s3cret-de-test', 's3cret-de-test')).toBe(true)
+  it('sans jeton : ouvert en développement et en test seulement, fermé en production', () => {
+    expect(scrapeAllowed(null, undefined, 'development')).toBe(true)
+    expect(scrapeAllowed(null, undefined, 'test')).toBe(true)
+    expect(scrapeAllowed(null, undefined, 'production')).toBe(false)
+    expect(scrapeAllowed(null, undefined, undefined)).toBe(false)
+  })
+  it('avec jeton : seul le bon Bearer passe, quel que soit l’environnement', () => {
+    expect(scrapeAllowed(null, 's3cret-de-test', 'development')).toBe(false)
+    expect(scrapeAllowed('Bearer autre', 's3cret-de-test', 'production')).toBe(false)
+    expect(scrapeAllowed('Bearer s3cret-de-test-plus-long', 's3cret-de-test', 'production')).toBe(false)
+    expect(scrapeAllowed('Bearer s3cret-de-test', 's3cret-de-test', 'production')).toBe(true)
   })
 })

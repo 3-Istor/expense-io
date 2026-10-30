@@ -56,3 +56,11 @@ http_request_duration_seconds_sum{operation="listMyExpenseNotes"} 0.012
 http_request_duration_seconds_count{operation="listMyExpenseNotes"} 1
 http_request_duration_seconds_bucket{operation="suggestFromReceipt",le="0.05"} 0
 ```
+
+## Relecture en contexte neuf (security-reviewer)
+
+Rien de bloquant (cardinalité bornée, aucun identifiant, aucune exception possible dans `handle()`, contrat intact).
+Corrigé : `/metrics` était ouverte par défaut et additionnait l'activité de toutes les entreprises ; elle est désormais
+fermée (401) en production sans `METRICS_TOKEN`, ouverte seulement en développement et en test. Corrigé : la
+comparaison du jeton ne révèle plus sa longueur (empreintes SHA-256). Ouvert : T-0022 (règle Semgrep pour les routes
+hors `src/app/api/`).

@@ -8,7 +8,7 @@ import { ocrLoad } from '@/lib/ocr'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request): Promise<Response> {
-  if (!scrapeAllowed(request.headers.get('authorization'), process.env.METRICS_TOKEN)) {
+  if (!scrapeAllowed(request.headers.get('authorization'), process.env.METRICS_TOKEN, process.env.NODE_ENV)) {
     return new Response('Unauthorized\n', { status: 401, headers: { 'content-type': 'text/plain' } })
   }
   return new Response(renderMetrics(gauges()), {

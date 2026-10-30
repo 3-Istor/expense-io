@@ -23,7 +23,8 @@ du contrat client, comme `/api/auth`.
 - [x] Métier : notes soumises, décidées (décision, type de valideur), délai de décision (histogramme).
 - [x] Usage d'une fonctionnalité calculable (suggestion OCR ÷ notes soumises), requête dans `docs/slo.md`.
 - [x] Labels bornés, aucun identifiant ni domaine d'entreprise (test d'API qui le vérifie).
-- [x] Jeton facultatif `METRICS_TOKEN` ; tests unitaires du format, des seaux cumulés, de l'échappement et de l'accès.
+- [x] `METRICS_TOKEN` : sans jeton, route ouverte en développement et en test seulement (relecture sécurité) ;
+      comparaison en temps constant sur empreintes. Tests unitaires du format, des seaux, de l'échappement et de l'accès.
 
 ## Plan
 

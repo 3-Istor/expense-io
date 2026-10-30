@@ -9,7 +9,7 @@
 // d'utilisateur, de note ou d'entreprise (cardinalité, et aucune donnée d'un client dans les métriques).
 // Chaque instance compte pour elle-même, en mémoire : Prometheus additionne les instances qu'il interroge.
 
-import { timingSafeEqual } from 'node:crypto'
+import { createHash, timingSafeEqual } from 'node:crypto'
 
 type Labels = Record<string, string>
 
@@ -118,13 +118,13 @@ export function resetMetrics(): void {
 }
 
 /**
- * Accès à /metrics. Sans `METRICS_TOKEN`, la route est ouverte, comme une cible Prometheus sur un réseau interne
- * (développement, démo, TP du cours) : elle n'expose que des compteurs agrégés, sans donnée de client. Avec
- * `METRICS_TOKEN` (recommandé dès qu'elle est joignable depuis Internet), il faut `Authorization: Bearer <jeton>`.
+ * Accès à /metrics. Les compteurs sont agrégés sans identifiant, mais ils additionnent l'activité de toutes les
+ * entreprises : les lire ne doit pas être possible depuis Internet. Avec `METRICS_TOKEN`, il faut
+ * `Authorization: Bearer <jeton>`. Sans jeton, la route n'est ouverte qu'en développement et en test (démo, TP).
+ * Comparaison en temps constant sur des empreintes de même taille : ni le contenu ni la longueur du jeton ne fuient.
  */
-export function scrapeAllowed(authorization: string | null, token: string | undefined): boolean {
-  if (!token) return true
-  const expected = Buffer.from(`Bearer ${token}`)
-  const given = Buffer.from(authorization ?? '')
-  return given.length === expected.length && timingSafeEqual(given, expected)
+export function scrapeAllowed(authorization: string | null, token: string | undefined, nodeEnv: string | undefined): boolean {
+  if (!token) return nodeEnv === 'development' || nodeEnv === 'test'
+  const digest = (value: string) => createHash('sha256').update(value).digest()
+  return timingSafeEqual(digest(authorization ?? ''), digest(`Bearer ${token}`))
 }
