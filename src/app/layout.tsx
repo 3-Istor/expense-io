@@ -5,10 +5,12 @@ import type { ReactNode } from 'react'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import Link from 'next/link'
+import Script from 'next/script'
 import './globals.css'
 import { auth } from '@/lib/auth'
 import { logout } from '@/app/actions/auth'
 import { NavItem } from '@/components/NavItem'
+import { umamiConfig } from '@/lib/umami'
 
 export const metadata: Metadata = {
   title: 'Expense.io',
@@ -17,6 +19,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const session = await auth()
+  const umami = umamiConfig(process.env)
 
   return (
     <html lang="fr" className={`${GeistSans.variable} ${GeistMono.variable}`}>
@@ -51,6 +54,17 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           </div>
         </header>
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">{children}</div>
+        {/* Usage des fonctionnalités (T-0028) : Umami, seulement si configuré. Sans cookie, sans donnée personnelle ;
+            les boutons clés portent un data-umami-event (suggestion OCR, soumission, décision). */}
+        {umami && (
+          <Script
+            src={umami.scriptUrl}
+            data-website-id={umami.websiteId}
+            data-do-not-track="true"
+            data-exclude-search="true"
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   )
