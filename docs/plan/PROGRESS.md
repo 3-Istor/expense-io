@@ -302,3 +302,10 @@ Synthèse : `docs/test-strategy.md`.
   (ADR 0006) ; T-0019 ouvert (cas « became-enum »).
 - T-0014 : le RH valide la note de tout auteur sans manager de son entreprise (employé, manager, autre RH), jamais la
   sienne ; domaine `mayDecide`, périmètre SQL et RLS (migration 0006) alignés ; contrat 1.1.2 (texte).
+
+## 2026-10-30 — T-0021 et T-0020
+
+- T-0021 (PR #21) : `/metrics` au format Prometheus, RED par opération, USE (pool PostgreSQL, OCR), métier ; fermée
+  en production sans `METRICS_TOKEN`.
+- T-0020 : historique des changements de manager (`manager_changes`, ajout seul, RLS par entreprise), événement
+  `manager.changed` dans les journaux.

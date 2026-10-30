@@ -8,7 +8,7 @@ import {
   type Role,
   type User,
 } from '../domain/user'
-import type { AccountStore, Caller, UserRepository } from '../ports'
+import type { AccountStore, Caller, IdentityEvents, UserRepository } from '../ports'
 
 export interface Actor extends Caller {
   role: Role
@@ -19,9 +19,12 @@ export interface Deps {
   accounts: AccountStore
   verifyPassword: (password: string, hash: string) => Promise<boolean>
   hashPassword: (password: string) => Promise<string>
+  events?: IdentityEvents
 }
 
-export function identityUseCases({ users, accounts, verifyPassword, hashPassword }: Deps) {
+const NO_EVENTS: IdentityEvents = { managerChanged() {} }
+
+export function identityUseCases({ users, accounts, verifyPassword, hashPassword, events = NO_EVENTS }: Deps) {
   function requireHr(actor: Actor) {
     if (actor.role !== 'hr_admin') throw denied()
   }
@@ -40,7 +43,18 @@ export function identityUseCases({ users, accounts, verifyPassword, hashPassword
       if (!isUuid(targetId)) throw notFound()
       if (checkManagerAssignment(targetId, parsed.managerId) === 'self') throw conflict('Invalid manager')
       const result = await users.assignManager(actor, targetId, parsed.managerId)
-      if (result.ok) return result.user
+      if (result.ok) {
+        // Changement effectif seulement : réaffecter le même manager n'est pas un événement (T-0020).
+        if (result.previousManagerId !== parsed.managerId) {
+          events.managerChanged({
+            targetId,
+            previousManagerId: result.previousManagerId,
+            newManagerId: parsed.managerId,
+            changedBy: actor.userId,
+          })
+        }
+        return result.user
+      }
       if (result.reason === 'target-not-found') throw notFound()
       throw conflict('Invalid manager')
     },
