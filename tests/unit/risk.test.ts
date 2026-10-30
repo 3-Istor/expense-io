@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classify, type ChangedFile } from '../../verify/risk'
+import { classify, newFileLines, type ChangedFile } from '../../verify/risk'
 
 const m = (path: string, added: string[] = []): ChangedFile => ({ path, status: 'M', added })
 const level = (...files: ChangedFile[]) => classify(files).level
@@ -72,5 +72,28 @@ describe('niveau de risque (AGENTS.md)', () => {
         expect(level(m(p)), p).toBe(3)
       }
     })
+  })
+})
+
+describe('fichiers pas encore suivis par git (T-0026, répétition 4)', () => {
+  const file = (content: Buffer, isFile = true) => ({ stat: () => ({ isFile: () => isFile, size: content.length }), read: () => content })
+  it('le contenu d’une migration non suivie déclenche la règle RLS', () => {
+    const sql = 'CREATE POLICY expense_notes_x ON expense_notes FOR UPDATE USING (true);\n'
+    const added = newFileLines(file(Buffer.from(sql)))
+    expect(added).toContain('CREATE POLICY expense_notes_x ON expense_notes FOR UPDATE USING (true);')
+    expect(classify([{ path: 'migrations/1700000000099_x.sql', status: 'A', added }]).level).toBe(3)
+    // Avant le correctif : contenu ignoré, la même migration ne ressortait pas en niveau 3.
+    expect(classify([{ path: 'migrations/1700000000099_x.sql', status: 'A', added: [] }]).level).toBeLessThan(3)
+  })
+  it('lien symbolique, fichier spécial ou trop gros : jamais lu (la lecture pourrait bloquer)', () => {
+    let reads = 0
+    const tracked = (isFile: boolean, size: number) => ({ stat: () => ({ isFile: () => isFile, size }), read: () => (reads++, Buffer.from('x')) })
+    expect(newFileLines(tracked(false, 1))).toEqual([]) // lien symbolique, FIFO, /dev/zero : lstat dit « pas un fichier »
+    expect(newFileLines(tracked(true, 600 * 1024))).toEqual([]) // taille vérifiée avant la lecture
+    expect(reads).toBe(0)
+  })
+  it('fichier illisible ou binaire : aucune ligne, sans erreur', () => {
+    expect(newFileLines({ stat: () => { throw new Error('ENOENT') }, read: () => Buffer.from('') })).toEqual([])
+    expect(newFileLines(file(Buffer.from([0x89, 0x50, 0x00, 0x47])))).toEqual([])
   })
 })
