@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classify, type ChangedFile } from '../../verify/risk'
+import { classify, newFileLines, type ChangedFile } from '../../verify/risk'
 
 const m = (path: string, added: string[] = []): ChangedFile => ({ path, status: 'M', added })
 const level = (...files: ChangedFile[]) => classify(files).level
@@ -72,5 +72,21 @@ describe('niveau de risque (AGENTS.md)', () => {
         expect(level(m(p)), p).toBe(3)
       }
     })
+  })
+})
+
+describe('fichiers pas encore suivis par git (T-0026, répétition 4)', () => {
+  it('le contenu d’une migration non suivie déclenche la règle RLS', () => {
+    const sql = 'CREATE POLICY expense_notes_x ON expense_notes FOR UPDATE USING (true);\n'
+    const added = newFileLines(() => Buffer.from(sql))
+    expect(added).toContain('CREATE POLICY expense_notes_x ON expense_notes FOR UPDATE USING (true);')
+    expect(classify([{ path: 'migrations/1700000000099_x.sql', status: 'A', added }]).level).toBe(3)
+    // Avant le correctif : contenu ignoré, la même migration ne ressortait pas en niveau 3.
+    expect(classify([{ path: 'migrations/1700000000099_x.sql', status: 'A', added: [] }]).level).toBeLessThan(3)
+  })
+  it('fichier illisible, binaire ou trop gros : aucune ligne, sans erreur', () => {
+    expect(newFileLines(() => { throw new Error('ENOENT') })).toEqual([])
+    expect(newFileLines(() => Buffer.from([0x89, 0x50, 0x00, 0x47]))).toEqual([])
+    expect(newFileLines(() => Buffer.alloc(600 * 1024, 0x61))).toEqual([])
   })
 })

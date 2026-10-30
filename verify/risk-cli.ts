@@ -2,7 +2,7 @@
 // par rapport à la base (origin/main par défaut).
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { classify, type ChangedFile } from './risk'
+import { classify, newFileLines, type ChangedFile } from './risk'
 
 // Sortie coupée par `| head` : arrêt propre au lieu d'une exception EPIPE (friction relevée en répétition).
 process.stdout.on('error', (error: NodeJS.ErrnoException) => {
@@ -34,7 +34,9 @@ const files: ChangedFile[] = [
             .map((l) => l.slice(1))
     return { path, status: status[0] as ChangedFile['status'], added }
   }),
-  ...untracked.map((path) => ({ path, status: 'A' as const, added: [] })),
+  // Fichier pas encore suivi par git (une migration qu'on vient d'écrire) : tout son contenu est « ajouté », pour que les
+  // règles qui lisent le contenu (RLS, droits, dépendances) le voient avant `git add` (répétition 4, T-0026).
+  ...untracked.map((path) => ({ path, status: 'A' as const, added: newFileLines(() => readFileSync(path)) })),
 ]
 
 // Les outils de dev (actuels ou retirés par ce changement) pèsent moins qu'une dépendance d'exécution.

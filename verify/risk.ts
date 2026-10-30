@@ -127,3 +127,21 @@ export function classify(files: ChangedFile[], context: RiskContext = {}): RiskR
   reasons.sort((a, b) => b.level - a.level)
   return { level, reasons, checkpoint: CHECKPOINTS[level] }
 }
+
+/** Taille au-delà de laquelle un fichier non suivi n'est pas lu (binaire, généré) : son chemin suffit aux règles. */
+const MAX_NEW_FILE_BYTES = 512 * 1024
+
+/**
+ * Lignes d'un fichier non encore suivi par git, toutes considérées comme ajoutées. Fichier illisible, binaire (octet nul)
+ * ou trop gros : aucune ligne, les règles qui portent sur le chemin s'appliquent quand même (T-0026).
+ */
+export function newFileLines(read: () => Buffer): string[] {
+  let content: Buffer
+  try {
+    content = read()
+  } catch {
+    return []
+  }
+  if (content.length > MAX_NEW_FILE_BYTES || content.includes(0)) return []
+  return content.toString('utf8').split('\n')
+}
