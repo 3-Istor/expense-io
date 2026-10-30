@@ -69,6 +69,7 @@ Ce qui a été appris en route.
 | [T-0024](T-0024-politiques-update-sans-borne-de-statut.md) | done | 3 | RLS : mise à jour bornée au statut en attente |
 | [T-0026](T-0026-risque-fichiers-non-suivis.md) | done | 3 | npm run risk : lire les fichiers pas encore suivis par git |
 | [T-0027](T-0027-t15-verifier-le-409.md) | todo | 1 | T15 : vérifier le 409 de la décision perdante |
-| [T-0028](T-0028-umami-usage-fonctionnalites.md) | done | 1 | Usage des fonctionnalités dans l’interface (Umami) |
+| [T-0028](T-0028-umami-usage-fonctionnalites.md) | done | 3 | Usage des fonctionnalités dans l’interface (Umami) |
+| [T-0029](T-0029-csp-script-tiers.md) | todo | 3 | CSP : limiter les scripts tiers à leur hôte |
 | [T-0017](T-0017-migrer-anciens-recus.md) | todo | 2 | Déplacer les anciens reçus sous une clé opaque |
 | [T-0018](T-0018-droits-de-mise-a-jour-par-colonne.md) | todo | 3 | UPDATE du rôle applicatif limité aux colonnes de décision |

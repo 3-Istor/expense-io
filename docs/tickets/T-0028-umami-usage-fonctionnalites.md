@@ -2,7 +2,7 @@
 id: T-0028
 title: "Mesurer l'usage des fonctionnalités dans l'interface (Umami)"
 status: done
-risk: 1
+risk: 3
 source: human
 created: 2026-10-30
 links: [T-0021, "docs/slo.md"]
