@@ -3,7 +3,7 @@ id: T-0030
 title: "make install sur NixOS : pip système en lecture seule"
 status: done
 risk: 3
-source: humain
+source: human
 created: 2026-10-30
 ---
 
