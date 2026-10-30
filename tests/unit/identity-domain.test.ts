@@ -7,7 +7,8 @@ const UUID = '0f8fad5b-d9cb-469f-a165-70867728950e'
 describe('corps du rattachement de manager', () => {
   it('accepte { managerId: uuid } et { managerId: null }, exactement', () => {
     expect(parseManagerAssignment({ managerId: UUID })).toEqual({ managerId: UUID })
-    expect(parseManagerAssignment({ managerId: UUID.toUpperCase() })).toEqual({ managerId: UUID.toUpperCase() })
+    // T-0023 : la casse est normalisée, pour que les comparaisons du domaine ne puissent pas être contournées.
+    expect(parseManagerAssignment({ managerId: UUID.toUpperCase() })).toEqual({ managerId: UUID })
     expect(parseManagerAssignment({ managerId: null })).toEqual({ managerId: null })
   })
   it('refuse tout le reste', () => {
@@ -27,6 +28,8 @@ describe('corps du rattachement de manager', () => {
   })
   it('se rattacher à soi-même est refusé, mais pas un détachement ni un autre manager', () => {
     expect(checkManagerAssignment(UUID, UUID)).toBe('self')
+    expect(checkManagerAssignment(UUID, UUID.toUpperCase())).toBe('self') // T-0023
+    expect(checkManagerAssignment(UUID.toUpperCase(), UUID)).toBe('self')
     expect(checkManagerAssignment(UUID, null)).toBeNull()
     expect(checkManagerAssignment(UUID, '11111111-1111-4111-8111-111111111111')).toBeNull()
   })

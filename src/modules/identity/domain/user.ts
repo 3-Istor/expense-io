@@ -17,12 +17,13 @@ export function parseManagerAssignment(body: unknown): { managerId: string | nul
   if (typeof body !== 'object' || body === null || Array.isArray(body) || !('managerId' in body)) return null
   const { managerId } = body as { managerId: unknown }
   if (managerId === null) return { managerId: null }
-  return typeof managerId === 'string' && UUID.test(managerId) ? { managerId } : null
+  // UUID normalisé en minuscules : les comparaisons du domaine ne dépendent pas de la casse saisie (T-0023).
+  return typeof managerId === 'string' && UUID.test(managerId) ? { managerId: managerId.toLowerCase() } : null
 }
 
 /** Refus de rattachement que le domaine peut trancher seul ; l'entreprise et les cycles sont vérifiés en base. */
 export function checkManagerAssignment(targetId: string, managerId: string | null): 'self' | null {
-  return managerId !== null && managerId === targetId ? 'self' : null
+  return managerId !== null && managerId.toLowerCase() === targetId.toLowerCase() ? 'self' : null
 }
 
 export const MIN_PASSWORD_LENGTH = 8
