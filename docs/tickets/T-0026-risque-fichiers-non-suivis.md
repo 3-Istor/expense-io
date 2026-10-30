@@ -17,5 +17,6 @@ un contenu vide, donc les règles qui lisent le contenu (RLS, droits, dépendanc
 ## Critères d'acceptation
 
 - [x] Le contenu d'un fichier non suivi est lu et traité comme ajouté (`newFileLines`, `verify/risk.ts`).
-- [x] Fichier illisible, binaire ou de plus de 512 Ko : aucune ligne, sans erreur (le chemin reste classé).
+- [x] Seul un fichier ordinaire (lstat, pas un lien ni un fichier spécial) de 512 Ko au plus est lu, taille vérifiée
+      avant la lecture ; sinon, ou illisible ou binaire : aucune ligne, sans erreur (le chemin reste classé).
 - [x] Tests unitaires ; vérification manuelle : une migration non suivie avec `CREATE POLICY` sort en niveau 3.

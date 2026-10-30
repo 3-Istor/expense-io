@@ -14,3 +14,11 @@ Niveau de risque : 3 (base origin/main, 4 fichier(s))
 
 - Tests unitaires (`tests/unit/risk.test.ts`) : le contenu d'une migration non suivie déclenche la règle RLS, le même
   fichier sans contenu ne la déclenchait pas ; fichier illisible, binaire ou trop gros : aucune ligne, sans erreur.
+
+## Relecture en contexte neuf (security-reviewer)
+
+Le changement ne peut pas faire baisser un niveau (les règles ne font qu'ajouter des raisons). Constat corrigé avant
+fusion : un lien symbolique non suivi vers un FIFO ou `/dev/zero` bloquait la lecture, et S8 serait passé en « skip ».
+On fait maintenant un `lstat` : seul un fichier ordinaire de 512 Ko au plus est lu, taille vérifiée AVANT la lecture.
+Vérifié à la main : avec un lien `migrations/zz-lien.sql -> FIFO` et une migration RLS non suivie, `npm run risk`
+répond immédiatement en niveau 3. Tests unitaires : un lien ou un fichier trop gros n'est jamais lu.
