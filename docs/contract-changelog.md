@@ -11,6 +11,19 @@ compare le contrat à `main` avec oasdiff et refuse une version qui ne suit pas 
 
 Un tag `contract-vX.Y.Z` est posé automatiquement à la fusion dans `main` (`.github/workflows/contract-tag.yml`).
 
+## 1.2.0 — 2026-10-30
+
+Ajout (mineure, ADR 0006) :
+
+- nouvelle valeur `reimbursed` dans `ExpenseNoteStatus` : une note validée que le RH a marquée remboursée.
+  **Clients qui font un `switch` exhaustif sur `status`** : prévoir le cas, ou traiter une valeur inconnue comme
+  « autre » (règle de `docs/contract.md`). Les notes existantes ne changent pas de statut.
+- nouvelle route `POST /api/hr/expense-notes/{id}/reimburse` (`hrReimburseNote`), réservée à `hr_admin` : 200 et la
+  note `reimbursed` ; 403 sans session ou autre rôle ; 404 note inconnue, d'une autre entreprise, du RH lui-même, ou
+  pas validée (en attente, rejetée : le RH ne les voit pas) ; 409 note déjà remboursée.
+
+Aucune route existante, aucun champ, aucun code HTTP existant ne change.
+
 ## 1.1.2 — 2026-10-27
 
 Texte seulement : les descriptions des routes RH disent « auteurs sans manager de l'entreprise » au lieu de « managers

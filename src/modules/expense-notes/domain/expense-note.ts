@@ -1,6 +1,6 @@
 // Domaine des notes de frais : aucune dépendance technique (règle dependency-cruiser `domaine-sans-infrastructure`).
 
-export type ExpenseNoteStatus = 'pending' | 'approved' | 'rejected'
+export type ExpenseNoteStatus = 'pending' | 'approved' | 'rejected' | 'reimbursed'
 export type Decision = 'approved' | 'rejected'
 
 export interface ExpenseNote {
@@ -21,6 +21,7 @@ const TRANSITIONS: Record<ExpenseNoteStatus, readonly Decision[]> = {
   pending: ['approved', 'rejected'],
   approved: [],
   rejected: [],
+  reimbursed: [],
 }
 
 export type DecisionRefusal = 'already-decided' | 'self-decision'
@@ -28,6 +29,15 @@ export type DecisionRefusal = 'already-decided' | 'self-decision'
 export function checkDecision(note: Pick<ExpenseNote, 'status' | 'userId'>, decision: Decision, actorId: string): DecisionRefusal | null {
   if (note.userId === actorId) return 'self-decision'
   if (!TRANSITIONS[note.status].includes(decision)) return 'already-decided'
+  return null
+}
+
+export type ReimbursementRefusal = 'not-approved' | 'self'
+
+/** Remboursement (répétition 4) : seule une note validée passe à `reimbursed`, une seule fois, jamais par son auteur. */
+export function checkReimbursement(note: Pick<ExpenseNote, 'status' | 'userId'>, actorId: string): ReimbursementRefusal | null {
+  if (note.userId === actorId) return 'self'
+  if (note.status !== 'approved') return 'not-approved'
   return null
 }
 

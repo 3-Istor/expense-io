@@ -28,3 +28,11 @@ export function mayDecide(approver: Person & { role: Role }, author: Person): bo
   if (author.managerId !== null) return approver.id === author.managerId
   return approver.role === 'hr_admin'
 }
+
+/**
+ * Qui marque une note remboursée (répétition 4) : un RH de l'entreprise de l'auteur, que l'auteur ait un manager ou
+ * non (le RH paie toute l'entreprise), jamais sa propre note (séparation des tâches, comme SEC-06).
+ */
+export function mayReimburse(approver: Person & { role: Role }, author: Person): boolean {
+  return approver.role === 'hr_admin' && approver.id !== author.id && approver.companyId === author.companyId
+}

@@ -335,6 +335,56 @@ test.describe('GET /api/hr/expense-notes/{id}/receipt-url', () => {
   })
 })
 
+test.describe('POST /api/hr/expense-notes/{id}/reimburse', () => {
+  test('sans session ou sans rôle hr_admin : 403', async ({ request }) => {
+    const id = await createNote(employee.id, { status: 'approved' })
+    expect((await request.post(`/api/hr/expense-notes/${id}/reimburse`)).status()).toBe(403)
+    for (const client of [asManager, asEmployee]) {
+      const res = await client.post(`/api/hr/expense-notes/${id}/reimburse`)
+      expect(res.status()).toBe(403)
+      expectError(await res.json())
+    }
+  })
+
+  test('200 puis 409 : une note validée d\'un employé avec manager passe à "reimbursed", visible par son auteur', async () => {
+    const id = await createNote(employee.id, { status: 'approved' })
+    const res = await asHr.post(`/api/hr/expense-notes/${id}/reimburse`)
+    expect(res.status()).toBe(200)
+    const note = await res.json()
+    expectNote(note)
+    expect(note).toMatchObject({ id, userId: employee.id, status: 'reimbursed' })
+    const again = await asHr.post(`/api/hr/expense-notes/${id}/reimburse`)
+    expect(again.status()).toBe(409)
+    expectError(await again.json())
+    const mine = await (await asEmployee.get('/api/expense-notes')).json()
+    expect(mine.find((n: { id: string }) => n.id === id)?.status).toBe('reimbursed')
+  })
+
+  test('404 : note en attente ou rejetée (le RH ne la voit pas), rien n\'est modifié', async () => {
+    for (const status of ['pending', 'rejected'] as const) {
+      const id = await createNote(employee.id, { status })
+      const res = await asHr.post(`/api/hr/expense-notes/${id}/reimburse`)
+      expect(res.status()).toBe(404)
+      expectError(await res.json())
+      const row = await db().query('SELECT status FROM expense_notes WHERE id = $1', [id])
+      expect(row.rows[0].status).toBe(status)
+    }
+  })
+
+  test('404 : sa propre note, note d\'une autre entreprise ou inconnue', async () => {
+    const own = await createNote(hr.id, { status: 'approved' })
+    const outsider = await createUser(await createCompany(), 'Ailleurs', 'employee')
+    const foreign = await createNote(outsider.id, { status: 'approved' })
+    for (const id of [own, foreign, randomUUID()]) {
+      const res = await asHr.post(`/api/hr/expense-notes/${id}/reimburse`)
+      expect(res.status()).toBe(404)
+      expectError(await res.json())
+    }
+    const rows = await db().query('SELECT status FROM expense_notes WHERE id = ANY($1)', [[own, foreign]])
+    expect(rows.rows.map((r) => r.status)).toEqual(['approved', 'approved'])
+  })
+})
+
 test.describe('GET /api/hr/users', () => {
   test('sans session ou sans rôle hr_admin : 403', async ({ request }) => {
     expect((await request.get('/api/hr/users')).status()).toBe(403)

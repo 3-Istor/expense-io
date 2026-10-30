@@ -17,6 +17,10 @@ export interface ExpenseNoteRepository {
   findInScope(caller: Caller, kind: ApproverKind, noteId: string): Promise<ExpenseNote | null>
   /** Écrit la décision seulement si la note est encore en attente (atomique, SEC-08) ; null sinon. */
   saveDecision(caller: Caller, kind: ApproverKind, noteId: string, decision: Decision): Promise<ExpenseNote | null>
+  /** Note d'un autre membre de l'entreprise du RH appelant (traduction SQL de `mayReimburse`) ; null sinon. */
+  findReimbursable(caller: Caller, noteId: string): Promise<ExpenseNote | null>
+  /** Passe la note à `reimbursed` seulement si elle est encore `approved` (atomique) ; null sinon. */
+  saveReimbursement(caller: Caller, noteId: string): Promise<ExpenseNote | null>
 }
 
 export interface ReceiptStorage {

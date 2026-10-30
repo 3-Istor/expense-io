@@ -57,6 +57,15 @@ const DECIDE_IN_SCOPE: Record<ApproverKind, string> = {
        WHERE u.id = en.user_id AND ${SCOPE.hr} AND en.id = $2 AND en.status = 'pending' RETURNING en.*`,
 }
 
+// Remboursement ($1 = appelant), traduction SQL de `mayReimburse` : auteur de l'entreprise du RH, avec ou sans manager,
+// jamais le RH lui-même. Le rôle est vérifié par le cas d'usage ; la RLS (migration 0008) le double. Le RH ne voit que
+// les notes validées ou déjà remboursées (moindre privilège) : une note en attente ou rejetée est introuvable (404).
+const REIMBURSE_SCOPE = `en.user_id <> $1 AND u.company_id = (SELECT company_id FROM users WHERE id = $1)`
+const FIND_REIMBURSABLE = `SELECT en.* FROM expense_notes en JOIN users u ON u.id = en.user_id
+                           WHERE ${REIMBURSE_SCOPE} AND en.id = $2 AND en.status IN ('approved', 'reimbursed')`
+const REIMBURSE = `UPDATE expense_notes en SET status = 'reimbursed', reimbursed_by = $1, reimbursed_at = now() FROM users u
+                   WHERE u.id = en.user_id AND ${REIMBURSE_SCOPE} AND en.id = $2 AND en.status = 'approved' RETURNING en.*`
+
 const first = (rows: Record<string, unknown>[]) => (rows[0] ? toNote(rows[0]) : null)
 
 export const pgExpenseNoteRepository: ExpenseNoteRepository = {
@@ -96,4 +105,10 @@ export const pgExpenseNoteRepository: ExpenseNoteRepository = {
     withUserScope(caller.userId, async (db) =>
       first((await db.query(DECIDE_IN_SCOPE[kind], [caller.userId, noteId, decision])).rows),
     ),
+
+  findReimbursable: (caller, noteId) =>
+    withUserScope(caller.userId, async (db) => first((await db.query(FIND_REIMBURSABLE, [caller.userId, noteId])).rows)),
+
+  saveReimbursement: (caller, noteId) =>
+    withUserScope(caller.userId, async (db) => first((await db.query(REIMBURSE, [caller.userId, noteId])).rows)),
 }

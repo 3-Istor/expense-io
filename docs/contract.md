@@ -22,11 +22,12 @@ générique (la stacktrace a été retirée en phase 2, SEC-07 ; le champ `error
 | `POST /api/hr/expense-notes/{id}/reject` | `hr_admin` | — | 200, la note | 403, 404, 409 |
 | `GET /api/hr/expense-notes/{id}/receipt-url` | `hr_admin` | — | 200 `{url}` | 403, 404 |
 | `GET /api/hr/users` | `hr_admin` | — | 200, employés et managers de l'entreprise | 403 |
+| `POST /api/hr/expense-notes/{id}/reimburse` | `hr_admin` | — | 200, la note `reimbursed` | 403, 404 (autre entreprise, la sienne, inconnue, pas validée), 409 (déjà remboursée) |
 | `PUT /api/hr/users/{id}/manager` | `hr_admin` | JSON `{managerId}`, uuid ou `null` | 200, l'utilisateur | 403, 404, 409 (manager invalide ou corps illisible) |
 
 Formats :
 
-- Note : `{id, userId, amount (nombre), expenseDate ("AAAA-MM-JJ"), description, receiptKey, status ("pending"|"approved"|"rejected"), createdAt (ISO 8601)}`
+- Note : `{id, userId, amount (nombre), expenseDate ("AAAA-MM-JJ"), description, receiptKey, status ("pending"|"approved"|"rejected"|"reimbursed"), createdAt (ISO 8601)}`
 - Utilisateur : `{id, name, email, role, managerId}`
 - Erreur 4xx : `{error: "message"}`
 

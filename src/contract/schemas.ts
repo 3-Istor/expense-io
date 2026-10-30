@@ -5,7 +5,9 @@ import { z } from 'zod'
 
 extendZodWithOpenApi(z)
 
-const ExpenseNoteStatus = z.enum(['pending', 'approved', 'rejected']).openapi('ExpenseNoteStatus')
+// `reimbursed` (1.2.0, ADR 0006) : une note validée que le RH a marquée remboursée. De nouvelles valeurs peuvent
+// apparaître (docs/contract.md) : un client traite une valeur inconnue comme « autre ».
+const ExpenseNoteStatus = z.enum(['pending', 'approved', 'rejected', 'reimbursed']).openapi('ExpenseNoteStatus')
 
 export const ExpenseNote = z
   .strictObject({

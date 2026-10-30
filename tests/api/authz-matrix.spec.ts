@@ -1,4 +1,4 @@
-// Matrice d'autorisations GÉNÉRÉE : chacune des 14 routes du contrat × chacun des 7 profils d'appelant, avec le code
+// Matrice d'autorisations GÉNÉRÉE : chacune des 15 routes du contrat × chacun des 7 profils d'appelant, avec le code
 // attendu écrit pour chaque case. Aucun cas n'est choisi à la main : un oubli de contrôle d'accès sur une route, pour
 // un profil, fait échouer un test nommé « <route> en tant que <profil> ».
 // Les scénarios métier détaillés restent dans authz.spec.ts ; ici, on vérifie que la grille est complète.
@@ -106,6 +106,11 @@ const ROUTES: Route[] = [
     expected: { ...forRole(404, hrs, 403), RH: 200 },
   },
   {
+    name: 'POST /api/hr/expense-notes/{id}/reimburse',
+    call: async (c) => json(await c.post(`/api/hr/expense-notes/${await createNote(w.users['employé'].id, { status: 'approved' })}/reimburse`)),
+    expected: { ...forRole(404, hrs, 403), RH: 200 },
+  },
+  {
     name: 'GET /api/hr/users',
     call: async (c) => json(await c.get('/api/hr/users')),
     expected: forRole(200, hrs, 403),
@@ -161,7 +166,7 @@ for (const route of ROUTES) {
   })
 }
 
-test('la grille couvre les 14 routes du contrat', async () => {
+test('la grille couvre les 15 routes du contrat', async () => {
   const { parse } = await import('yaml')
   const { readFileSync } = await import('node:fs')
   const spec = parse(readFileSync('docs/openapi.yaml', 'utf8')) as { paths: Record<string, Record<string, unknown>> }

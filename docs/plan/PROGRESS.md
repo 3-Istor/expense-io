@@ -309,3 +309,9 @@ Synthèse : `docs/test-strategy.md`.
   en production sans `METRICS_TOKEN`.
 - T-0020 : historique des changements de manager (`manager_changes`, ajout seul, RLS par entreprise), événement
   `manager.changed` dans les journaux.
+
+## 2026-10-30 — Répétition 4 : remboursement (branche jetable `rehearsal/remboursement`, jamais fusionnée)
+
+- Statut `reimbursed`, route `POST /api/hr/expense-notes/{id}/reimburse`, migration 0008 (statut, trace, RLS), contrat
+  1.2.0. Tickets T-0024 et T-0025 ouverts. Détail : `docs/rehearsals.md`.
+- Preuves : moulinette `pr` VERTE, 127 tests unitaires, 252 tests d'API, `test:db` vert, `npm run risk` niveau 3.

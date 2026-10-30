@@ -2,7 +2,7 @@
 import { conflict, denied, invalid, notFound } from '@/shared/app-error'
 import { isUuid } from '@/shared/ids'
 import { approverKind, type ApproverKind, type Role } from '../domain/approvers'
-import { checkDecision, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
+import { checkDecision, checkReimbursement, validateNewNote, type Decision, type ExpenseNote } from '../domain/expense-note'
 import { checkReceipt, MAX_RECEIPT_BYTES, receiptKeyFor, storageKeyFor, storedAt } from '../domain/receipt'
 import { parseSort } from '../domain/sort'
 import type { Caller, ExpenseNoteRepository, NoteEvents, ReceiptReader, ReceiptStorage } from '../ports'
@@ -113,6 +113,21 @@ export function expenseNoteUseCases({
       if (!saved) throw conflict('Already decided') // décidée entre-temps par une autre requête (SEC-08)
       const delaySeconds = Math.max(0, Math.round((now().getTime() - note.createdAt.getTime()) / 1000))
       events.decided({ decision, approver: kind, delaySeconds })
+      return saved
+    },
+
+    /** Le RH marque remboursée une note validée de son entreprise (répétition 4). */
+    async reimburse(actor: Actor, noteId: string): Promise<ExpenseNote> {
+      asApprover(actor, 'hr')
+      if (!isUuid(noteId)) throw notFound()
+      const note = await notes.findReimbursable(actor, noteId)
+      if (!note) throw notFound()
+      const refusal = checkReimbursement(note, actor.userId)
+      // Sa propre note n'est jamais dans le périmètre SQL (404) ; la règle reste écrite ici.
+      if (refusal === 'self') throw notFound()
+      if (refusal === 'not-approved') throw conflict('Not approved or already reimbursed')
+      const saved = await notes.saveReimbursement(actor, noteId)
+      if (!saved) throw conflict('Not approved or already reimbursed') // remboursée entre-temps
       return saved
     },
 

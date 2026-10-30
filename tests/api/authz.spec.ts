@@ -358,6 +358,36 @@ test('T17b [SEC-05] sous le rôle applicatif, la base cache et protège les note
   }
 })
 
+test('T17c [répétition 4] sous le rôle applicatif, le RH ne voit et ne rembourse que les notes validées des autres membres de son entreprise', async () => {
+  const pending = await createNote(A.employee.id) // employé avec manager : en attente, pas du ressort du RH
+  const approved = await createNote(A.employee.id, { status: 'approved' })
+  const own = await createNote(A.hr.id, { status: 'approved' })
+  const client = await db().connect()
+  const as = (userId: string) => client.query("SELECT set_config('app.current_user_id', $1, true)", [userId])
+  const sees = async (id: string) => (await client.query('SELECT id FROM expense_notes WHERE id = $1', [id])).rowCount
+  const reimburse = (id: string, by: string) =>
+    client.query("UPDATE expense_notes SET status = 'reimbursed', reimbursed_by = $2 WHERE id = $1", [id, by])
+  try {
+    await client.query('BEGIN')
+    await client.query('SET LOCAL ROLE expense_app')
+    await as(B.hr.id)
+    expect(await sees(approved), 'RH d\'une autre entreprise').toBe(0)
+    expect((await reimburse(approved, B.hr.id)).rowCount, 'remboursement par le RH de B').toBe(0)
+    await as(A.hr.id)
+    expect(await sees(pending), 'note en attente d\'un employé avec manager').toBe(0)
+    // Sa propre note reste lisible (politique du propriétaire) ; ce qui compte, c'est qu'il ne puisse pas la rembourser.
+    expect((await reimburse(own, A.hr.id)).rowCount, 'rembourser sa propre note').toBe(0)
+    await client.query('SAVEPOINT avant')
+    await expect(reimburse(approved, A.manager.id), 'au nom d\'un autre').rejects.toThrow(/row-level security/)
+    await client.query('ROLLBACK TO SAVEPOINT avant')
+    expect(await sees(approved), 'contrôle positif : lecture').toBe(1)
+    expect((await reimburse(approved, A.hr.id)).rowCount, 'contrôle positif : approved → reimbursed').toBe(1)
+  } finally {
+    await client.query('ROLLBACK')
+    client.release()
+  }
+})
+
 test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({
   baseURL,
 }) => {

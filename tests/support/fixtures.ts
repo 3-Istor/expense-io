@@ -53,7 +53,7 @@ export async function createUser(
 
 export async function createNote(
   userId: string,
-  opts: { status?: 'pending' | 'approved' | 'rejected'; amount?: number; description?: string } = {},
+  opts: { status?: 'pending' | 'approved' | 'rejected' | 'reimbursed'; amount?: number; description?: string } = {},
 ): Promise<string> {
   const res = await db().query(
     `INSERT INTO expense_notes (user_id, amount, expense_date, description, receipt_key, status)
@@ -89,7 +89,7 @@ export function expectNote(body: unknown): void {
   expect(note.expenseDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   expect(typeof note.description).toBe('string')
   expect(typeof note.receiptKey).toBe('string')
-  expect(['pending', 'approved', 'rejected']).toContain(note.status)
+  expect(['pending', 'approved', 'rejected', 'reimbursed']).toContain(note.status)
   expect(new Date(note.createdAt as string).toISOString()).toBe(note.createdAt)
 }
 

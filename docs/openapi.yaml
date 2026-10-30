@@ -2,7 +2,7 @@
 openapi: 3.1.0
 info:
   title: Expense.io API
-  version: 1.1.2
+  version: 1.2.0
   description: |
     Généré depuis src/contract (ADR 0001) : ne pas modifier à la main, lancer `npm run contract:generate`.
     Chaque réponse des tests de contrat (`tests/api/contract.spec.ts`) est validée contre ce document.
@@ -74,6 +74,7 @@ components:
         - pending
         - approved
         - rejected
+        - reimbursed
     Error:
       type: object
       properties:
@@ -759,6 +760,63 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Introuvable ou hors du périmètre de l'appelant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: Erreur inattendue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalError"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /api/hr/expense-notes/{id}/reimburse:
+    post:
+      tags:
+        - hr
+      operationId: hrReimburseNote
+      summary: Marque remboursée une note validée d'un autre membre de l'entreprise
+      description: Une note `approved` passe à `reimbursed`, une seule fois. Le RH ne marque jamais sa propre note et ne voit pas les notes en attente ou rejetées (404). L'auteur voit le nouveau statut dans `GET /api/expense-notes`.
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Note remboursée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseNote"
+        "403":
+          description: Pas de session ou rôle autre que hr_admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: "Introuvable : inconnue, d'une autre entreprise, du RH lui-même, ou pas validée"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Note déjà remboursée
           content:
             application/json:
               schema:

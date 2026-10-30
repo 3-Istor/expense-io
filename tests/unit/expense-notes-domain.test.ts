@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { approverKind, mayDecide } from '@/modules/expense-notes/domain/approvers'
-import { checkDecision, validateNewNote } from '@/modules/expense-notes/domain/expense-note'
+import { approverKind, mayDecide, mayReimburse } from '@/modules/expense-notes/domain/approvers'
+import { checkDecision, checkReimbursement, validateNewNote } from '@/modules/expense-notes/domain/expense-note'
 import { checkReceipt, receiptKeyFor } from '@/modules/expense-notes/domain/receipt'
 import { parseSort } from '@/modules/expense-notes/domain/sort'
 
@@ -55,6 +55,31 @@ describe('qui valide une note (T-0014)', () => {
     // un manager d'une autre entreprise, même désigné comme manager de l'auteur, ne valide pas (comme la RLS)
     const managerB = { id: 'boss-b', companyId: 'entreprise-b', managerId: null, role: 'manager' as const }
     expect(mayDecide(managerB, { id: 'emp', companyId: A, managerId: 'boss-b' })).toBe(false)
+  })
+})
+
+describe('remboursement d\'une note (répétition 4)', () => {
+  it('seule une note validée peut être remboursée, une seule fois', () => {
+    expect(checkReimbursement({ status: 'approved', userId: 'auteur' }, 'rh')).toBeNull()
+    for (const status of ['pending', 'rejected', 'reimbursed'] as const) {
+      expect(checkReimbursement({ status, userId: 'auteur' }, 'rh')).toBe('not-approved')
+    }
+  })
+  it('personne ne marque sa propre note remboursée', () => {
+    expect(checkReimbursement({ status: 'approved', userId: 'rh' }, 'rh')).toBe('self')
+  })
+  it('une note remboursée ne peut plus être décidée', () => {
+    expect(checkDecision({ status: 'reimbursed', userId: 'auteur' }, 'rejected', 'valideur')).toBe('already-decided')
+  })
+  it('un RH rembourse tout auteur de son entreprise, avec ou sans manager, jamais lui-même ni une autre entreprise', () => {
+    const A = 'entreprise-a'
+    const hr = { id: 'rh', companyId: A, managerId: null, role: 'hr_admin' as const }
+    const boss = { id: 'boss', companyId: A, managerId: null, role: 'manager' as const }
+    expect(mayReimburse(hr, { id: 'emp', companyId: A, managerId: 'boss' })).toBe(true)
+    expect(mayReimburse(hr, boss)).toBe(true)
+    expect(mayReimburse(hr, hr)).toBe(false)
+    expect(mayReimburse({ ...hr, id: 'rh-b', companyId: 'entreprise-b' }, boss)).toBe(false)
+    expect(mayReimburse(boss, { id: 'emp', companyId: A, managerId: 'boss' })).toBe(false)
   })
 })
 

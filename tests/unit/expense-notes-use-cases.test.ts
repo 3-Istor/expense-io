@@ -62,6 +62,36 @@ describe('décider d\'une note', () => {
   })
 })
 
+describe('rembourser une note (répétition 4)', () => {
+  const hr = { userId: 'rh', role: 'hr_admin' as const }
+  it('refuse tout autre rôle que hr_admin (403)', async () => {
+    const { useCases } = setup({})
+    expect(await kindOf(useCases.reimburse(manager, NOTE_ID))).toBe('denied')
+    expect(await kindOf(useCases.reimburse({ userId: 'e', role: 'employee' }, NOTE_ID))).toBe('denied')
+  })
+  it('404 identifiant mal formé, hors entreprise ou sa propre note', async () => {
+    expect(await kindOf(setup({}).useCases.reimburse(hr, 'pas-un-uuid'))).toBe('not-found')
+    expect(await kindOf(setup({ findReimbursable: async () => null }).useCases.reimburse(hr, NOTE_ID))).toBe('not-found')
+    const own = setup({ findReimbursable: async () => note({ userId: 'rh', status: 'approved' }) })
+    expect(await kindOf(own.useCases.reimburse(hr, NOTE_ID))).toBe('not-found')
+  })
+  it('409 si la note n\'est pas validée, ou remboursée entre-temps', async () => {
+    for (const status of ['pending', 'rejected', 'reimbursed'] as const) {
+      const { useCases } = setup({ findReimbursable: async () => note({ status }) })
+      expect(await kindOf(useCases.reimburse(hr, NOTE_ID))).toBe('conflict')
+    }
+    const raced = setup({ findReimbursable: async () => note({ status: 'approved' }), saveReimbursement: async () => null })
+    expect(await kindOf(raced.useCases.reimburse(hr, NOTE_ID))).toBe('conflict')
+  })
+  it('renvoie la note remboursée', async () => {
+    const { useCases } = setup({
+      findReimbursable: async () => note({ status: 'approved' }),
+      saveReimbursement: async () => note({ status: 'reimbursed' }),
+    })
+    expect((await useCases.reimburse(hr, NOTE_ID)).status).toBe('reimbursed')
+  })
+})
+
 describe('créer une note', () => {
   const receipt = { type: 'image/png', size: 3, bytes: async () => Buffer.from([1, 2, 3]) }
   const input = { amount: '12', expenseDate: '2026-10-01', description: 'Taxi', receipt }

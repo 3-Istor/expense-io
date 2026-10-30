@@ -1,4 +1,4 @@
-// Les 14 opérations du contrat, déclarées dans le code. Ajouter une route = l'ajouter ici, régénérer l'OpenAPI.
+// Les 15 opérations du contrat, déclarées dans le code. Ajouter une route = l'ajouter ici, régénérer l'OpenAPI.
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { z } from 'zod'
 import {
@@ -154,6 +154,24 @@ for (const kind of ['manager', 'hr'] as const) {
     responses: { 200: json(ReceiptUrl, 'URL signée, valable 5 minutes'), ...pick(denied, 404, 500) },
   })
 }
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/hr/expense-notes/{id}/reimburse',
+  tags: ['hr'],
+  operationId: 'hrReimburseNote',
+  summary: "Marque remboursée une note validée d'un autre membre de l'entreprise",
+  description:
+    "Une note `approved` passe à `reimbursed`, une seule fois. Le RH ne marque jamais sa propre note et ne voit pas " +
+    "les notes en attente ou rejetées (404). L'auteur voit le nouveau statut dans `GET /api/expense-notes`.",
+  request: { params: noteId },
+  responses: {
+    200: json(ExpenseNote, 'Note remboursée'),
+    ...pick(403, 500),
+    404: failure(ErrorBody, "Introuvable : inconnue, d'une autre entreprise, du RH lui-même, ou pas validée"),
+    409: failure(ErrorBody, 'Note déjà remboursée'),
+  },
+})
 
 registry.registerPath({
   method: 'get',
