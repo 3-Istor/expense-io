@@ -51,16 +51,12 @@ ALTER POLICY expense_notes_hr_no_manager_update ON expense_notes
   );
 
 -- Down Migration
-ALTER POLICY expense_notes_manager_update ON expense_notes
+-- Retour exact à l'état d'avant : politiques sans WITH CHECK (ALTER POLICY ne sait pas en retirer un).
+DROP POLICY expense_notes_manager_update ON expense_notes;
+DROP POLICY expense_notes_hr_no_manager_update ON expense_notes;
+
+CREATE POLICY expense_notes_manager_update ON expense_notes FOR UPDATE
   USING (
-    EXISTS (
-      SELECT 1 FROM users u
-      WHERE u.id = expense_notes.user_id
-        AND u.manager_id = app_current_user_id()
-        AND u.company_id = app_current_company_id()
-    )
-  )
-  WITH CHECK (
     EXISTS (
       SELECT 1 FROM users u
       WHERE u.id = expense_notes.user_id
@@ -69,18 +65,8 @@ ALTER POLICY expense_notes_manager_update ON expense_notes
     )
   );
 
-ALTER POLICY expense_notes_hr_no_manager_update ON expense_notes
+CREATE POLICY expense_notes_hr_no_manager_update ON expense_notes FOR UPDATE
   USING (
-    expense_notes.user_id <> app_current_user_id()
-    AND EXISTS (
-      SELECT 1 FROM users u
-      WHERE u.id = expense_notes.user_id
-        AND u.manager_id IS NULL
-        AND u.company_id = app_current_company_id()
-    )
-    AND EXISTS (SELECT 1 FROM users hr WHERE hr.id = app_current_user_id() AND hr.role = 'hr_admin')
-  )
-  WITH CHECK (
     expense_notes.user_id <> app_current_user_id()
     AND EXISTS (
       SELECT 1 FROM users u

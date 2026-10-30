@@ -8,3 +8,10 @@ Date : 2026-10-30 · Niveau 3 (RLS) · Plan validé par Brian.
     décision au nom d'un autre (`decided_by`) refusée ; décision normale sur une note en attente acceptée (1 ligne).
 - Le SQL de l'application ne change pas : il respectait déjà ces règles. Contrat inchangé.
 - Totaux : 119 tests unitaires, 237 tests d'API, test:db vert, moulinette `pr` verte.
+
+## Relecture en contexte neuf (security-reviewer)
+
+Rien de bloquant : la seule écriture UPDATE de l'application (`DECIDE_IN_SCOPE`) respecte déjà les nouvelles
+politiques, la course SEC-08 donne toujours 409 (une ligne ignorée, pas une erreur), les autres politiques sont
+inchangées. Corrigé : le retour arrière (down) recrée les politiques exactement comme avant, sans WITH CHECK (vérifié
+dans `pg_policies` après down, puis up). Ouvert : T-0027 (T15 ne vérifie pas le code 409 de la requête perdante).
