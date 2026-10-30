@@ -231,6 +231,7 @@ export default function ExpensesPage() {
             />
             <button
               type="button"
+              data-umami-event="suggestion-ocr"
               onClick={handleSuggestFields}
               disabled={extracting}
               className="self-start text-sm font-medium text-brand-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
@@ -243,6 +244,7 @@ export default function ExpensesPage() {
           </div>
           <button
             type="submit"
+            data-umami-event="note-soumise"
             disabled={submitting}
             className="self-start rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
           >

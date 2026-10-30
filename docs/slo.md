@@ -91,6 +91,20 @@ Alertes proposées (sur des symptômes, pas des causes ; cours 4) :
 | `OcrSaturated` | `ocr_jobs{state="waiting"}` > 0 pendant 10 min | revoir la piste asynchrone (T-0007) |
 | `OldestPendingNote` | plus vieille note en attente > 10 jours (`npm run metrics:business`) | prévenir le RH de l'entreprise |
 
+## Usage des fonctionnalités dans l'interface (Umami, T-0028)
+
+Les métriques serveur disent combien d'appels arrivent ; Umami dit ce que les utilisateurs font dans l'interface.
+Activé seulement si `UMAMI_SCRIPT_URL` (https) et `UMAMI_WEBSITE_ID` sont fixés ; sans cookie, sans donnée personnelle
+(`data-do-not-track`, paramètres d'URL exclus). Événements posés sur les boutons clés :
+
+| Événement | Bouton | Question produit |
+| --- | --- | --- |
+| `suggestion-ocr` | « Pré-remplir depuis le reçu » | La suggestion OCR, coûteuse, sert-elle ? |
+| `note-soumise` | création d'une note | Combien de notes passent par l'interface ? |
+| `note-approuvee`, `note-rejetee` | décision d'un manager ou d'un RH | Les valideurs utilisent-ils l'interface ? |
+
+Lecture type : `suggestion-ocr` ÷ `note-soumise` sur 30 jours. Proche de 0 : la fonctionnalité est candidate au retrait.
+
 ## Calcul (exemple avec jq sur un fichier de journaux)
 
 ```bash

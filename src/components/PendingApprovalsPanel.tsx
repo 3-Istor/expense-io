@@ -137,6 +137,7 @@ export function PendingApprovalsPanel() {
                       <button
                         type="button"
                         disabled={decidingId === note.id}
+                        data-umami-event="note-approuvee"
                         onClick={() => handleDecide(note.id, 'approve')}
                         className="mr-3 text-sm font-medium text-green-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                       >
@@ -145,6 +146,7 @@ export function PendingApprovalsPanel() {
                       <button
                         type="button"
                         disabled={decidingId === note.id}
+                        data-umami-event="note-rejetee"
                         onClick={() => handleDecide(note.id, 'reject')}
                         className="text-sm font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
                       >
