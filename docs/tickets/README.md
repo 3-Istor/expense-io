@@ -66,5 +66,6 @@ Ce qui a été appris en route.
 | [T-0021](T-0021-metriques-red-use.md) | done | 2 | Métriques Prometheus : RED, USE et métier sur /metrics |
 | [T-0022](T-0022-controle-routes-hors-api.md) | todo | 3 | Semgrep : contrôle d’accès des routes hors src/app/api |
 | [T-0023](T-0023-uuid-majuscules-auto-rattachement.md) | done | 3 | Auto-rattachement d’un manager avec un UUID en majuscules |
+| [T-0024](T-0024-politiques-update-sans-borne-de-statut.md) | done | 3 | RLS : mise à jour bornée au statut en attente |
 | [T-0017](T-0017-migrer-anciens-recus.md) | todo | 2 | Déplacer les anciens reçus sous une clé opaque |
 | [T-0018](T-0018-droits-de-mise-a-jour-par-colonne.md) | todo | 3 | UPDATE du rôle applicatif limité aux colonnes de décision |
