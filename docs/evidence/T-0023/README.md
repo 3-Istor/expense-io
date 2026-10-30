@@ -8,3 +8,9 @@ Date : 2026-10-30 · Niveau 3 (règles de rattachement) · Décision de Brian : 
 - Tests unitaires du domaine : `parseManagerAssignment` normalise en minuscules ; `checkManagerAssignment` détecte
   l'auto-rattachement quelle que soit la casse.
 - Totaux : 119 tests unitaires, 236 tests d'API, test:db vert, moulinette `pr` verte.
+
+## Relecture en contexte neuf (security-reviewer)
+
+Rien de bloquant : contrat identique (le `managerId` renvoyé est relu en base), aucun 200 légitime ne devient une
+erreur, cycles inchangés, toutes les autres comparaisons portent sur des colonnes `uuid`. Remarque appliquée :
+l'événement `manager.changed` reprend l'identifiant relu en base plutôt que la saisie de l'URL.

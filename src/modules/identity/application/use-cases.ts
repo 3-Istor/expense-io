@@ -48,7 +48,7 @@ export function identityUseCases({ users, accounts, verifyPassword, hashPassword
         // manager relu en base (UUID normalisé), pas à la saisie du client.
         if (result.previousManagerId !== result.user.managerId) {
           events.managerChanged({
-            targetId,
+            targetId: result.user.id,
             previousManagerId: result.previousManagerId,
             newManagerId: result.user.managerId,
             changedBy: actor.userId,
