@@ -44,8 +44,19 @@ if [[ "$(oasdiff --version 2>/dev/null || true)" != *"$OASDIFF_VERSION"* ]]; the
   tar -xzf "$tmp/oasdiff.tgz" -C "$tmp" oasdiff && install -m 0755 "$tmp/oasdiff" "$BIN_DIR/oasdiff"
 fi
 
+# Python système en lecture seule (NixOS : le pip du PATH vient du store Nix) : repli sur un venv propre au projet,
+# mêmes versions épinglées, outils liés dans $BIN_DIR. Ne s'active que si les deux pip install échouent.
+install_py_tools_in_venv() {
+  local venv="${XDG_DATA_HOME:-$HOME/.local/share}/expense-io-tools"
+  echo "pip système non inscriptible : installation des outils Python dans $venv" >&2
+  python3 -m venv "$venv"
+  "$venv/bin/pip" install --quiet --disable-pip-version-check "${PY_TOOLS[@]}"
+  for tool in semgrep hadolint zizmor schemathesis; do ln -sf "$venv/bin/$tool" "$BIN_DIR/$tool"; done
+}
+
 pip install --quiet --disable-pip-version-check "${PY_TOOLS[@]}" 2>/dev/null \
-  || pip install --quiet --disable-pip-version-check --break-system-packages "${PY_TOOLS[@]}"
+  || pip install --quiet --disable-pip-version-check --break-system-packages "${PY_TOOLS[@]}" 2>/dev/null \
+  || install_py_tools_in_venv
 
 osv_version="$(osv-scanner --version)"
 echo "gitleaks $(gitleaks version) · $(oasdiff --version) · ${osv_version%%$'\n'*} · semgrep $(semgrep --version) · $(hadolint --version) · $(zizmor --version) · $(schemathesis --version)"
