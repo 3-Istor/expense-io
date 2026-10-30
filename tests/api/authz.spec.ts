@@ -358,6 +358,42 @@ test('T17b [SEC-05] sous le rôle applicatif, la base cache et protège les note
   }
 })
 
+test('T17d [T-0024] sous le rôle applicatif, un valideur ne modifie qu\'une note en attente, vers validée ou rejetée, en son nom', async () => {
+  const decided = await createNote(A.employee.id, { status: 'approved' })
+  const pending = await createNote(A.employee.id)
+  const orphanDecided = await createNote(A.orphan.id, { status: 'rejected' })
+  const orphanPending = await createNote(A.orphan.id)
+  const client = await db().connect()
+  const as = (userId: string) => client.query("SELECT set_config('app.current_user_id', $1, true)", [userId])
+  /** Exécute une écriture refusée par la base sans annuler la transaction du test. */
+  const refused = async (sql: string, params: unknown[]) => {
+    await client.query('SAVEPOINT essai')
+    await expect(client.query(sql, params)).rejects.toThrow(/row-level security/)
+    await client.query('ROLLBACK TO SAVEPOINT essai')
+  }
+  try {
+    await client.query('BEGIN')
+    await client.query('SET LOCAL ROLE expense_app')
+    for (const [approver, oldNote, newNote] of [
+      [A.manager.id, decided, pending],
+      [A.hr.id, orphanDecided, orphanPending],
+    ] as const) {
+      await as(approver)
+      // Une note déjà décidée ne peut plus être réécrite.
+      const rewrite = await client.query("UPDATE expense_notes SET status = 'rejected', decided_by = $2 WHERE id = $1", [oldNote, approver])
+      expect(rewrite.rowCount, `note décidée, valideur ${approver}`).toBe(0)
+      // Une note en attente : seulement vers approved/rejected, et au nom de l'appelant.
+      await refused("UPDATE expense_notes SET status = 'pending', decided_by = $2 WHERE id = $1", [newNote, approver])
+      await refused("UPDATE expense_notes SET status = 'approved', decided_by = $2 WHERE id = $1", [newNote, A.hr2.id])
+      const ok = await client.query("UPDATE expense_notes SET status = 'approved', decided_by = $2, decided_at = now() WHERE id = $1", [newNote, approver])
+      expect(ok.rowCount, `note en attente, valideur ${approver}`).toBe(1) // contrôle positif
+    }
+  } finally {
+    await client.query('ROLLBACK')
+    client.release()
+  }
+})
+
 test('T18 [SEC-10] un rôle retiré en base est retiré immédiatement, sans attendre l\'expiration du jeton', async ({
   baseURL,
 }) => {
