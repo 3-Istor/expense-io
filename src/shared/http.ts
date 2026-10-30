@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { headers } from 'next/headers'
 import { respondError } from '@/lib/errors'
 import { log, withRequestId } from '@/lib/logger'
+import { recordRequest } from '@/lib/metrics'
 import type { ExpenseNoteJson } from '@/contract/schemas'
 import { AppError, invalid, type AppErrorKind } from './app-error'
 import { errorResponse, wantsProblem } from './problem'
@@ -18,8 +19,9 @@ export type DeniedStatus = 401 | 403
 const STATUS: Record<Exclude<AppErrorKind, 'denied'>, number> = { invalid: 400, 'not-found': 404, conflict: 409 }
 
 /**
- * Exécute une route : traduit les erreurs en codes du contrat et journalise une ligne par appel (opération, code,
- * durée). Ces lignes sont la source des SLI de docs/slo.md (aucun endpoint de métriques : contrat gelé).
+ * Exécute une route : traduit les erreurs en codes du contrat, journalise une ligne par appel (opération, code, durée)
+ * et compte l'appel dans les métriques RED exposées par /metrics (T-0021, hors contrat client). Source des SLI de
+ * docs/slo.md.
  */
 export async function handle(operation: string, deniedStatus: DeniedStatus, run: () => Promise<Response>): Promise<Response> {
   const clientRequestId = clientRequestIdFrom(await requestHeader('x-request-id'))
@@ -46,10 +48,12 @@ async function handleInContext(
       response = respondError(error, problem)
     }
   }
+  const durationMs = Math.round(performance.now() - started)
+  recordRequest(operation, response.status, durationMs)
   log(response.status >= 500 ? 'error' : 'info', 'requête API', {
     operation,
     status: response.status,
-    durationMs: Math.round(performance.now() - started),
+    durationMs,
     ...(clientRequestId ? { clientRequestId } : {}),
   })
   return response

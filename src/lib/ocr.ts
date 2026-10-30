@@ -9,6 +9,11 @@ const SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 const OCR_TIMEOUT_MS = 15_000
 const OCR_MAX_CONCURRENT = 2
 const limitOcr = createLimiter(OCR_MAX_CONCURRENT)
+
+/** Occupation de l'OCR (USE) : tâches en cours, en attente, plafond. Lue par /metrics. */
+export function ocrLoad() {
+  return limitOcr.stats()
+}
 const TESSDATA_PATH = path.join(process.cwd(), 'tessdata')
 
 const AMOUNT_KEYWORD_PATTERN = /total|montant|ttc|à payer|net à/i

@@ -6,8 +6,12 @@ sur cette mesure, un **SLA** l'engagement contractuel envers un client, avec pé
 
 ## Source des mesures
 
-Aucun endpoint de métriques (contrat d'API gelé). Chaque appel d'API écrit une ligne JSON sur la sortie standard
-(`src/shared/http.ts`) :
+Deux sources, qui disent la même chose sous deux formes :
+
+- **`GET /metrics`** (T-0021), au format Prometheus, pour les tableaux de bord et les alertes (détail plus bas). Route
+  d'exploitation, hors du contrat client (`docs/openapi.yaml`), comme `/api/auth`.
+- **Les journaux** : chaque appel d'API écrit une ligne JSON sur la sortie standard (`src/shared/http.ts`), pour
+  comprendre un incident requête par requête :
 
 ```json
 {"time":"2026-10-21T03:12:29.086Z","level":"info","msg":"requête API","requestId":"3f0c…","operation":"listMyExpenseNotes","status":200,"durationMs":11}
@@ -44,6 +48,48 @@ secondes) sont aussi écrits dans les journaux, pour suivre la même chose dans 
 Chaque ligne de journal écrite pendant un appel d'API porte un `requestId` généré par le serveur : on retrouve toutes
 les lignes d'une requête, erreur comprise, avec un seul filtre. L'en-tête `x-request-id` d'un appelant, s'il est sûr,
 est journalisé à part (`clientRequestId`).
+
+## Métriques Prometheus (`GET /metrics`, T-0021)
+
+Trois standards connus plutôt qu'une liste de métriques au hasard. Ensemble, ils couvrent les quatre golden signals du
+SRE Book (latence, trafic, erreurs, saturation).
+
+| Standard | Question | Métriques |
+| --- | --- | --- |
+| RED (côté service) | Combien d'appels, combien d'erreurs, en combien de temps ? | `http_requests_total{operation,status}`, `http_request_duration_seconds{operation}` (histogramme) |
+| USE (côté ressources) | Les ressources partagées sont-elles saturées ? | `db_pool_connections{state}` (total, idle, waiting), `ocr_jobs{state}` (running, waiting), `process_resident_memory_bytes` |
+| Métier | Les notes avancent-elles ? Les fonctionnalités servent-elles ? | `expense_notes_submitted_total`, `expense_notes_decided_total{decision,approver}`, `expense_note_decision_delay_seconds` |
+
+Labels bornés : `operationId` du contrat, code HTTP, décision, type de valideur. Jamais d'identifiant d'utilisateur, de
+note ou d'entreprise (cardinalité, et aucune donnée de client dans les métriques). Compteurs en mémoire, par instance.
+Accès : avec `METRICS_TOKEN`, `Authorization: Bearer <jeton>` ; sans jeton, ouvert en développement et en test, fermé
+(401) en production. Les compteurs additionnent l'activité de toutes les entreprises : ils ne doivent pas être lisibles
+depuis Internet.
+
+Requêtes PromQL de référence :
+
+```promql
+# Disponibilité (SLI) : part des appels sans erreur 5xx
+sum(rate(http_requests_total{status!~"5.."}[5m])) / sum(rate(http_requests_total[5m]))
+# p95 de latence par opération
+histogram_quantile(0.95, sum by (le, operation) (rate(http_request_duration_seconds_bucket[5m])))
+# Saturation : connexions PostgreSQL en attente, tâches d'OCR en file
+db_pool_connections{state="waiting"}
+ocr_jobs{state="waiting"}
+# Usage d'une fonctionnalité : suggestions OCR demandées par note soumise (proche de 0 = fonctionnalité peu utilisée)
+sum(increase(http_requests_total{operation="suggestFromReceipt"}[7d])) / sum(increase(expense_notes_submitted_total[7d]))
+# Délai de décision : part des notes décidées en 5 jours ou moins
+sum(rate(expense_note_decision_delay_seconds_bucket{le="432000"}[1d])) / sum(rate(expense_note_decision_delay_seconds_count[1d]))
+```
+
+Alertes proposées (sur des symptômes, pas des causes ; cours 4) :
+
+| Alerte | Condition | Action |
+| --- | --- | --- |
+| `ErrorRateTooHigh` | 5xx > 5 % pendant 5 min | page de l'astreinte |
+| `P99LatencyTooHigh` | p99 hors OCR > 500 ms pendant 5 min | ticket le jour même |
+| `OcrSaturated` | `ocr_jobs{state="waiting"}` > 0 pendant 10 min | revoir la piste asynchrone (T-0007) |
+| `OldestPendingNote` | plus vieille note en attente > 10 jours (`npm run metrics:business`) | prévenir le RH de l'entreprise |
 
 ## Calcul (exemple avec jq sur un fichier de journaux)
 
