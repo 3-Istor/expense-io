@@ -18,4 +18,16 @@ Date : 2026-10-30 · Niveau 3 (migration, RLS) · Décision de Brian : option (b
     voient aucune ; un employé ne peut pas insérer de fausse trace ; un RH ne peut ni modifier ni effacer l'historique.
 - `tests/unit/identity-use-cases.test.ts` : événement émis pour un changement effectif, pas pour une réaffectation
   identique.
-- Totaux : 119 tests unitaires, 235 tests d'API (233 + 2), test:db vert, moulinette `pr` verte.
+
+## Relecture en contexte neuf (security-reviewer)
+
+Rien de bloquant : contrat et codes inchangés, INSERT toujours fait par un RH, RLS vérifiée en base (autre entreprise,
+sans contexte, `company_id` ou `changed_by` usurpés refusés ; UPDATE et DELETE refusés). Corrigé avant fusion :
+
+- clés étrangères en cascade ou à NULL : l'historique ne bloque plus la suppression d'un compte par un administrateur
+  (test : suppression d'un employé ayant un historique) ;
+- comparaison sur le manager relu en base : un UUID en majuscules identique n'est plus tracé (test d'API et unitaire) ;
+- politique d'insertion : l'employé et les managers doivent appartenir à l'entreprise de la trace (test).
+
+Ouvert : T-0023, auto-rattachement d'un manager avec un UUID en majuscules (défaut antérieur, hors de ce diff).
+- Totaux : 119 tests unitaires, 235 tests d'API, test:db vert, moulinette `pr` verte.

@@ -109,8 +109,8 @@ describe('cas d\'usage identity : messages du contrat et délégation (tests de 
       })
     await make(null).assignManager(hr, TARGET, { managerId: uuid })
     expect(seen).toEqual([{ targetId: TARGET, previousManagerId: null, newManagerId: uuid, changedBy: 'rh' }])
-    await make(uuid).assignManager(hr, TARGET, { managerId: uuid })
-    expect(seen).toHaveLength(1)
+    await make(uuid).assignManager(hr, TARGET, { managerId: uuid.toUpperCase() })
+    expect(seen).toHaveLength(1) // même manager, même écrit en majuscules : pas d'événement
   })
   it('refuse des identifiants vides ou du mauvais type sans consulter les comptes', async () => {
     let lookups = 0

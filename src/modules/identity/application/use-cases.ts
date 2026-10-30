@@ -44,12 +44,13 @@ export function identityUseCases({ users, accounts, verifyPassword, hashPassword
       if (checkManagerAssignment(targetId, parsed.managerId) === 'self') throw conflict('Invalid manager')
       const result = await users.assignManager(actor, targetId, parsed.managerId)
       if (result.ok) {
-        // Changement effectif seulement : réaffecter le même manager n'est pas un événement (T-0020).
-        if (result.previousManagerId !== parsed.managerId) {
+        // Changement effectif seulement : réaffecter le même manager n'est pas un événement (T-0020). On compare au
+        // manager relu en base (UUID normalisé), pas à la saisie du client.
+        if (result.previousManagerId !== result.user.managerId) {
           events.managerChanged({
             targetId,
             previousManagerId: result.previousManagerId,
-            newManagerId: parsed.managerId,
+            newManagerId: result.user.managerId,
             changedBy: actor.userId,
           })
         }

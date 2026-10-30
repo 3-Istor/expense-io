@@ -46,6 +46,7 @@ test('T-0020 chaque changement de manager est tracé, une réaffectation identiq
   expect(await history(employee.id)).toEqual([{ company_id: a.id, previous_manager_id: m1.id, new_manager_id: m2.id, changed_by: hr.id }])
 
   expect((await put(m2.id)).status()).toBe(200) // même manager : pas de nouvelle ligne
+  expect((await put(m2.id.toUpperCase())).status()).toBe(200) // même manager écrit en majuscules : pas de ligne non plus
   expect(await history(employee.id)).toHaveLength(1)
 
   expect((await put(null)).status()).toBe(200) // détachement : tracé aussi
@@ -73,5 +74,13 @@ test('T-0020 l’historique est lisible et inscriptible par un RH de la même en
     expect(q('INSERT INTO manager_changes (company_id, user_id, changed_by) VALUES ($1, $2, $2)', [a.id, employee.id])).rejects.toThrow(),
   )
   await asApp(hrA.id, async (q) => expect(q('DELETE FROM manager_changes WHERE user_id = $1', [employee.id])).rejects.toThrow())
+  // Un RH ne peut pas inscrire une trace sur un compte d'une autre entreprise.
+  const other = await createUser(b, 'HistoEmpB', 'employee')
+  await asApp(hrA.id, async (q) =>
+    expect(q('INSERT INTO manager_changes (company_id, user_id, changed_by) VALUES ($1, $2, $3)', [a.id, other.id, hrA.id])).rejects.toThrow(),
+  )
+  // L'historique ne bloque pas la suppression d'un compte par un administrateur.
+  await db().query('DELETE FROM users WHERE id = $1', [employee.id])
+  expect(await history(employee.id)).toHaveLength(0)
   await asApp(hrA.id, async (q) => expect(q('UPDATE manager_changes SET changed_by = $1', [hrA.id])).rejects.toThrow())
 })

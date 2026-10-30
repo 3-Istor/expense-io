@@ -59,12 +59,14 @@ export const pgUserRepository: UserRepository = {
         [managerId, targetId],
       )
       // Historique (T-0020), dans la même transaction : pas de changement sans trace, pas de trace sans changement.
+      // Comparaison sur la valeur relue en base (UUID normalisé), pas sur la saisie du client (majuscules acceptées).
       // Table en ajout seul : le rôle applicatif ne peut ni la modifier ni l'effacer (migration 0007).
-      if (previousManagerId !== managerId) {
+      const newManagerId: string | null = updated.rows[0].manager_id ?? null
+      if (previousManagerId !== newManagerId) {
         await db.query(
           `INSERT INTO manager_changes (company_id, user_id, previous_manager_id, new_manager_id, changed_by)
            VALUES ($1, $2, $3, $4, $5)`,
-          [company, targetId, previousManagerId, managerId, caller.userId],
+          [company, targetId, previousManagerId, newManagerId, caller.userId],
         )
       }
       return { ok: true, user: toUser(updated.rows[0]), previousManagerId } as const
