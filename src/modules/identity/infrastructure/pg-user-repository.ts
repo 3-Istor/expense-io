@@ -30,7 +30,7 @@ export const pgUserRepository: UserRepository = {
       const company = (await db.query('SELECT company_id FROM users WHERE id = $1', [caller.userId])).rows[0]?.company_id
       if (!company) return { ok: false, reason: 'target-not-found' } as const
       const target = await db.query(
-        `SELECT id FROM users WHERE id = $1 AND company_id = $2 AND role IN ('employee', 'manager') FOR UPDATE`,
+        `SELECT id, manager_id FROM users WHERE id = $1 AND company_id = $2 AND role IN ('employee', 'manager') FOR UPDATE`,
         [targetId, company],
       )
       if (!target.rows[0]) return { ok: false, reason: 'target-not-found' } as const
@@ -53,11 +53,23 @@ export const pgUserRepository: UserRepository = {
         if (cycle.rows[0]) return { ok: false, reason: 'invalid-manager' } as const
       }
 
+      const previousManagerId: string | null = target.rows[0].manager_id ?? null
       const updated = await db.query(
         'UPDATE users SET manager_id = $1 WHERE id = $2 RETURNING id, name, email, role, manager_id',
         [managerId, targetId],
       )
-      return { ok: true, user: toUser(updated.rows[0]) } as const
+      // Historique (T-0020), dans la même transaction : pas de changement sans trace, pas de trace sans changement.
+      // Comparaison sur la valeur relue en base (UUID normalisé), pas sur la saisie du client (majuscules acceptées).
+      // Table en ajout seul : le rôle applicatif ne peut ni la modifier ni l'effacer (migration 0007).
+      const newManagerId: string | null = updated.rows[0].manager_id ?? null
+      if (previousManagerId !== newManagerId) {
+        await db.query(
+          `INSERT INTO manager_changes (company_id, user_id, previous_manager_id, new_manager_id, changed_by)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [company, targetId, previousManagerId, newManagerId, caller.userId],
+        )
+      }
+      return { ok: true, user: toUser(updated.rows[0]), previousManagerId } as const
     }),
 }
 

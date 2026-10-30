@@ -1,7 +1,7 @@
 ---
 id: T-0020
 title: "Un RH peut détacher un employé de son manager, puis valider sa note"
-status: todo
+status: done
 risk: 3
 source: review
 created: 2026-10-27
@@ -17,11 +17,19 @@ T-0014, le contournement n'existait que pour les notes de managers. Reste dans l
 
 ## Critères d'acceptation
 
-- [ ] Décision de Brian entre : (a) refuser le détachement tant que l'auteur a une note `pending` (409, code déjà au
+- [x] Décision de Brian entre : (a) refuser le détachement tant que l'auteur a une note `pending` (409, code déjà au
       contrat de cette route) ; (b) accepter et tracer chaque changement de rattachement (qui, quand, avant, après) ;
       (c) figer le valideur à la soumission (colonne `approver_kind`), plus lourd.
-- [ ] Test d'API du scénario : détacher puis valider, comportement conforme à la décision.
+- [x] Test d'API du scénario : détacher puis valider, comportement conforme à la décision.
 
 ## Plan
 
 Aucun code avant la décision. Option prudente proposée : (b), réversible et sans effet sur le contrat.
+
+## Clôture (2026-10-30)
+
+Décision de Brian : option (b), tracer. Table `manager_changes` en ajout seul (migration 0007) : qui, quand, avant,
+après, écrite dans la même transaction que le changement ; RLS : lue et écrite par un RH de la même entreprise
+seulement, aucune modification ni suppression possible par l'application. Événement `manager.changed` dans les
+journaux. Aucune route ni réponse ne change (contrat inchangé). Le détachement reste possible, mais il laisse une
+trace. Preuve : `docs/evidence/T-0020/`.

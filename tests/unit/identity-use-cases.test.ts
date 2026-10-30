@@ -93,8 +93,24 @@ describe('cas d\'usage identity : messages du contrat et délégation (tests de 
   })
   it('renvoie l\'utilisateur rattaché', async () => {
     const user = { id: TARGET, name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: null }
-    const id = setup({ users: { assignManager: async () => ({ ok: true, user }) } })
+    const id = setup({ users: { assignManager: async () => ({ ok: true, user, previousManagerId: null }) } })
     expect(await id.assignManager(hr, TARGET, { managerId: null })).toBe(user)
+  })
+  it('signale un changement effectif de manager, pas une réaffectation identique (T-0020)', async () => {
+    const user = { id: TARGET, name: 'A', email: 'a@x.io', role: 'employee' as const, managerId: uuid }
+    const seen: unknown[] = []
+    const make = (previousManagerId: string | null) =>
+      identityUseCases({
+        users: { assignManager: async () => ({ ok: true, user, previousManagerId }) } as unknown as UserRepository,
+        accounts: {} as AccountStore,
+        verifyPassword: async () => false,
+        hashPassword: async (p) => p,
+        events: { managerChanged: (event) => seen.push(event) },
+      })
+    await make(null).assignManager(hr, TARGET, { managerId: uuid })
+    expect(seen).toEqual([{ targetId: TARGET, previousManagerId: null, newManagerId: uuid, changedBy: 'rh' }])
+    await make(uuid).assignManager(hr, TARGET, { managerId: uuid.toUpperCase() })
+    expect(seen).toHaveLength(1) // même manager, même écrit en majuscules : pas d'événement
   })
   it('refuse des identifiants vides ou du mauvais type sans consulter les comptes', async () => {
     let lookups = 0
